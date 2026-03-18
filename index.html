@@ -4,20 +4,25 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Liberty Fight League</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Barlow+Condensed:wght@400;600;700;800&display=swap" rel="stylesheet">
+
   <style>
     :root {
       --bg: #070709;
-      --bg-soft: #111115;
       --panel: rgba(255,255,255,0.045);
       --panel-2: rgba(255,255,255,0.025);
       --gold: #c7a343;
-      --gold-dark: #8c6820;
       --red: #7f1717;
       --blue: #16386e;
       --white: #f1f1f1;
-      --gray: #b9b9b9;
+      --gray: #bdbdbd;
       --border: rgba(199,163,67,0.24);
       --shadow: 0 14px 34px rgba(0,0,0,0.42);
+      --body-font: "Barlow Condensed", Arial, sans-serif;
+      --title-font: "Black Ops One", system-ui, sans-serif;
     }
 
     * {
@@ -30,25 +35,18 @@
 
     body {
       margin: 0;
-      font-family: Impact, Haettenschweiler, "Arial Narrow Bold", Arial, sans-serif;
+      font-family: var(--body-font);
       color: var(--white);
       background:
-        linear-gradient(rgba(6,6,8,0.92), rgba(6,6,8,0.98)),
-        radial-gradient(circle at 20% 20%, rgba(127,23,23,0.12), transparent 26%),
+        linear-gradient(rgba(6,6,8,0.93), rgba(6,6,8,0.98)),
+        radial-gradient(circle at 20% 20%, rgba(127,23,23,0.10), transparent 26%),
         radial-gradient(circle at 85% 15%, rgba(22,56,110,0.10), transparent 26%),
         repeating-linear-gradient(
           135deg,
-          rgba(255,255,255,0.016) 0px,
-          rgba(255,255,255,0.016) 1px,
+          rgba(255,255,255,0.014) 0px,
+          rgba(255,255,255,0.014) 1px,
           transparent 1px,
-          transparent 9px
-        ),
-        repeating-linear-gradient(
-          0deg,
-          rgba(255,255,255,0.012) 0px,
-          rgba(255,255,255,0.012) 2px,
-          transparent 2px,
-          transparent 13px
+          transparent 10px
         ),
         linear-gradient(180deg, #101014 0%, #060608 100%);
       line-height: 1.45;
@@ -74,8 +72,7 @@
       position: sticky;
       top: 0;
       z-index: 999;
-      background:
-        linear-gradient(180deg, rgba(10,10,12,0.96), rgba(10,10,12,0.9));
+      background: linear-gradient(180deg, rgba(10,10,12,0.96), rgba(10,10,12,0.9));
       backdrop-filter: blur(10px);
       border-bottom: 1px solid rgba(255,255,255,0.08);
       box-shadow: 0 6px 20px rgba(0,0,0,0.25);
@@ -116,33 +113,34 @@
     .brand-title {
       margin: 0;
       font-size: 1rem;
-      font-weight: 900;
-      letter-spacing: 1.3px;
+      font-weight: 800;
+      letter-spacing: 1.2px;
       text-transform: uppercase;
       color: var(--gold);
-      font-family: Arial, Helvetica, sans-serif;
+      font-family: var(--body-font);
     }
 
     .brand-sub {
-      font-size: 0.7rem;
+      font-size: 0.78rem;
       color: var(--gray);
       text-transform: uppercase;
-      letter-spacing: 1.5px;
-      font-family: Arial, Helvetica, sans-serif;
+      letter-spacing: 1.2px;
+      font-family: var(--body-font);
+      font-weight: 600;
     }
 
     .nav-links {
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
-      font-family: Arial, Helvetica, sans-serif;
+      font-family: var(--body-font);
     }
 
     .nav-links a {
       padding: 10px 12px;
       border-radius: 999px;
-      font-size: 0.85rem;
-      font-weight: 800;
+      font-size: 0.92rem;
+      font-weight: 700;
       color: var(--white);
       transition: 0.2s ease;
       text-transform: uppercase;
@@ -159,7 +157,7 @@
       overflow: hidden;
       border-bottom: 1px solid rgba(255,255,255,0.06);
       background:
-        radial-gradient(circle at top left, rgba(127,23,23,0.18), transparent 30%),
+        radial-gradient(circle at top left, rgba(127,23,23,0.16), transparent 30%),
         radial-gradient(circle at top right, rgba(22,56,110,0.16), transparent 30%);
     }
 
@@ -168,24 +166,14 @@
       position: absolute;
       inset: 0;
       background:
-        linear-gradient(90deg, rgba(127,23,23,0.10) 0%, transparent 18%, transparent 82%, rgba(22,56,110,0.10) 100%),
+        linear-gradient(90deg, rgba(127,23,23,0.08) 0%, transparent 18%, transparent 82%, rgba(22,56,110,0.08) 100%),
         repeating-linear-gradient(
           -45deg,
-          rgba(255,255,255,0.018) 0px,
-          rgba(255,255,255,0.018) 1px,
+          rgba(255,255,255,0.012) 0px,
+          rgba(255,255,255,0.012) 1px,
           transparent 1px,
-          transparent 14px
+          transparent 15px
         );
-      pointer-events: none;
-      mix-blend-mode: screen;
-    }
-
-    .hero::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background:
-        radial-gradient(circle at 50% 30%, rgba(199,163,67,0.06), transparent 28%);
       pointer-events: none;
     }
 
@@ -193,36 +181,19 @@
       display: grid;
       grid-template-columns: 1fr;
       gap: 22px;
-      padding: 28px 0 34px;
+      padding: 30px 0 34px;
       align-items: center;
       position: relative;
       z-index: 2;
     }
 
-    .eyebrow {
-      display: inline-block;
-      margin-bottom: 14px;
-      padding: 8px 14px;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      color: var(--gold);
-      background:
-        linear-gradient(180deg, rgba(199,163,67,0.10), rgba(199,163,67,0.03));
-      font-size: 0.78rem;
-      font-weight: 900;
-      letter-spacing: 1.6px;
-      text-transform: uppercase;
-      font-family: Arial, Helvetica, sans-serif;
-      box-shadow: inset 0 0 12px rgba(199,163,67,0.06);
-    }
-
     .hero h1 {
-      margin: 0 0 14px;
-      font-size: clamp(2.9rem, 10vw, 6.4rem);
-      line-height: 0.88;
+      margin: 0 0 16px;
+      font-family: var(--title-font);
+      font-size: clamp(2.7rem, 9vw, 5.8rem);
+      line-height: 0.92;
       text-transform: uppercase;
-      letter-spacing: 1.5px;
-      font-weight: 900;
+      letter-spacing: 1px;
       text-shadow:
         0 2px 0 rgba(0,0,0,0.35),
         0 8px 22px rgba(0,0,0,0.45);
@@ -236,58 +207,23 @@
     .hero h1 .gold {
       display: block;
       color: var(--gold);
-      text-shadow:
-        0 1px 0 rgba(255,255,255,0.06),
-        0 2px 0 rgba(0,0,0,0.30),
-        0 10px 24px rgba(0,0,0,0.45);
-    }
-
-    .hero h1 .distress {
-      position: relative;
-    }
-
-    .hero h1 .distress::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background:
-        repeating-linear-gradient(
-          90deg,
-          transparent 0px,
-          transparent 18px,
-          rgba(0,0,0,0.08) 18px,
-          rgba(0,0,0,0.08) 21px
-        ),
-        repeating-linear-gradient(
-          0deg,
-          transparent 0px,
-          transparent 16px,
-          rgba(255,255,255,0.04) 16px,
-          rgba(255,255,255,0.04) 17px
-        );
-      mix-blend-mode: overlay;
-      opacity: 0.55;
-      pointer-events: none;
-    }
-
-    .hero-copy {
-      font-family: Arial, Helvetica, sans-serif;
     }
 
     .hero-copy p {
       margin: 0 0 18px;
       color: var(--gray);
       max-width: 620px;
-      font-size: 1rem;
-      line-height: 1.6;
+      font-size: 1.2rem;
+      line-height: 1.5;
+      font-weight: 500;
     }
 
     .hero-buttons {
       display: flex;
       flex-direction: column;
       gap: 12px;
-      margin-bottom: 16px;
-      font-family: Arial, Helvetica, sans-serif;
+      margin-bottom: 0;
+      font-family: var(--body-font);
     }
 
     .btn {
@@ -295,11 +231,11 @@
       align-items: center;
       justify-content: center;
       min-height: 54px;
-      padding: 14px 18px;
+      padding: 14px 20px;
       border-radius: 12px;
-      font-size: 0.95rem;
-      font-weight: 900;
-      letter-spacing: 0.7px;
+      font-size: 1rem;
+      font-weight: 800;
+      letter-spacing: 0.6px;
       text-transform: uppercase;
       transition: transform 0.18s ease, opacity 0.18s ease;
       box-shadow: var(--shadow);
@@ -317,125 +253,35 @@
     }
 
     .btn-secondary {
-      background:
-        linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
       border: 1px solid rgba(255,255,255,0.11);
       color: var(--white);
-    }
-
-    .hero-note {
-      color: #d5d5d5;
-      font-size: 0.88rem;
-      font-family: Arial, Helvetica, sans-serif;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
     }
 
     .poster-card {
       position: relative;
       overflow: hidden;
       background:
-        linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02)),
-        linear-gradient(135deg, rgba(127,23,23,0.12), rgba(22,56,110,0.12));
+        linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.015)),
+        linear-gradient(135deg, rgba(127,23,23,0.10), rgba(22,56,110,0.10));
       border: 1px solid var(--border);
       border-radius: 18px;
       box-shadow: var(--shadow);
       padding: 14px;
     }
 
-    .poster-card::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background:
-        repeating-linear-gradient(
-          45deg,
-          rgba(255,255,255,0.016) 0px,
-          rgba(255,255,255,0.016) 2px,
-          transparent 2px,
-          transparent 12px
-        );
-      pointer-events: none;
-      opacity: 0.55;
-    }
-
     .poster-frame {
       border-radius: 12px;
       overflow: hidden;
       border: 1px solid rgba(255,255,255,0.08);
-      background: #111;
-      position: relative;
-      z-index: 2;
+      background: #000;
     }
 
     .poster-card img {
       width: 100%;
       height: auto;
       object-fit: cover;
-    }
-
-    .poster-label {
-      display: inline-block;
-      margin-bottom: 10px;
-      color: var(--gold);
-      font-size: 0.76rem;
-      text-transform: uppercase;
-      font-weight: 900;
-      letter-spacing: 1.4px;
-      font-family: Arial, Helvetica, sans-serif;
-      position: relative;
-      z-index: 2;
-    }
-
-    .banner-strip {
-      padding: 14px 0;
-      border-top: 1px solid rgba(255,255,255,0.06);
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-      background:
-        linear-gradient(90deg, rgba(127,23,23,0.18) 0%, rgba(199,163,67,0.14) 50%, rgba(22,56,110,0.18) 100%);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .banner-strip::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background:
-        repeating-linear-gradient(
-          90deg,
-          transparent 0px,
-          transparent 22px,
-          rgba(255,255,255,0.02) 22px,
-          rgba(255,255,255,0.02) 24px
-        );
-      pointer-events: none;
-    }
-
-    .banner-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 12px;
-      text-align: center;
-      position: relative;
-      z-index: 2;
-    }
-
-    .banner-item strong {
-      display: block;
-      color: var(--gold);
-      font-size: 1.05rem;
-      margin-bottom: 4px;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-    }
-
-    .banner-item span {
-      color: var(--white);
-      font-size: 0.84rem;
-      text-transform: uppercase;
-      letter-spacing: 0.7px;
-      font-family: Arial, Helvetica, sans-serif;
+      background: #000;
     }
 
     .section {
@@ -443,20 +289,22 @@
     }
 
     .section-title {
-      margin: 0 0 10px;
-      font-size: 1.7rem;
+      margin: 0 0 12px;
+      font-size: 2rem;
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: 0.8px;
       color: var(--gold);
-      text-shadow: 0 4px 14px rgba(0,0,0,0.25);
+      font-family: var(--title-font);
     }
 
     .section-lead {
       margin: 0 0 22px;
       color: var(--gray);
       max-width: 720px;
-      font-family: Arial, Helvetica, sans-serif;
-      line-height: 1.6;
+      font-family: var(--body-font);
+      font-size: 1.15rem;
+      line-height: 1.5;
+      font-weight: 500;
     }
 
     .home-grid {
@@ -471,7 +319,7 @@
         linear-gradient(135deg, rgba(255,255,255,0.01), transparent);
       border: 1px solid rgba(255,255,255,0.08);
       border-radius: 18px;
-      padding: 20px;
+      padding: 22px;
       box-shadow: var(--shadow);
       position: relative;
       overflow: hidden;
@@ -484,83 +332,85 @@
       background:
         repeating-linear-gradient(
           -45deg,
-          rgba(255,255,255,0.014) 0px,
-          rgba(255,255,255,0.014) 2px,
+          rgba(255,255,255,0.012) 0px,
+          rgba(255,255,255,0.012) 2px,
           transparent 2px,
           transparent 14px
         );
       pointer-events: none;
-      opacity: 0.45;
+      opacity: 0.35;
     }
 
     .card h3 {
-      margin: 0 0 10px;
+      margin: 0 0 12px;
       text-transform: uppercase;
-      letter-spacing: 0.7px;
-      font-size: 1.06rem;
+      letter-spacing: 0.4px;
+      font-size: 1.7rem;
       position: relative;
       z-index: 2;
+      font-family: var(--title-font);
+      line-height: 1.05;
     }
 
     .card p {
       margin: 0;
       color: var(--gray);
-      font-size: 0.96rem;
-      font-family: Arial, Helvetica, sans-serif;
+      font-size: 1.1rem;
+      font-family: var(--body-font);
       position: relative;
       z-index: 2;
-      line-height: 1.6;
+      line-height: 1.5;
+      font-weight: 500;
     }
 
     .event-box {
       display: grid;
-      gap: 12px;
+      gap: 14px;
     }
 
     .event-meta {
       color: var(--gray);
-      font-size: 0.94rem;
-      font-family: Arial, Helvetica, sans-serif;
+      font-size: 1.15rem;
+      font-family: var(--body-font);
+      font-weight: 500;
+      line-height: 1.4;
     }
 
     .event-badges {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
-      font-family: Arial, Helvetica, sans-serif;
+      font-family: var(--body-font);
     }
 
     .badge {
-      padding: 8px 10px;
+      padding: 8px 12px;
       border-radius: 999px;
       background: rgba(255,255,255,0.04);
       border: 1px solid rgba(255,255,255,0.08);
-      font-size: 0.74rem;
-      font-weight: 800;
+      font-size: 0.95rem;
+      font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.6px;
+      letter-spacing: 0.4px;
     }
 
     .footer {
       padding: 28px 0 40px;
       border-top: 1px solid rgba(255,255,255,0.06);
       color: var(--gray);
-      font-size: 0.88rem;
+      font-size: 1rem;
       text-align: center;
       margin-top: 8px;
-      font-family: Arial, Helvetica, sans-serif;
+      font-family: var(--body-font);
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.4px;
+      font-weight: 600;
     }
 
     @media (min-width: 720px) {
       .hero-buttons {
         flex-direction: row;
         flex-wrap: wrap;
-      }
-
-      .banner-grid {
-        grid-template-columns: repeat(3, 1fr);
       }
 
       .home-grid {
@@ -570,8 +420,8 @@
 
     @media (min-width: 940px) {
       .hero-wrap {
-        grid-template-columns: 1.05fr 0.95fr;
-        gap: 32px;
+        grid-template-columns: 1.02fr 0.98fr;
+        gap: 34px;
         padding: 50px 0 58px;
       }
 
@@ -589,7 +439,7 @@
         <img src="logo.png" alt="Liberty Fight League logo">
         <div class="brand-text">
           <h2 class="brand-title">Liberty Fight League</h2>
-          <div class="brand-sub">American grit. Real competition.</div>
+          <div class="brand-sub">June 6th • 4 PM • Contra Costa County Fair Grounds</div>
         </div>
       </div>
 
@@ -606,33 +456,26 @@
     <section class="hero">
       <div class="container hero-wrap">
         <div>
-          <div class="eyebrow">Patriotic • Rugged • Mobile First</div>
-
           <h1>
-            <span class="top-line distress">Liberty</span>
-            <span class="gold distress">Fight</span>
-            <span class="gold distress">League</span>
+            <span class="top-line">Liberty</span>
+            <span class="gold">Fight</span>
+            <span class="gold">League</span>
           </h1>
 
           <div class="hero-copy">
             <p>
-              A gritty American fight promotion built for rising talent, loud crowds, and a rough-edged fight-night atmosphere.
-              Designed for fans and fighters viewing from their phones.
+              June 6th at 4 PM<br>
+              Contra Costa County Fair Grounds
             </p>
 
             <div class="hero-buttons">
               <a class="btn btn-primary" href="fighters.html">Apply to Fight</a>
               <a class="btn btn-secondary" href="event.html">Tickets Coming Soon</a>
             </div>
-
-            <div class="hero-note">
-              Bay Area fight promotion • fighter applications open • sponsor opportunities available
-            </div>
           </div>
         </div>
 
         <div class="poster-card">
-          <div class="poster-label">Featured Poster</div>
           <div class="poster-frame">
             <img src="poster.jpg" alt="Liberty Fight League event poster">
           </div>
@@ -640,37 +483,19 @@
       </div>
     </section>
 
-    <section class="banner-strip">
-      <div class="container banner-grid">
-        <div class="banner-item">
-          <strong>Fighter Applications</strong>
-          <span>Open now for upcoming cards</span>
-        </div>
-        <div class="banner-item">
-          <strong>Live Event Energy</strong>
-          <span>Built for crowd atmosphere</span>
-        </div>
-        <div class="banner-item">
-          <strong>American Identity</strong>
-          <span>Rugged patriotic branding</span>
-        </div>
-      </div>
-    </section>
-
     <section class="section">
       <div class="container">
-        <h2 class="section-title">The next event</h2>
+        <h2 class="section-title">The Next Event</h2>
         <p class="section-lead">
-          Keep the next card front and center so visitors instantly know where to go for tickets, fighter applications, and event details.
+          June 6th at 4 PM at the Contra Costa County Fair Grounds.
         </p>
 
         <div class="card event-box">
           <h3>Liberty Fight League 1</h3>
-          <div class="event-meta">Saturday, November 15 • Venue TBA • Bay Area, California</div>
+          <div class="event-meta">June 6th • 4 PM • Contra Costa County Fair Grounds</div>
 
           <div class="event-badges">
             <div class="badge">Amateur MMA</div>
-            <div class="badge">Patriotic Theme</div>
             <div class="badge">Tickets Coming Soon</div>
           </div>
 
@@ -678,7 +503,7 @@
             Rising talent. Hard matchups. A rough-and-rugged American fight-night feel built for real local fight fans.
           </p>
 
-          <div class="hero-buttons" style="margin-top: 6px; margin-bottom: 0;">
+          <div class="hero-buttons" style="margin-top: 6px;">
             <a class="btn btn-primary" href="event.html">View Event</a>
             <a class="btn btn-secondary" href="contact.html">Sponsor Info</a>
           </div>
@@ -688,10 +513,7 @@
 
     <section class="section" style="padding-top: 0;">
       <div class="container">
-        <h2 class="section-title">Built for fighters, fans, and sponsors</h2>
-        <p class="section-lead">
-          The site is lean on purpose: clean navigation, direct calls to action, and a rougher visual identity without clutter.
-        </p>
+        <h2 class="section-title">Built for Fighters, Fans, and Sponsors</h2>
 
         <div class="home-grid">
           <div class="card">
