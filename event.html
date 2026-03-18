@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Upcoming Event | Liberty Fight League</title>
+  <style>
+    :root {
+      --bg: #0b0b0d;
+      --bg2: #141418;
+      --gold: #c9a34a;
+      --gold-dark: #8b6a22;
+      --red: #9e1c1c;
+      --blue: #1d3f73;
+      --white: #f4f4f4;
+      --gray: #b7b7b7;
+      --border: rgba(201, 163, 74, 0.28);
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background:
+        linear-gradient(rgba(8, 8, 10, 0.9), rgba(8, 8, 10, 0.97)),
+        repeating-linear-gradient(
+          135deg,
+          rgba(255,255,255,0.02) 0px,
+          rgba(255,255,255,0.02) 2px,
+          transparent 2px,
+          transparent 10px
+        ),
+        linear-gradient(180deg, #101014 0%, #09090b 100%);
+      color: var(--white);
+      line-height: 1.5;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .container {
+      width: min(1100px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 999;
+      backdrop-filter: blur(10px);
+      background: rgba(10, 10, 12, 0.92);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .nav {
+      min-height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding: 10px 0;
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .brand-title {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 900;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--gold);
+    }
+
+    .brand-sub {
+      font-size: 0.72rem;
+      color: var(--gray);
+      letter-spacing: 1.6px;
+      text-transform: uppercase;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .nav-links a {
+      padding: 10px 12px;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--white);
+      transition: 0.2s ease;
+    }
+
+    .nav-links a:hover,
+    .nav-links a.active {
+      background: rgba(255,255,255,0.08);
+      color: var(--gold);
+    }
+
+    .hero {
+      padding: 54px 0 34px;
+      background:
+        radial-gradient(circle at top left, rgba(158, 28, 28, 0.24), transparent 28%),
+        radial-gradient(circle at top right, rgba(29, 63, 115, 0.22), transparent 28%);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .eyebrow {
+      display: inline-block;
+      margin-bottom: 14px;
+      padding: 8px 12px;
+      border: 1px solid rgba(201,163,74,0.35);
+      border-radius: 999px;
+      color: var(--gold);
+      font-size: 0.75rem;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      background: rgba(201,163,74,0.08);
+    }
+
+    .hero h1 {
+      margin: 0 0 14px;
+      font-size: clamp(2.1rem, 8vw, 4.2rem);
+      line-height: 0.96;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 720px;
+      color: var(--gray);
+      font-size: 1rem;
+    }
+
+    .section {
+      padding: 34px 0;
+    }
+
+    .event-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 18px;
+    }
+
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.02));
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px;
+      padding: 22px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h2,
+    .card h3 {
+      margin-top: 0;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .card h2 {
+      color: var(--gold);
+      font-size: 1.45rem;
+      margin-bottom: 16px;
+    }
+
+    .card h3 {
+      font-size: 1rem;
+      margin-bottom: 12px;
+    }
+
+    .event-name {
+      font-size: 1.7rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .event-meta {
+      color: var(--gray);
+      margin-bottom: 18px;
+      font-size: 0.98rem;
+    }
+
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .badge {
+      padding: 8px 10px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.04);
+    }
+
+    .btn-row {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 52px;
+      padding: 14px 18px;
+      border-radius: 12px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      transition: transform 0.2s ease, opacity 0.2s ease;
+      box-shadow: var(--shadow);
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      opacity: 0.96;
+    }
+
+    .btn-primary {
+      background: linear-gradient(180deg, #d8b35f 0%, #b8892d 100%);
+      color: #111;
+    }
+
+    .btn-secondary {
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.04);
+      color: var(--white);
+    }
+
+    .fight-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .fight {
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 14px;
+      background: rgba(255,255,255,0.025);
+    }
+
+    .fight-label {
+      font-size: 0.72rem;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--gold);
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .fight-matchup {
+      font-size: 1rem;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .fight-meta {
+      color: var(--gray);
+      font-size: 0.92rem;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .info-item {
+      border-left: 3px solid var(--gold);
+      padding-left: 12px;
+    }
+
+    .info-item strong {
+      display: block;
+      text-transform: uppercase;
+      font-size: 0.82rem;
+      letter-spacing: 0.8px;
+      color: var(--gold);
+      margin-bottom: 4px;
+    }
+
+    .footer {
+      padding: 28px 0 40px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      color: var(--gray);
+      font-size: 0.9rem;
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    @media (min-width: 760px) {
+      .btn-row {
+        flex-direction: row;
+        flex-wrap: wrap;
+      }
+
+      .info-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (min-width: 980px) {
+      .event-grid {
+        grid-template-columns: 1.15fr 0.85fr;
+        align-items: start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container nav">
+      <div class="brand">
+        <h2 class="brand-title">Liberty Fight League</h2>
+        <div class="brand-sub">American grit. Real competition.</div>
+      </div>
+
+      <nav class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="event.html" class="active">Event</a>
+        <a href="fighters.html">Fighters</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container">
+        <div class="eyebrow">Upcoming Fight Night</div>
+        <h1>Liberty Fight League 1</h1>
+        <p>
+          A rugged American fight card built for rising talent, real competition, and a loud live atmosphere.
+          This page is mobile-first so fans can pull up the card, venue, and tickets fast.
+        </p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container event-grid">
+        <div class="card">
+          <div class="event-name">Liberty Fight League 1</div>
+          <div class="event-meta">Saturday, November 15 • Venue TBA • Bay Area, California</div>
+
+          <div class="badge-row">
+            <div class="badge">Amateur MMA</div>
+            <div class="badge">Fight Card Coming Together</div>
+            <div class="badge">Tickets Coming Soon</div>
+          </div>
+
+          <p style="color: var(--gray); margin: 0 0 18px;">
+            Liberty Fight League brings together developing athletes, hungry gyms, and a gritty patriotic fight-night identity.
+            Update this section any time with your real event date, venue, and finalized matchup details.
+          </p>
+
+          <div class="btn-row">
+            <a class="btn btn-primary" href="#">Buy Tickets</a>
+            <a class="btn btn-secondary" href="fighters.html">Apply to Fight</a>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Event Info</h2>
+
+          <div class="info-grid">
+            <div class="info-item">
+              <strong>Date</strong>
+              <span>Saturday, November 15</span>
+            </div>
+
+            <div class="info-item">
+              <strong>Location</strong>
+              <span>Bay Area, California</span>
+            </div>
+
+            <div class="info-item">
+              <strong>Status</strong>
+              <span>Matchups in progress</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" style="padding-top: 0;">
+      <div class="container">
+        <div class="card">
+          <h2>Featured Fight Card</h2>
+
+          <div class="fight-list">
+            <div class="fight">
+              <div class="fight-label">Main Event</div>
+              <div class="fight-matchup">Fighter A vs Fighter B</div>
+              <div class="fight-meta">155 lbs • Lightweight Bout</div>
+            </div>
+
+            <div class="fight">
+              <div class="fight-label">Co-Main Event</div>
+              <div class="fight-matchup">Fighter C vs Fighter D</div>
+              <div class="fight-meta">170 lbs • Welterweight Bout</div>
+            </div>
+
+            <div class="fight">
+              <div class="fight-label">Feature Bout</div>
+              <div class="fight-matchup">Fighter E vs Fighter F</div>
+              <div class="fight-meta">145 lbs • Featherweight Bout</div>
+            </div>
+
+            <div class="fight">
+              <div class="fight-label">Additional Bout</div>
+              <div class="fight-matchup">Fighter G vs Fighter H</div>
+              <div class="fight-meta">135 lbs • Bantamweight Bout</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" style="padding-top: 0;">
+      <div class="container">
+        <div class="card">
+          <h2>Event Notes</h2>
+          <p style="margin: 0; color: var(--gray);">
+            Use this section for doors open time, first bout time, parking details, venue rules, livestream info,
+            or any special announcements. Since most visitors will be on their phones, keeping this page direct
+            and easy to scan is the move.
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      © 2026 Liberty Fight League. All rights reserved.
+    </div>
+  </footer>
+</body>
+</html>
