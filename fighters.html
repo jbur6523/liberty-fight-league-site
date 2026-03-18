@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fighter Registration | Liberty Fight League</title>
+  <style>
+    :root {
+      --bg: #0b0b0d;
+      --gold: #c9a34a;
+      --white: #f4f4f4;
+      --gray: #b7b7b7;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background:
+        linear-gradient(rgba(8, 8, 10, 0.9), rgba(8, 8, 10, 0.97)),
+        repeating-linear-gradient(
+          135deg,
+          rgba(255,255,255,0.02) 0px,
+          rgba(255,255,255,0.02) 2px,
+          transparent 2px,
+          transparent 10px
+        ),
+        linear-gradient(180deg, #101014 0%, #09090b 100%);
+      color: var(--white);
+      line-height: 1.5;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .container {
+      width: min(1100px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 999;
+      backdrop-filter: blur(10px);
+      background: rgba(10, 10, 12, 0.92);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .nav {
+      min-height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding: 10px 0;
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .brand-title {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 900;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--gold);
+    }
+
+    .brand-sub {
+      font-size: 0.72rem;
+      color: var(--gray);
+      letter-spacing: 1.6px;
+      text-transform: uppercase;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .nav-links a {
+      padding: 10px 12px;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--white);
+      transition: 0.2s ease;
+    }
+
+    .nav-links a:hover,
+    .nav-links a.active {
+      background: rgba(255,255,255,0.08);
+      color: var(--gold);
+    }
+
+    .hero {
+      padding: 54px 0 24px;
+      background:
+        radial-gradient(circle at top left, rgba(158, 28, 28, 0.24), transparent 28%),
+        radial-gradient(circle at top right, rgba(29, 63, 115, 0.22), transparent 28%);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .eyebrow {
+      display: inline-block;
+      margin-bottom: 14px;
+      padding: 8px 12px;
+      border: 1px solid rgba(201,163,74,0.35);
+      border-radius: 999px;
+      color: var(--gold);
+      font-size: 0.75rem;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      background: rgba(201,163,74,0.08);
+    }
+
+    .hero h1 {
+      margin: 0 0 14px;
+      font-size: clamp(2rem, 8vw, 4rem);
+      line-height: 0.96;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 760px;
+      color: var(--gray);
+      font-size: 1rem;
+    }
+
+    .section {
+      padding: 28px 0 42px;
+    }
+
+    .intro-card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.02));
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px;
+      padding: 22px;
+      box-shadow: var(--shadow);
+      margin-bottom: 18px;
+    }
+
+    .intro-card h2 {
+      margin: 0 0 10px;
+      font-size: 1.3rem;
+      color: var(--gold);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .intro-card p {
+      margin: 0;
+      color: var(--gray);
+    }
+
+    .form-wrap {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    iframe {
+      display: block;
+      width: 100%;
+      min-height: 1400px;
+      border: 0;
+      background: white;
+    }
+
+    .footer {
+      padding: 28px 0 40px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      color: var(--gray);
+      font-size: 0.9rem;
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    @media (min-width: 768px) {
+      iframe {
+        min-height: 1700px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container nav">
+      <div class="brand">
+        <h2 class="brand-title">Liberty Fight League</h2>
+        <div class="brand-sub">American grit. Real competition.</div>
+      </div>
+
+      <nav class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="event.html">Event</a>
+        <a href="fighters.html" class="active">Fighters</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container">
+        <div class="eyebrow">Fighter Registration</div>
+        <h1>Apply to Fight</h1>
+        <p>
+          Liberty Fight League is looking for serious competitors ready to step in and perform.
+          Submit your information below and we’ll review you for upcoming cards.
+        </p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="intro-card">
+          <h2>Before You Submit</h2>
+          <p>
+            Make sure your contact information, gym affiliation, weight class, and fight experience are accurate.
+            Fighters who are responsive, reliable, and ready to help promote their bout are strongly preferred.
+          </p>
+        </div>
+
+        <div class="form-wrap">
+          <iframe
+            src="https://docs.google.com/forms/d/e/1FAIpQLSdofj4YZgpilO-MzRAksCDSr2tyRbftWNQm1_qRwhvlCeCDZA/viewform?embedded=true"
+            marginheight="0"
+            marginwidth="0">
+            Loading…
+          </iframe>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      © 2026 Liberty Fight League. All rights reserved.
+    </div>
+  </footer>
+</body>
+</html>
