@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contact | Liberty Fight League</title>
+  <style>
+    :root {
+      --gold: #c9a34a;
+      --white: #f4f4f4;
+      --gray: #b7b7b7;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background:
+        linear-gradient(rgba(8, 8, 10, 0.9), rgba(8, 8, 10, 0.97)),
+        repeating-linear-gradient(
+          135deg,
+          rgba(255,255,255,0.02) 0px,
+          rgba(255,255,255,0.02) 2px,
+          transparent 2px,
+          transparent 10px
+        ),
+        linear-gradient(180deg, #101014 0%, #09090b 100%);
+      color: var(--white);
+      line-height: 1.5;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .container {
+      width: min(1100px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 999;
+      backdrop-filter: blur(10px);
+      background: rgba(10, 10, 12, 0.92);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .nav {
+      min-height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding: 10px 0;
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .brand-title {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 900;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--gold);
+    }
+
+    .brand-sub {
+      font-size: 0.72rem;
+      color: var(--gray);
+      letter-spacing: 1.6px;
+      text-transform: uppercase;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .nav-links a {
+      padding: 10px 12px;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--white);
+      transition: 0.2s ease;
+    }
+
+    .nav-links a:hover,
+    .nav-links a.active {
+      background: rgba(255,255,255,0.08);
+      color: var(--gold);
+    }
+
+    .hero {
+      padding: 54px 0 24px;
+      background:
+        radial-gradient(circle at top left, rgba(158, 28, 28, 0.24), transparent 28%),
+        radial-gradient(circle at top right, rgba(29, 63, 115, 0.22), transparent 28%);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .eyebrow {
+      display: inline-block;
+      margin-bottom: 14px;
+      padding: 8px 12px;
+      border: 1px solid rgba(201,163,74,0.35);
+      border-radius: 999px;
+      color: var(--gold);
+      font-size: 0.75rem;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      background: rgba(201,163,74,0.08);
+    }
+
+    .hero h1 {
+      margin: 0 0 14px;
+      font-size: clamp(2rem, 8vw, 4rem);
+      line-height: 0.96;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 760px;
+      color: var(--gray);
+      font-size: 1rem;
+    }
+
+    .section {
+      padding: 28px 0 42px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 18px;
+    }
+
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.02));
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px;
+      padding: 22px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h2 {
+      margin: 0 0 12px;
+      font-size: 1.25rem;
+      color: var(--gold);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .card p {
+      margin: 0 0 12px;
+      color: var(--gray);
+    }
+
+    .contact-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .contact-item {
+      padding: 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.025);
+    }
+
+    .contact-item strong {
+      display: block;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--gold);
+      margin-bottom: 6px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 52px;
+      padding: 14px 18px;
+      border-radius: 12px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      background: linear-gradient(180deg, #d8b35f 0%, #b8892d 100%);
+      color: #111;
+      box-shadow: var(--shadow);
+      margin-top: 8px;
+    }
+
+    .footer {
+      padding: 28px 0 40px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      color: var(--gray);
+      font-size: 0.9rem;
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    @media (min-width: 860px) {
+      .grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container nav">
+      <div class="brand">
+        <h2 class="brand-title">Liberty Fight League</h2>
+        <div class="brand-sub">American grit. Real competition.</div>
+      </div>
+
+      <nav class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="event.html">Event</a>
+        <a href="fighters.html">Fighters</a>
+        <a href="contact.html" class="active">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container">
+        <div class="eyebrow">Contact & Sponsors</div>
+        <h1>Get in Touch</h1>
+        <p>
+          Reach out for sponsorship opportunities, event questions, fighter inquiries, or general promotion info.
+        </p>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container grid">
+        <div class="card">
+          <h2>Promotion Contact</h2>
+          <p>
+            Use this section for your main promoter contact details. You can update these any time later.
+          </p>
+
+          <div class="contact-list">
+            <div class="contact-item">
+              <strong>Email</strong>
+              your@email.com
+            </div>
+
+            <div class="contact-item">
+              <strong>Phone</strong>
+              (555) 555-5555
+            </div>
+
+            <div class="contact-item">
+              <strong>Instagram</strong>
+              @libertyfightleague
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Sponsor Inquiries</h2>
+          <p>
+            Liberty Fight League is building a rugged, patriotic fight-night brand designed for fans, gyms, and local business partners.
+          </p>
+          <p>
+            If you’re interested in sponsoring an event, partnering with the promotion, or placing your brand in front of our audience, reach out directly.
+          </p>
+
+          <a class="btn" href="mailto:your@email.com">Email for Sponsorships</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      © 2026 Liberty Fight League. All rights reserved.
+    </div>
+  </footer>
+</body>
+</html>
