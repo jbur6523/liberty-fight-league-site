@@ -6,16 +6,18 @@
   <title>Liberty Fight League</title>
   <style>
     :root {
-      --bg: #0b0b0d;
-      --bg2: #141418;
+      --bg: #09090b;
+      --bg-soft: #121216;
+      --panel: rgba(255,255,255,0.04);
+      --panel-2: rgba(255,255,255,0.025);
       --gold: #c9a34a;
-      --gold-dark: #8b6a22;
-      --red: #9e1c1c;
-      --blue: #1d3f73;
-      --white: #f4f4f4;
-      --gray: #b7b7b7;
-      --border: rgba(201, 163, 74, 0.28);
-      --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      --gold-dark: #8d6820;
+      --red: #8f1b1b;
+      --blue: #1b3c75;
+      --white: #f5f5f5;
+      --gray: #bdbdbd;
+      --border: rgba(201,163,74,0.22);
+      --shadow: 0 12px 30px rgba(0,0,0,0.35);
     }
 
     * {
@@ -29,17 +31,17 @@
     body {
       margin: 0;
       font-family: Arial, Helvetica, sans-serif;
+      color: var(--white);
       background:
-        linear-gradient(rgba(8, 8, 10, 0.88), rgba(8, 8, 10, 0.96)),
+        linear-gradient(rgba(8,8,10,0.92), rgba(8,8,10,0.98)),
         repeating-linear-gradient(
           135deg,
-          rgba(255,255,255,0.02) 0px,
-          rgba(255,255,255,0.02) 2px,
+          rgba(255,255,255,0.018) 0px,
+          rgba(255,255,255,0.018) 2px,
           transparent 2px,
-          transparent 10px
+          transparent 12px
         ),
-        linear-gradient(180deg, #101014 0%, #09090b 100%);
-      color: var(--white);
+        linear-gradient(180deg, #111116 0%, #08080a 100%);
       line-height: 1.5;
     }
 
@@ -54,7 +56,7 @@
     }
 
     .container {
-      width: min(1100px, calc(100% - 32px));
+      width: min(1120px, calc(100% - 28px));
       margin: 0 auto;
     }
 
@@ -62,30 +64,47 @@
       position: sticky;
       top: 0;
       z-index: 999;
+      background: rgba(10,10,12,0.92);
       backdrop-filter: blur(10px);
-      background: rgba(10, 10, 12, 0.92);
       border-bottom: 1px solid rgba(255,255,255,0.08);
     }
 
     .nav {
-      min-height: 72px;
+      min-height: 78px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
+      gap: 14px;
+      padding: 10px 0;
+      flex-wrap: wrap;
     }
 
     .brand {
       display: flex;
-      flex-direction: column;
-      gap: 2px;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .brand img {
+      width: 52px;
+      height: 52px;
+      object-fit: contain;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.04);
+      padding: 4px;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .brand-text {
+      min-width: 0;
     }
 
     .brand-title {
       margin: 0;
-      font-size: 1.05rem;
+      font-size: 1rem;
       font-weight: 900;
-      letter-spacing: 1.2px;
+      letter-spacing: 1.1px;
       text-transform: uppercase;
       color: var(--gold);
     }
@@ -93,39 +112,37 @@
     .brand-sub {
       font-size: 0.72rem;
       color: var(--gray);
-      letter-spacing: 1.6px;
       text-transform: uppercase;
+      letter-spacing: 1.4px;
     }
 
     .nav-links {
       display: flex;
-      gap: 10px;
+      gap: 8px;
       flex-wrap: wrap;
-      justify-content: flex-end;
     }
 
     .nav-links a {
       padding: 10px 12px;
       border-radius: 999px;
       font-size: 0.88rem;
-      font-weight: 700;
+      font-weight: 800;
       color: var(--white);
       transition: 0.2s ease;
     }
 
     .nav-links a:hover {
-      background: rgba(255,255,255,0.08);
       color: var(--gold);
+      background: rgba(255,255,255,0.07);
     }
 
     .hero {
       position: relative;
       overflow: hidden;
-      padding: 56px 0 40px;
       border-bottom: 1px solid rgba(255,255,255,0.06);
       background:
-        radial-gradient(circle at top left, rgba(158, 28, 28, 0.24), transparent 28%),
-        radial-gradient(circle at top right, rgba(29, 63, 115, 0.22), transparent 28%);
+        radial-gradient(circle at top left, rgba(143,27,27,0.22), transparent 30%),
+        radial-gradient(circle at top right, rgba(27,60,117,0.2), transparent 30%);
     }
 
     .hero::before {
@@ -133,35 +150,36 @@
       position: absolute;
       inset: 0;
       background:
-        linear-gradient(90deg, transparent 0%, rgba(201,163,74,0.06) 50%, transparent 100%);
+        linear-gradient(90deg, rgba(143,27,27,0.08) 0%, transparent 20%, transparent 80%, rgba(27,60,117,0.08) 100%);
       pointer-events: none;
     }
 
-    .hero-grid {
+    .hero-wrap {
       display: grid;
       grid-template-columns: 1fr;
-      gap: 28px;
+      gap: 22px;
+      padding: 28px 0 34px;
       align-items: center;
     }
 
     .eyebrow {
       display: inline-block;
-      margin-bottom: 14px;
-      padding: 8px 12px;
-      border: 1px solid rgba(201,163,74,0.35);
+      margin-bottom: 12px;
+      padding: 7px 12px;
       border-radius: 999px;
+      border: 1px solid var(--border);
       color: var(--gold);
-      font-size: 0.75rem;
-      font-weight: 800;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
       background: rgba(201,163,74,0.08);
+      font-size: 0.74rem;
+      font-weight: 900;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
     }
 
     .hero h1 {
       margin: 0 0 14px;
-      font-size: clamp(2.2rem, 8vw, 4.8rem);
-      line-height: 0.96;
+      font-size: clamp(2.2rem, 8.5vw, 5rem);
+      line-height: 0.95;
       text-transform: uppercase;
       letter-spacing: 1px;
     }
@@ -172,17 +190,17 @@
     }
 
     .hero p {
-      margin: 0 0 22px;
+      margin: 0 0 18px;
       color: var(--gray);
-      font-size: 1rem;
       max-width: 620px;
+      font-size: 1rem;
     }
 
     .hero-buttons {
       display: flex;
       flex-direction: column;
       gap: 12px;
-      margin-bottom: 18px;
+      margin-bottom: 16px;
     }
 
     .btn {
@@ -192,123 +210,126 @@
       min-height: 52px;
       padding: 14px 18px;
       border-radius: 12px;
+      font-size: 0.95rem;
       font-weight: 900;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.4px;
       text-transform: uppercase;
-      transition: transform 0.2s ease, opacity 0.2s ease, background 0.2s ease;
+      transition: transform 0.18s ease, opacity 0.18s ease;
       box-shadow: var(--shadow);
     }
 
     .btn:hover {
       transform: translateY(-1px);
-      opacity: 0.96;
+      opacity: 0.97;
     }
 
     .btn-primary {
-      background: linear-gradient(180deg, #d8b35f 0%, #b8892d 100%);
+      background: linear-gradient(180deg, #dbb762 0%, #b7862c 100%);
       color: #111;
     }
 
     .btn-secondary {
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(255,255,255,0.04);
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
       color: var(--white);
     }
 
     .hero-note {
+      color: #d7d7d7;
       font-size: 0.88rem;
-      color: #d5d5d5;
     }
 
-    .hero-card {
-      background:
-        linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02)),
-        linear-gradient(135deg, rgba(158,28,28,0.18), rgba(29,63,115,0.12));
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 22px;
-      box-shadow: var(--shadow);
+    .poster-card {
       position: relative;
       overflow: hidden;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02)),
+        linear-gradient(135deg, rgba(143,27,27,0.12), rgba(27,60,117,0.12));
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 14px;
     }
 
-    .hero-card::after {
-      content: "";
-      position: absolute;
-      inset: auto -30px -30px auto;
-      width: 120px;
-      height: 120px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(201,163,74,0.18), transparent 70%);
-      pointer-events: none;
+    .poster-frame {
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: #111;
     }
 
-    .card-kicker {
+    .poster-card img {
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+    }
+
+    .poster-label {
+      display: inline-block;
+      margin-bottom: 10px;
+      color: var(--gold);
       font-size: 0.75rem;
       text-transform: uppercase;
-      letter-spacing: 1.5px;
-      color: var(--gold);
-      font-weight: 800;
-      margin-bottom: 10px;
-    }
-
-    .event-name {
-      font-size: 1.6rem;
       font-weight: 900;
-      margin-bottom: 8px;
+      letter-spacing: 1.3px;
+    }
+
+    .banner-strip {
+      padding: 14px 0;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      background:
+        linear-gradient(90deg, rgba(143,27,27,0.18) 0%, rgba(201,163,74,0.12) 50%, rgba(27,60,117,0.18) 100%);
+    }
+
+    .banner-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      text-align: center;
+    }
+
+    .banner-item strong {
+      display: block;
+      color: var(--gold);
+      font-size: 1.08rem;
+      margin-bottom: 4px;
       text-transform: uppercase;
     }
 
-    .event-meta {
-      color: var(--gray);
-      font-size: 0.95rem;
-      margin-bottom: 18px;
-    }
-
-    .event-badges {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 18px;
-    }
-
-    .badge {
-      padding: 8px 10px;
-      border-radius: 999px;
-      font-size: 0.78rem;
-      font-weight: 800;
+    .banner-item span {
+      color: var(--white);
+      font-size: 0.86rem;
       text-transform: uppercase;
-      letter-spacing: 0.6px;
-      border: 1px solid rgba(255,255,255,0.1);
-      background: rgba(255,255,255,0.04);
+      letter-spacing: 0.7px;
     }
 
     .section {
-      padding: 42px 0;
+      padding: 38px 0;
     }
 
     .section-title {
       margin: 0 0 10px;
-      font-size: 1.7rem;
+      font-size: 1.65rem;
       text-transform: uppercase;
       letter-spacing: 0.8px;
       color: var(--gold);
     }
 
     .section-lead {
-      margin: 0 0 24px;
+      margin: 0 0 22px;
       color: var(--gray);
       max-width: 720px;
     }
 
-    .cards {
+    .home-grid {
       display: grid;
       grid-template-columns: 1fr;
       gap: 16px;
     }
 
     .card {
-      background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.02));
+      background: linear-gradient(180deg, var(--panel), var(--panel-2));
       border: 1px solid rgba(255,255,255,0.08);
       border-radius: 18px;
       padding: 20px;
@@ -317,9 +338,9 @@
 
     .card h3 {
       margin: 0 0 10px;
-      font-size: 1.05rem;
       text-transform: uppercase;
       letter-spacing: 0.5px;
+      font-size: 1.02rem;
     }
 
     .card p {
@@ -328,34 +349,31 @@
       font-size: 0.96rem;
     }
 
-    .highlight-band {
-      padding: 18px 0;
-      background:
-        linear-gradient(90deg, rgba(158,28,28,0.18) 0%, rgba(201,163,74,0.12) 48%, rgba(29,63,115,0.18) 100%);
-      border-top: 1px solid rgba(255,255,255,0.06);
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-    }
-
-    .highlight-grid {
+    .event-box {
       display: grid;
-      grid-template-columns: 1fr;
-      gap: 14px;
-      text-align: center;
+      gap: 12px;
     }
 
-    .highlight-item strong {
-      display: block;
-      font-size: 1.2rem;
-      color: var(--gold);
-      margin-bottom: 4px;
+    .event-meta {
+      color: var(--gray);
+      font-size: 0.94rem;
     }
 
-    .highlight-item span {
-      color: var(--white);
-      opacity: 0.9;
-      font-size: 0.92rem;
+    .event-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .badge {
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      font-size: 0.76rem;
+      font-weight: 800;
       text-transform: uppercase;
-      letter-spacing: 0.8px;
+      letter-spacing: 0.5px;
     }
 
     .footer {
@@ -364,39 +382,34 @@
       color: var(--gray);
       font-size: 0.9rem;
       text-align: center;
+      margin-top: 8px;
     }
 
-    @media (min-width: 700px) {
-      .hero {
-        padding: 72px 0 56px;
-      }
-
+    @media (min-width: 720px) {
       .hero-buttons {
         flex-direction: row;
         flex-wrap: wrap;
       }
 
-      .cards {
+      .banner-grid {
         grid-template-columns: repeat(3, 1fr);
       }
 
-      .highlight-grid {
+      .home-grid {
         grid-template-columns: repeat(3, 1fr);
       }
     }
 
-    @media (min-width: 900px) {
-      .hero-grid {
-        grid-template-columns: 1.15fr 0.85fr;
-        gap: 36px;
+    @media (min-width: 940px) {
+      .hero-wrap {
+        grid-template-columns: 1.08fr 0.92fr;
+        gap: 32px;
+        padding: 46px 0 54px;
       }
 
-      .nav-links {
-        gap: 16px;
-      }
-
-      .nav-links a {
-        padding: 10px 14px;
+      .brand img {
+        width: 58px;
+        height: 58px;
       }
     }
   </style>
@@ -405,8 +418,11 @@
   <header class="topbar">
     <div class="container nav">
       <div class="brand">
-        <h2 class="brand-title">Liberty Fight League</h2>
-        <div class="brand-sub">American grit. Real competition.</div>
+        <img src="logo.png" alt="Liberty Fight League logo">
+        <div class="brand-text">
+          <h2 class="brand-title">Liberty Fight League</h2>
+          <div class="brand-sub">American grit. Real competition.</div>
+        </div>
       </div>
 
       <nav class="nav-links">
@@ -420,16 +436,16 @@
 
   <main>
     <section class="hero">
-      <div class="container hero-grid">
+      <div class="container hero-wrap">
         <div>
-          <div class="eyebrow">Rugged American MMA Promotion</div>
+          <div class="eyebrow">Patriotic • Rugged • Mobile First</div>
           <h1>
-            Where
-            <span class="gold">Warriors Rise</span>
+            Liberty
+            <span class="gold">Fight League</span>
           </h1>
           <p>
-            Liberty Fight League brings a gritty, patriotic fight-night experience built for real competitors,
-            loud crowds, and unforgettable matchups. Bold action. Hard-earned respect. American fight culture.
+            A gritty American fight promotion built for rising talent, live-event energy, and a rough-edged
+            fight-night atmosphere. Designed for fans and fighters viewing from their phones.
           </p>
 
           <div class="hero-buttons">
@@ -438,16 +454,46 @@
           </div>
 
           <div class="hero-note">
-            Mobile-first fight promotion website built for fans, fighters, and sponsors on the go.
+            Bay Area fight promotion • fighter applications open • sponsor opportunities available
           </div>
         </div>
 
-        <div class="hero-card">
-          <div class="card-kicker">Next Event</div>
-          <div class="event-name">Liberty Fight League 1</div>
-          <div class="event-meta">
-            Saturday, November 15 • Venue TBA • Bay Area, California
+        <div class="poster-card">
+          <div class="poster-label">Featured Poster</div>
+          <div class="poster-frame">
+            <img src="poster.jpg" alt="Liberty Fight League event poster">
           </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="banner-strip">
+      <div class="container banner-grid">
+        <div class="banner-item">
+          <strong>Fighter Applications</strong>
+          <span>Open now for upcoming cards</span>
+        </div>
+        <div class="banner-item">
+          <strong>Live Event Energy</strong>
+          <span>Built for crowd atmosphere</span>
+        </div>
+        <div class="banner-item">
+          <strong>American Identity</strong>
+          <span>Rugged patriotic branding</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <h2 class="section-title">The next event</h2>
+        <p class="section-lead">
+          Keep the next card front and center so visitors instantly know where to go for tickets, fighter applications, and event details.
+        </p>
+
+        <div class="card event-box">
+          <h3>Liberty Fight League 1</h3>
+          <div class="event-meta">Saturday, November 15 • Venue TBA • Bay Area, California</div>
 
           <div class="event-badges">
             <div class="badge">Amateur MMA</div>
@@ -455,60 +501,44 @@
             <div class="badge">Tickets Coming Soon</div>
           </div>
 
-          <p style="margin:0 0 18px; color: var(--gray);">
-            A rugged showcase of rising talent, tough matchups, and fight-night energy with a bold American identity.
+          <p>
+            Rising talent. Hard matchups. A rough-and-rugged American fight-night feel built for real local fight fans.
           </p>
 
-          <a class="btn btn-primary" href="event.html">View Event</a>
+          <div class="hero-buttons" style="margin-top: 6px; margin-bottom: 0;">
+            <a class="btn btn-primary" href="event.html">View Event</a>
+            <a class="btn btn-secondary" href="contact.html">Sponsor Info</a>
+          </div>
         </div>
       </div>
     </section>
 
-    <section class="highlight-band">
-      <div class="container highlight-grid">
-        <div class="highlight-item">
-          <strong>Fighters Wanted</strong>
-          <span>Apply now for upcoming cards</span>
-        </div>
-        <div class="highlight-item">
-          <strong>Live Atmosphere</strong>
-          <span>Built for in-person event energy</span>
-        </div>
-        <div class="highlight-item">
-          <strong>Sponsor Ready</strong>
-          <span>Partner with a growing promotion</span>
-        </div>
-      </div>
-    </section>
-
-    <section class="section">
+    <section class="section" style="padding-top: 0;">
       <div class="container">
-        <h2 class="section-title">Built for fighters and fans</h2>
+        <h2 class="section-title">Built for fighters, fans, and sponsors</h2>
         <p class="section-lead">
-          Liberty Fight League is designed to feel direct, strong, and easy to use on a cellphone.
-          Whether someone is checking the next card, applying to fight, or looking to sponsor the show,
-          the path is simple.
+          The site is lean on purpose: clean navigation, direct calls to action, and a rougher visual identity without clutter.
         </p>
 
-        <div class="cards">
+        <div class="home-grid">
           <div class="card">
-            <h3>Upcoming Event</h3>
+            <h3>Fighters</h3>
             <p>
-              Keep event details front and center with date, venue, ticket info, and card updates in one place.
+              Quick mobile access to your registration form so athletes can apply without digging around the site.
             </p>
           </div>
 
           <div class="card">
-            <h3>Fighter Registration</h3>
+            <h3>Event Info</h3>
             <p>
-              Make it easy for athletes to apply quickly from their phone using your Google Form integration.
+              A dedicated page for venue details, fight card updates, timing, and ticket information as the event gets closer.
             </p>
           </div>
 
           <div class="card">
-            <h3>Contact & Sponsors</h3>
+            <h3>Sponsors</h3>
             <p>
-              Give gyms, fans, and potential sponsors a direct line to your promotion without clutter.
+              A direct contact path for local businesses and partners who want placement around your event brand.
             </p>
           </div>
         </div>
