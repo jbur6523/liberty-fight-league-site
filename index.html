@@ -1,63 +1,525 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Liberty Fight League</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
+    :root {
+      --bg: #0b0b0d;
+      --bg2: #141418;
+      --gold: #c9a34a;
+      --gold-dark: #8b6a22;
+      --red: #9e1c1c;
+      --blue: #1d3f73;
+      --white: #f4f4f4;
+      --gray: #b7b7b7;
+      --border: rgba(201, 163, 74, 0.28);
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      background: black;
-      color: white;
+      font-family: Arial, Helvetica, sans-serif;
+      background:
+        linear-gradient(rgba(8, 8, 10, 0.88), rgba(8, 8, 10, 0.96)),
+        repeating-linear-gradient(
+          135deg,
+          rgba(255,255,255,0.02) 0px,
+          rgba(255,255,255,0.02) 2px,
+          transparent 2px,
+          transparent 10px
+        ),
+        linear-gradient(180deg, #101014 0%, #09090b 100%);
+      color: var(--white);
+      line-height: 1.5;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    img {
+      max-width: 100%;
+      display: block;
+    }
+
+    .container {
+      width: min(1100px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 999;
+      backdrop-filter: blur(10px);
+      background: rgba(10, 10, 12, 0.92);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .nav {
+      min-height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .brand-title {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 900;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--gold);
+    }
+
+    .brand-sub {
+      font-size: 0.72rem;
+      color: var(--gray);
+      letter-spacing: 1.6px;
+      text-transform: uppercase;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .nav-links a {
+      padding: 10px 12px;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--white);
+      transition: 0.2s ease;
+    }
+
+    .nav-links a:hover {
+      background: rgba(255,255,255,0.08);
+      color: var(--gold);
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 56px 0 40px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      background:
+        radial-gradient(circle at top left, rgba(158, 28, 28, 0.24), transparent 28%),
+        radial-gradient(circle at top right, rgba(29, 63, 115, 0.22), transparent 28%);
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, transparent 0%, rgba(201,163,74,0.06) 50%, transparent 100%);
+      pointer-events: none;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 28px;
+      align-items: center;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      margin-bottom: 14px;
+      padding: 8px 12px;
+      border: 1px solid rgba(201,163,74,0.35);
+      border-radius: 999px;
+      color: var(--gold);
+      font-size: 0.75rem;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      background: rgba(201,163,74,0.08);
+    }
+
+    .hero h1 {
+      margin: 0 0 14px;
+      font-size: clamp(2.2rem, 8vw, 4.8rem);
+      line-height: 0.96;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .hero h1 .gold {
+      color: var(--gold);
+      display: block;
+    }
+
+    .hero p {
+      margin: 0 0 22px;
+      color: var(--gray);
+      font-size: 1rem;
+      max-width: 620px;
+    }
+
+    .hero-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 52px;
+      padding: 14px 18px;
+      border-radius: 12px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      transition: transform 0.2s ease, opacity 0.2s ease, background 0.2s ease;
+      box-shadow: var(--shadow);
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      opacity: 0.96;
+    }
+
+    .btn-primary {
+      background: linear-gradient(180deg, #d8b35f 0%, #b8892d 100%);
+      color: #111;
+    }
+
+    .btn-secondary {
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.04);
+      color: var(--white);
+    }
+
+    .hero-note {
+      font-size: 0.88rem;
+      color: #d5d5d5;
+    }
+
+    .hero-card {
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02)),
+        linear-gradient(135deg, rgba(158,28,28,0.18), rgba(29,63,115,0.12));
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 22px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-card::after {
+      content: "";
+      position: absolute;
+      inset: auto -30px -30px auto;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(201,163,74,0.18), transparent 70%);
+      pointer-events: none;
+    }
+
+    .card-kicker {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--gold);
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+
+    .event-name {
+      font-size: 1.6rem;
+      font-weight: 900;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+
+    .event-meta {
+      color: var(--gray);
+      font-size: 0.95rem;
+      margin-bottom: 18px;
+    }
+
+    .event-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .badge {
+      padding: 8px 10px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.04);
+    }
+
+    .section {
+      padding: 42px 0;
+    }
+
+    .section-title {
+      margin: 0 0 10px;
+      font-size: 1.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--gold);
+    }
+
+    .section-lead {
+      margin: 0 0 24px;
+      color: var(--gray);
+      max-width: 720px;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.02));
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h3 {
+      margin: 0 0 10px;
+      font-size: 1.05rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--gray);
+      font-size: 0.96rem;
+    }
+
+    .highlight-band {
+      padding: 18px 0;
+      background:
+        linear-gradient(90deg, rgba(158,28,28,0.18) 0%, rgba(201,163,74,0.12) 48%, rgba(29,63,115,0.18) 100%);
+      border-top: 1px solid rgba(255,255,255,0.06);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .highlight-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
       text-align: center;
     }
-    header {
-      padding: 40px;
-      background: linear-gradient(to right, black, red);
+
+    .highlight-item strong {
+      display: block;
+      font-size: 1.2rem;
+      color: var(--gold);
+      margin-bottom: 4px;
     }
-    h1 {
-      font-size: 3rem;
-      margin: 0;
+
+    .highlight-item span {
+      color: var(--white);
+      opacity: 0.9;
+      font-size: 0.92rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
     }
-    .cta {
-      margin-top: 30px;
+
+    .footer {
+      padding: 28px 0 40px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      color: var(--gray);
+      font-size: 0.9rem;
+      text-align: center;
     }
-    .cta a {
-      display: inline-block;
-      margin: 10px;
-      padding: 15px 25px;
-      background: gold;
-      color: black;
-      text-decoration: none;
-      font-weight: bold;
-      border-radius: 5px;
+
+    @media (min-width: 700px) {
+      .hero {
+        padding: 72px 0 56px;
+      }
+
+      .hero-buttons {
+        flex-direction: row;
+        flex-wrap: wrap;
+      }
+
+      .cards {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .highlight-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (min-width: 900px) {
+      .hero-grid {
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 36px;
+      }
+
+      .nav-links {
+        gap: 16px;
+      }
+
+      .nav-links a {
+        padding: 10px 14px;
+      }
     }
   </style>
 </head>
 <body>
+  <header class="topbar">
+    <div class="container nav">
+      <div class="brand">
+        <h2 class="brand-title">Liberty Fight League</h2>
+        <div class="brand-sub">American grit. Real competition.</div>
+      </div>
 
-<header>
-  <h1>Liberty Fight League</h1>
-  <p>Where Warriors Rise</p>
+      <nav class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="event.html">Event</a>
+        <a href="fighters.html">Fighters</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+    </div>
+  </header>
 
-  <div class="cta">
-  <a href="#form">Apply to Fight</a>
-  <a href="#">Buy Tickets</a>
-</div>
-</header>
-  <section id="form" style="padding: 40px;">
-  <h2>Fighter Registration</h2>
-  <iframe 
-    src="https://docs.google.com/forms/d/e/1FAIpQLSdofj4YZgpilO-MzRAksCDSr2tyRbftWNQm1_qRwhvlCeCDZA/viewform?embedded=true"
-    width="100%" 
-    height="1000" 
-    frameborder="0"
-    marginheight="0"
-    marginwidth="0">
-    Loading…
-  </iframe>
-</section>
+  <main>
+    <section class="hero">
+      <div class="container hero-grid">
+        <div>
+          <div class="eyebrow">Rugged American MMA Promotion</div>
+          <h1>
+            Where
+            <span class="gold">Warriors Rise</span>
+          </h1>
+          <p>
+            Liberty Fight League brings a gritty, patriotic fight-night experience built for real competitors,
+            loud crowds, and unforgettable matchups. Bold action. Hard-earned respect. American fight culture.
+          </p>
 
+          <div class="hero-buttons">
+            <a class="btn btn-primary" href="fighters.html">Apply to Fight</a>
+            <a class="btn btn-secondary" href="event.html">Buy Tickets</a>
+          </div>
+
+          <div class="hero-note">
+            Mobile-first fight promotion website built for fans, fighters, and sponsors on the go.
+          </div>
+        </div>
+
+        <div class="hero-card">
+          <div class="card-kicker">Next Event</div>
+          <div class="event-name">Liberty Fight League 1</div>
+          <div class="event-meta">
+            Saturday, November 15 • Venue TBA • Bay Area, California
+          </div>
+
+          <div class="event-badges">
+            <div class="badge">Amateur MMA</div>
+            <div class="badge">Patriotic Theme</div>
+            <div class="badge">Tickets Coming Soon</div>
+          </div>
+
+          <p style="margin:0 0 18px; color: var(--gray);">
+            A rugged showcase of rising talent, tough matchups, and fight-night energy with a bold American identity.
+          </p>
+
+          <a class="btn btn-primary" href="event.html">View Event</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="highlight-band">
+      <div class="container highlight-grid">
+        <div class="highlight-item">
+          <strong>Fighters Wanted</strong>
+          <span>Apply now for upcoming cards</span>
+        </div>
+        <div class="highlight-item">
+          <strong>Live Atmosphere</strong>
+          <span>Built for in-person event energy</span>
+        </div>
+        <div class="highlight-item">
+          <strong>Sponsor Ready</strong>
+          <span>Partner with a growing promotion</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <h2 class="section-title">Built for fighters and fans</h2>
+        <p class="section-lead">
+          Liberty Fight League is designed to feel direct, strong, and easy to use on a cellphone.
+          Whether someone is checking the next card, applying to fight, or looking to sponsor the show,
+          the path is simple.
+        </p>
+
+        <div class="cards">
+          <div class="card">
+            <h3>Upcoming Event</h3>
+            <p>
+              Keep event details front and center with date, venue, ticket info, and card updates in one place.
+            </p>
+          </div>
+
+          <div class="card">
+            <h3>Fighter Registration</h3>
+            <p>
+              Make it easy for athletes to apply quickly from their phone using your Google Form integration.
+            </p>
+          </div>
+
+          <div class="card">
+            <h3>Contact & Sponsors</h3>
+            <p>
+              Give gyms, fans, and potential sponsors a direct line to your promotion without clutter.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      © 2026 Liberty Fight League. All rights reserved.
+    </div>
+  </footer>
 </body>
 </html>
