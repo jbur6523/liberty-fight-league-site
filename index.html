@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,20 +8,22 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Barlow+Condensed:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Barlow+Condensed:wght@400;600;700;800&display=swap"
+    rel="stylesheet">
 
   <style>
     :root {
       --bg: #070709;
-      --panel: rgba(255,255,255,0.045);
-      --panel-2: rgba(255,255,255,0.025);
+      --panel: rgba(255, 255, 255, 0.045);
+      --panel-2: rgba(255, 255, 255, 0.025);
       --gold: #c7a343;
       --red: #7f1717;
       --blue: #16386e;
       --white: #f1f1f1;
       --gray: #bdbdbd;
-      --border: rgba(199,163,67,0.24);
-      --shadow: 0 14px 34px rgba(0,0,0,0.42);
+      --border: rgba(199, 163, 67, 0.24);
+      --shadow: 0 14px 34px rgba(0, 0, 0, 0.42);
       --body-font: "Barlow Condensed", Arial, sans-serif;
       --title-font: "Black Ops One", system-ui, sans-serif;
     }
@@ -38,16 +41,14 @@
       font-family: var(--body-font);
       color: var(--white);
       background:
-        linear-gradient(rgba(6,6,8,0.93), rgba(6,6,8,0.98)),
-        radial-gradient(circle at 20% 20%, rgba(127,23,23,0.10), transparent 26%),
-        radial-gradient(circle at 85% 15%, rgba(22,56,110,0.10), transparent 26%),
-        repeating-linear-gradient(
-          135deg,
-          rgba(255,255,255,0.014) 0px,
-          rgba(255,255,255,0.014) 1px,
+        linear-gradient(rgba(6, 6, 8, 0.93), rgba(6, 6, 8, 0.98)),
+        radial-gradient(circle at 20% 20%, rgba(127, 23, 23, 0.10), transparent 26%),
+        radial-gradient(circle at 85% 15%, rgba(22, 56, 110, 0.10), transparent 26%),
+        repeating-linear-gradient(135deg,
+          rgba(255, 255, 255, 0.014) 0px,
+          rgba(255, 255, 255, 0.014) 1px,
           transparent 1px,
-          transparent 10px
-        ),
+          transparent 10px),
         linear-gradient(180deg, #101014 0%, #060608 100%);
       line-height: 1.45;
       letter-spacing: 0.2px;
@@ -72,10 +73,10 @@
       position: sticky;
       top: 0;
       z-index: 999;
-      background: linear-gradient(180deg, rgba(10,10,12,0.96), rgba(10,10,12,0.9));
+      background: linear-gradient(180deg, rgba(10, 10, 12, 0.96), rgba(10, 10, 12, 0.9));
       backdrop-filter: blur(10px);
-      border-bottom: 1px solid rgba(255,255,255,0.08);
-      box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
     }
 
     .nav {
@@ -100,10 +101,10 @@
       height: 52px;
       object-fit: contain;
       border-radius: 10px;
-      background: rgba(255,255,255,0.03);
+      background: rgba(255, 255, 255, 0.03);
       padding: 4px;
-      border: 1px solid rgba(255,255,255,0.06);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     }
 
     .brand-text {
@@ -149,16 +150,16 @@
 
     .nav-links a:hover {
       color: var(--gold);
-      background: rgba(255,255,255,0.07);
+      background: rgba(255, 255, 255, 0.07);
     }
 
     .hero {
       position: relative;
       overflow: hidden;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
       background:
-        radial-gradient(circle at top left, rgba(127,23,23,0.16), transparent 30%),
-        radial-gradient(circle at top right, rgba(22,56,110,0.16), transparent 30%);
+        radial-gradient(circle at top left, rgba(127, 23, 23, 0.16), transparent 30%),
+        radial-gradient(circle at top right, rgba(22, 56, 110, 0.16), transparent 30%);
     }
 
     .hero::before {
@@ -166,14 +167,12 @@
       position: absolute;
       inset: 0;
       background:
-        linear-gradient(90deg, rgba(127,23,23,0.08) 0%, transparent 18%, transparent 82%, rgba(22,56,110,0.08) 100%),
-        repeating-linear-gradient(
-          -45deg,
-          rgba(255,255,255,0.012) 0px,
-          rgba(255,255,255,0.012) 1px,
+        linear-gradient(90deg, rgba(127, 23, 23, 0.08) 0%, transparent 18%, transparent 82%, rgba(22, 56, 110, 0.08) 100%),
+        repeating-linear-gradient(-45deg,
+          rgba(255, 255, 255, 0.012) 0px,
+          rgba(255, 255, 255, 0.012) 1px,
           transparent 1px,
-          transparent 15px
-        );
+          transparent 15px);
       pointer-events: none;
     }
 
@@ -195,8 +194,8 @@
       text-transform: uppercase;
       letter-spacing: 1px;
       text-shadow:
-        0 2px 0 rgba(0,0,0,0.35),
-        0 8px 22px rgba(0,0,0,0.45);
+        0 2px 0 rgba(0, 0, 0, 0.35),
+        0 8px 22px rgba(0, 0, 0, 0.45);
     }
 
     .hero h1 .top-line {
@@ -249,12 +248,12 @@
     .btn-primary {
       background: linear-gradient(180deg, #d8b45d 0%, #b5842a 100%);
       color: #111;
-      border: 1px solid rgba(255,255,255,0.08);
+      border: 1px solid rgba(255, 255, 255, 0.08);
     }
 
     .btn-secondary {
-      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
-      border: 1px solid rgba(255,255,255,0.11);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.03));
+      border: 1px solid rgba(255, 255, 255, 0.11);
       color: var(--white);
     }
 
@@ -262,8 +261,8 @@
       position: relative;
       overflow: hidden;
       background:
-        linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.015)),
-        linear-gradient(135deg, rgba(127,23,23,0.10), rgba(22,56,110,0.10));
+        linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.015)),
+        linear-gradient(135deg, rgba(127, 23, 23, 0.10), rgba(22, 56, 110, 0.10));
       border: 1px solid var(--border);
       border-radius: 18px;
       box-shadow: var(--shadow);
@@ -273,7 +272,7 @@
     .poster-frame {
       border-radius: 12px;
       overflow: hidden;
-      border: 1px solid rgba(255,255,255,0.08);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       background: #000;
     }
 
@@ -316,8 +315,8 @@
     .card {
       background:
         linear-gradient(180deg, var(--panel), var(--panel-2)),
-        linear-gradient(135deg, rgba(255,255,255,0.01), transparent);
-      border: 1px solid rgba(255,255,255,0.08);
+        linear-gradient(135deg, rgba(255, 255, 255, 0.01), transparent);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 18px;
       padding: 22px;
       box-shadow: var(--shadow);
@@ -330,13 +329,11 @@
       position: absolute;
       inset: 0;
       background:
-        repeating-linear-gradient(
-          -45deg,
-          rgba(255,255,255,0.012) 0px,
-          rgba(255,255,255,0.012) 2px,
+        repeating-linear-gradient(-45deg,
+          rgba(255, 255, 255, 0.012) 0px,
+          rgba(255, 255, 255, 0.012) 2px,
           transparent 2px,
-          transparent 14px
-        );
+          transparent 14px);
       pointer-events: none;
       opacity: 0.35;
     }
@@ -386,8 +383,8 @@
     .badge {
       padding: 8px 12px;
       border-radius: 999px;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       font-size: 0.95rem;
       font-weight: 700;
       text-transform: uppercase;
@@ -396,7 +393,7 @@
 
     .footer {
       padding: 28px 0 40px;
-      border-top: 1px solid rgba(255,255,255,0.06);
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
       color: var(--gray);
       font-size: 1rem;
       text-align: center;
@@ -432,6 +429,7 @@
     }
   </style>
 </head>
+
 <body>
   <header class="topbar">
     <div class="container nav">
@@ -500,7 +498,7 @@
           </div>
 
           <p>
-            Rising talent. Hard matchups. A rough-and-rugged American fight-night feel built for real local fight fans.
+            Rising talent. Hard matchups. A rough-and-rugged American fight-night built for real local fight fans.
           </p>
 
           <div class="hero-buttons" style="margin-top: 6px;">
@@ -519,22 +517,26 @@
           <div class="card">
             <h3>Fighters</h3>
             <p>
-              Quick mobile access to your registration form so athletes can apply without digging around the site.
+              Ready to compete? Submit your application and get on the radar for upcoming Liberty Fight League matchups.
             </p>
+            <a class="btn btn-secondary" href="fighters.html">Apply Now</a>
           </div>
 
           <div class="card">
-            <h3>Event Info</h3>
+            <h3>Fans</h3>
             <p>
-              A dedicated page for venue details, fight card updates, timing, and ticket information as the event gets closer.
+              Get event updates, venue details, matchup announcements, and ticket information as fight night gets
+              closer.
             </p>
+            <a class="btn btn-secondary" href="event.html">View Event</a>
           </div>
 
           <div class="card">
             <h3>Sponsors</h3>
             <p>
-              A direct contact path for local businesses and partners who want placement around your event brand.
+              Partner with Liberty Fight League and put your business in front of a live local MMA audience.
             </p>
+            <a class="btn btn-secondary" href="contact.html">Sponsorship Info</a>
           </div>
         </div>
       </div>
@@ -547,4 +549,5 @@
     </div>
   </footer>
 </body>
+
 </html>
