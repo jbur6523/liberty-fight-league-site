@@ -13,6 +13,22 @@
     rel="stylesheet">
 
   <style>
+    .card {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .card-btn {
+      margin-top: 20px;
+      align-self: center;
+      width: fit-content;
+    }
+
+    .card-content {
+      margin-bottom: 10px;
+    }
+
     :root {
       --bg: #070709;
       --panel: rgba(255, 255, 255, 0.045);
@@ -513,33 +529,37 @@
       <div class="container">
         <h2 class="section-title">Built for Fighters, Fans, and Sponsors</h2>
 
-        <div class="home-grid">
-          <div class="card">
-            <h3>Fighters</h3>
-            <p>
-              Ready to compete? Submit your application and get on the radar for upcoming Liberty Fight League matchups.
-            </p>
-            <a class="btn btn-secondary" href="fighters.html">Apply Now</a>
-          </div>
+        <div class="card">
+          <div class="card-content">
+            <div class="card">
+              <h3>Fighters</h3>
+              <p>
+                Ready to compete? Submit your application and get on the radar for upcoming Liberty Fight League
+                matchups.
+              </p>
+              <a class="btn btn-secondary" href="fighters.html">Apply Now</a>
+            </div>
 
-          <div class="card">
-            <h3>Fans</h3>
-            <p>
-              Get event updates, venue details, matchup announcements, and ticket information as fight night gets
-              closer.
-            </p>
-            <a class="btn btn-secondary" href="event.html">View Event</a>
-          </div>
+            <div class="card">
+              <div class="card-content">
+                <h3>Fans</h3>
+                <p>
+                  Get event updates, venue details, matchup announcements, and ticket information as fight night gets
+                  closer.
+                </p>
+                <a class="btn btn-secondary" href="event.html">View Event</a>
+              </div>
 
-          <div class="card">
-            <h3>Sponsors</h3>
-            <p>
-              Partner with Liberty Fight League and put your business in front of a live local MMA audience.
-            </p>
-            <a class="btn btn-secondary" href="contact.html">Sponsorship Info</a>
-          </div>
-        </div>
-      </div>
+              <div class="card">
+                <div class="card-content">
+                  <h3>Sponsors</h3>
+                  <p>
+                    Partner with Liberty Fight League and put your business in front of a live local MMA audience.
+                  </p>
+                  <a class="btn btn-secondary" href="contact.html">Sponsorship Info</a>
+                </div>
+              </div>
+            </div>
     </section>
   </main>
 
