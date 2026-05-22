@@ -111,33 +111,33 @@
       "permanent": false
     },
     {
-      "source": "/fighter22",
-      "destination": "https://placeholder.com/fighter1",
+      "source": "/bradley",
+      "destination": "https://buytickets.at/jzpromotionsllc/2228959",
       "permanent": false
     },
     {
-      "source": "/fighter23",
-      "destination": "https://placeholder.com/fighter1",
+      "source": "/richie",
+      "destination": "https://buytickets.at/jzpromotionsllc/2228960",
       "permanent": false
     },
     {
-      "source": "/fighter24",
-      "destination": "https://placeholder.com/fighter1",
+      "source": "/nico",
+      "destination": "https://buytickets.at/jzpromotionsllc/2228962",
       "permanent": false
     },
     {
-      "source": "/fighter25",
-      "destination": "https://placeholder.com/fighter1",
+      "source": "/kelly",
+      "destination": "https://buytickets.at/jzpromotionsllc/2228963",
       "permanent": false
     },
     {
-      "source": "/fighter26",
-      "destination": "https://placeholder.com/fighter1",
+      "source": "/benny",
+      "destination": "https://buytickets.at/jzpromotionsllc/2228964",
       "permanent": false
     },
     {
-      "source": "/fighter27",
-      "destination": "https://placeholder.com/fighter1",
+      "source": "/matias",
+      "destination": "https://buytickets.at/jzpromotionsllc/2228965",
       "permanent": false
     },
     {
@@ -151,8 +151,48 @@
       "permanent": false
     },
     {
-      "source": "/bjj",
-      "destination": "https://docs.google.com/forms/d/1wLo5dkXOgBGSILsdEf_qo7kYHn6ZNqPO6a2TbBC-D5U/edit",
+      "source": "/ricky",
+      "destination": "https://buytickets.at/jzpromotionsllc/2228966",
+      "permanent": false
+    },
+    {
+      "source": "/jaleel",
+      "destination": "https://buytickets.at/jzpromotionsllc/2228968",
+      "permanent": false
+    },
+    {
+      "source": "/james",
+      "destination": "https://buytickets.at/jzpromotionsllc/2228970",
+      "permanent": false
+    },
+    {
+      "source": "/fight3",
+      "destination": "abc",
+      "permanent": false
+    },
+    {
+      "source": "/fight2",
+      "destination": "def",
+      "permanent": false
+    },
+    {
+      "source": "/fight1",
+      "destination": "https://placeholder.com/fighter1",
+      "permanent": false
+    },
+    {
+      "source": "/fight34",
+      "destination": "https://placeholder.com/fighter13",
+      "permanent": false
+    },
+    {
+      "source": "/fight324",
+      "destination": "https://placeholder.com/fighter154",
+      "permanent": false
+    },
+    {
+      "source": "/fight3234",
+      "destination": "https://placeholder.com/fighter14564",
       "permanent": false
     }
   ]
