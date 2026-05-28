@@ -171,8 +171,28 @@
       "permanent": false
     },
     {
-      "source": "/fight2",
-      "destination": "def",
+      "source": "/ryan",
+      "destination": "https://buytickets.at/jzpromotionsllc/2238138",
+      "permanent": false
+    },
+    {
+      "source": "/dylan",
+      "destination": "https://buytickets.at/jzpromotionsllc/2238139",
+      "permanent": false
+    },
+    {
+      "source": "/chris",
+      "destination": "https://buytickets.at/jzpromotionsllc/2238140",
+      "permanent": false
+    },
+    {
+      "source": "/vasja",
+      "destination": "https://buytickets.at/jzpromotionsllc/2238141",
+      "permanent": false
+    },
+    {
+      "source": "/fight324",
+      "destination": "https://placeholder.com/fighter154",
       "permanent": false
     },
     {
