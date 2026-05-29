@@ -192,12 +192,12 @@
     },
     {
       "source": "/ppv",
-      "destination": "libertyfightleague.com/ppv.html",
+      "destination": "/ppv.html",
       "permanent": false
     },
     {
       "source": "/PPV",
-      "destination": "libertyfightleague.com/ppv.html",
+      "destination": "/ppv.html",
       "permanent": false
     },
     {
