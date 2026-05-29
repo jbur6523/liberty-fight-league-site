@@ -191,13 +191,13 @@
       "permanent": false
     },
     {
-      "source": "/fight324",
-      "destination": "https://placeholder.com/fighter154",
+      "source": "/ppv",
+      "destination": "libertyfightleague.com/ppv.html",
       "permanent": false
     },
     {
-      "source": "/fight1",
-      "destination": "https://placeholder.com/fighter1",
+      "source": "/PPV",
+      "destination": "libertyfightleague.com/ppv.html",
       "permanent": false
     },
     {
