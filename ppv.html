@@ -139,24 +139,29 @@
       margin-bottom: 24px;
     }
 
-    .details {
+    .event-info-line {
       display: flex;
       justify-content: center;
-      gap: 12px;
+      align-items: center;
+      gap: 14px;
       flex-wrap: wrap;
-      margin-bottom: 28px;
-    }
-
-    .detail {
-      background: rgba(0,0,0,0.72);
-      border: 1px solid rgba(212, 175, 55, 0.65);
+      margin: 18px auto 28px;
       color: #f7e7b0;
-      padding: 11px 16px;
-      border-radius: 999px;
       font-weight: 800;
       text-transform: uppercase;
-      font-size: 14px;
+      font-size: 15px;
       letter-spacing: 1px;
+    }
+
+    .event-info-line span {
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .event-info-line span:not(:last-child)::after {
+      content: "•";
+      color: #d4af37;
+      margin-left: 14px;
     }
 
     .description {
@@ -289,10 +294,16 @@
         font-size: 16px;
       }
 
-      .detail {
-        width: 100%;
-        max-width: 340px;
-        border-radius: 8px;
+      .event-info-line {
+        flex-direction: column;
+        gap: 6px;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+
+      .event-info-line span:not(:last-child)::after {
+        content: "";
+        margin-left: 0;
       }
 
       .btn {
@@ -337,11 +348,11 @@
 
         <div class="subtitle">Watch Live on PPV</div>
 
-        <div class="details">
-          <div class="detail">June 6th</div>
-          <div class="detail">Fights Start 5 PM</div>
-          <div class="detail">Real MMA Cage Fighting</div>
-          <div class="detail">Contra Costa County Fairgrounds</div>
+        <div class="event-info-line">
+          <span>June 6th</span>
+          <span>Fights Start 5 PM</span>
+          <span>Real MMA Cage Fighting</span>
+          <span>Contra Costa County Fairgrounds</span>
         </div>
 
         <p class="description">
