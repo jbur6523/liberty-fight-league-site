@@ -201,6 +201,26 @@
       "permanent": false
     },
     {
+      "source": "/brady",
+      "destination": "https://placeholder.com/fighter13",
+      "permanent": false
+    },
+    {
+      "source": "/shawn",
+      "destination": "https://placeholder.com/fighter154",
+      "permanent": false
+    },
+    {
+      "source": "/mario",
+      "destination": "https://placeholder.com/fighter13",
+      "permanent": false
+    },
+    {
+      "source": "/fight324",
+      "destination": "https://placeholder.com/fighter154",
+      "permanent": false
+    },
+    {
       "source": "/fight34",
       "destination": "https://placeholder.com/fighter13",
       "permanent": false
