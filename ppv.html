@@ -34,9 +34,14 @@
     }
 
     .logo {
-      width: 110px;
+      width: 118px;
+      height: 118px;
       max-width: 40%;
       margin-bottom: 10px;
+      object-fit: contain;
+      padding: 8px;
+      border-radius: 14px;
+      background: #f5f5f2;
     }
 
     .site-title {
@@ -265,6 +270,11 @@
     }
 
     @media (max-width: 800px) {
+      .logo {
+        width: 90px;
+        height: 90px;
+      }
+
       .site-title {
         font-size: 26px;
       }
@@ -311,7 +321,7 @@
 <body>
 
   <header class="site-header">
-    <img src="logo.png" alt="Liberty Fight League logo" class="logo" />
+    <img src="/rwi-logo.svg" alt="" class="logo" />
 
     <div class="site-title">Liberty Fight League</div>
 
