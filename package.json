@@ -1,0 +1,17 @@
+{
+  "name": "liberty-fight-league-site",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node scripts/check-modules.mjs && node --test",
+    "preview": "node scripts/preview-server.mjs",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "2.112.2"
+  }
+}
