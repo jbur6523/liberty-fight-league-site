@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#080808">
+  <title>Superfight Matchmaking | Liberty Fight League</title>
+  <link rel="stylesheet" href="/admin-superfights.css">
+  <script type="module" src="/admin-superfights.js"></script>
+</head>
+<body>
+  <div class="admin-shell">
+    <header class="admin-header">
+      <div class="admin-brand">
+        <img src="/rwi-logo.svg" alt="">
+        <div><strong>Liberty Fight League</strong><span>Superfight Matchmaking</span></div>
+      </div>
+      <div class="admin-account" id="admin-account" hidden>
+        <span id="admin-email"></span>
+        <button class="admin-button ghost" id="sign-out" type="button">Sign out</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="admin-login" id="login-panel" hidden>
+        <h1>Promoter sign in</h1>
+        <p>Use your authorized Liberty Fight League account.</p>
+        <form id="login-form">
+          <div class="admin-field">
+            <label for="login-email">Email</label>
+            <input class="admin-input" id="login-email" type="email" autocomplete="username" required>
+          </div>
+          <div class="admin-field" style="margin-top: 14px">
+            <label for="login-password">Password</label>
+            <input class="admin-input" id="login-password" type="password" autocomplete="current-password" required>
+          </div>
+          <p class="admin-error" id="login-error"></p>
+          <button class="admin-button" type="submit">Sign in</button>
+        </form>
+      </section>
+
+      <section class="admin-main" id="workspace" hidden>
+        <div class="admin-toolbar">
+          <h1>Matchmaking</h1>
+          <div class="admin-controls">
+            <select class="admin-select admin-event-select" id="event-select" aria-label="Event"></select>
+            <button class="admin-button secondary" id="event-settings" type="button">Event setup</button>
+            <button class="admin-button" id="quick-add" type="button">+ Add competitor</button>
+          </div>
+        </div>
+
+        <nav class="admin-tabs" aria-label="Matchmaking views">
+          <button class="admin-tab is-active" type="button" data-tab="unmatched">Unmatched <span id="unmatched-count"></span></button>
+          <button class="admin-tab" type="button" data-tab="matched">Matched <span id="matched-count"></span></button>
+        </nav>
+
+        <section id="unmatched-panel">
+          <div class="admin-workbar">
+            <span class="admin-muted">Likely opponents are placed near each other. The promoter makes every match.</span>
+            <div class="admin-segmented" id="sort-controls" aria-label="Sort competitors">
+              <button class="is-active" type="button" data-sort="suggested">Suggested</button>
+              <button type="button" data-sort="belt">Belt</button>
+              <button type="button" data-sort="weight">Weight</button>
+              <button type="button" data-sort="name">Name</button>
+            </div>
+          </div>
+          <div id="unmatched-content"></div>
+        </section>
+
+        <section id="matched-panel" hidden>
+          <div class="admin-workbar"><span class="admin-muted">Active matchups and fighter confirmation states.</span></div>
+          <div id="matched-content"></div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <div class="admin-matchbar" id="matchbar" hidden>
+    <div><strong id="matchbar-name"></strong><span>Choose a second competitor to build the matchup.</span></div>
+    <button class="admin-button ghost" id="cancel-selection" type="button">Cancel</button>
+  </div>
+
+  <dialog id="quick-add-dialog">
+    <div class="admin-dialog-header"><h2>Add competitor</h2><button class="admin-button ghost" data-close type="button">Close</button></div>
+    <form class="admin-dialog-body" id="quick-add-form">
+      <div class="admin-form-grid">
+        <div class="admin-field full"><label for="add-name">Name</label><input class="admin-input" id="add-name" required maxlength="160"></div>
+        <div class="admin-field"><label for="add-belt">Belt</label><select class="admin-select" id="add-belt"><option value="">Not entered</option><option value="blue">Blue</option><option value="purple">Purple</option><option value="brown">Brown</option><option value="black">Black</option></select></div>
+        <div class="admin-field"><label for="add-weight">Weight (lb)</label><input class="admin-input" id="add-weight" type="number" min="1" step="0.01"></div>
+        <div class="admin-field"><label for="add-gym">Gym / academy</label><input class="admin-input" id="add-gym" maxlength="160"></div>
+        <div class="admin-field"><label for="add-instagram">Instagram</label><input class="admin-input" id="add-instagram" maxlength="300"></div>
+        <div class="admin-field"><label for="add-phone">Phone</label><input class="admin-input" id="add-phone" maxlength="50"></div>
+        <div class="admin-field"><label for="add-email">Email</label><input class="admin-input" id="add-email" type="email" maxlength="254"></div>
+        <div class="admin-field full"><label for="add-notes">Notes</label><textarea class="admin-textarea" id="add-notes" maxlength="5000"></textarea></div>
+      </div>
+      <p class="admin-error" id="add-error"></p>
+      <div class="admin-dialog-actions"><button class="admin-button" type="submit">Add to unmatched</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="match-dialog">
+    <div class="admin-dialog-header"><h2>Confirm matchup</h2><button class="admin-button ghost" data-close type="button">Close</button></div>
+    <form class="admin-dialog-body" id="match-form">
+      <div class="admin-detail-grid" id="match-pair"></div>
+      <div class="admin-field" style="margin-top: 18px"><label for="match-weight">Match weight (lb)</label><input class="admin-input" id="match-weight" type="number" min="1" step="0.01"></div>
+      <p class="admin-error" id="match-error"></p>
+      <div class="admin-dialog-actions"><button class="admin-button" type="submit">Create match</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="detail-dialog">
+    <div class="admin-dialog-header"><h2>Competitor details</h2><button class="admin-button ghost" data-close type="button">Close</button></div>
+    <div class="admin-dialog-body" id="detail-content"></div>
+  </dialog>
+
+  <dialog id="event-dialog">
+    <div class="admin-dialog-header"><h2>Event setup</h2><button class="admin-button ghost" data-close type="button">Close</button></div>
+    <div class="admin-dialog-body">
+      <form id="event-form">
+        <div class="admin-form-grid">
+          <div class="admin-field"><label for="event-name">Event name</label><input class="admin-input" id="event-name" required maxlength="160"></div>
+          <div class="admin-field"><label for="event-slug">Application URL slug</label><input class="admin-input" id="event-slug" required maxlength="80" placeholder="event-name"></div>
+          <div class="admin-field"><label for="event-date">Date & time</label><input class="admin-input" id="event-date" type="datetime-local"></div>
+          <div class="admin-field"><label for="event-venue">Venue / location</label><input class="admin-input" id="event-venue" maxlength="500"></div>
+          <div class="admin-field full"><label for="event-info">Application information</label><textarea class="admin-textarea" id="event-info" maxlength="5000"></textarea></div>
+          <div class="admin-field full"><label for="event-instagram">LFL Instagram URL</label><input class="admin-input" id="event-instagram" type="url" maxlength="500"></div>
+          <div class="admin-field full"><label><input id="event-open" type="checkbox"> Applications open</label></div>
+        </div>
+        <p class="admin-error" id="event-error"></p>
+        <div class="admin-dialog-actions"><button class="admin-button" type="submit">Save event</button></div>
+      </form>
+
+      <section id="weight-settings" hidden>
+        <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+        <h3>Event weight choices</h3>
+        <p class="admin-muted">Add only the promoter-approved choices. The numeric value is used for sorting.</p>
+        <ul class="admin-weight-list" id="weight-list"></ul>
+        <form class="admin-form-grid" id="weight-form">
+          <div class="admin-field"><label for="weight-label">Public label</label><input class="admin-input" id="weight-label" required placeholder="Configured label"></div>
+          <div class="admin-field"><label for="weight-value">Numeric pounds</label><input class="admin-input" id="weight-value" type="number" min="1" step="0.01" required></div>
+          <div class="admin-field full"><button class="admin-button secondary" type="submit">Add weight choice</button></div>
+        </form>
+      </section>
+    </div>
+  </dialog>
+
+  <div class="admin-toast" id="admin-toast" role="status"></div>
+</body>
+</html>

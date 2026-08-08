@@ -235,5 +235,27 @@
       "destination": "https://placeholder.com/fighter14564",
       "permanent": false
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/superfight",
+      "destination": "/superfight.html"
+    },
+    {
+      "source": "/status/:token",
+      "destination": "/status.html"
+    },
+    {
+      "source": "/confirm/:token",
+      "destination": "/confirm.html"
+    },
+    {
+      "source": "/admin/superfights",
+      "destination": "/admin-superfights.html"
+    },
+    {
+      "source": "/admin/superfights/:path*",
+      "destination": "/admin-superfights.html"
+    }
   ]
 }

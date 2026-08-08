@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#050505">
+  <meta name="description" content="Apply for a Liberty Fight League Jiu-Jitsu superfight.">
+  <title>Superfight Application | Liberty Fight League</title>
+  <link rel="stylesheet" href="/superfight.css">
+  <script type="module" src="/superfight.js"></script>
+</head>
+<body>
+  <div class="sf-page">
+    <header class="sf-header">
+      <a class="sf-brand" href="/" aria-label="Liberty Fight League home">
+        <img src="/rwi-logo.svg" alt="">
+        <span>Liberty Fight League</span>
+      </a>
+    </header>
+
+    <main class="sf-main">
+      <div id="loading" class="sf-loading">Loading event</div>
+      <section id="application" class="sf-app" hidden aria-live="polite">
+        <div class="sf-progress-wrap" id="progress-wrap" hidden>
+          <div class="sf-progress" aria-hidden="true"><span id="progress-bar"></span></div>
+          <span class="sf-progress-label" id="progress-label"></span>
+        </div>
+
+        <form id="superfight-form" class="sf-stage" novalidate>
+          <input class="sr-only" tabindex="-1" autocomplete="off" name="website" id="website" aria-hidden="true">
+
+          <section class="sf-screen is-active" data-screen="intro">
+            <p class="sf-kicker">Jiu-Jitsu Superfights</p>
+            <h1 id="event-name">Liberty Fight League</h1>
+            <p class="sf-lead" id="event-info"></p>
+            <div class="sf-event-meta" id="event-meta"></div>
+            <p class="sf-error" id="intro-error"></p>
+            <div class="sf-actions">
+              <button class="sf-button" type="button" id="start-button">Apply for a Superfight</button>
+            </div>
+          </section>
+
+          <section class="sf-screen" data-screen="name">
+            <p class="sf-kicker">First things first</p>
+            <h2>What’s your full name?</h2>
+            <div class="sf-field">
+              <label for="full-name">Full name</label>
+              <input class="sf-input" id="full-name" name="fullName" autocomplete="name" placeholder="Your name" maxlength="160">
+              <p class="sf-error" data-error="fullName"></p>
+            </div>
+            <div class="sf-actions">
+              <button class="sf-button secondary sf-back" type="button" data-back aria-label="Back">←</button>
+              <button class="sf-button" type="button" data-next>Next</button>
+            </div>
+          </section>
+
+          <section class="sf-screen" data-screen="contact">
+            <p class="sf-kicker">Stay reachable</p>
+            <h2>How can we contact you?</h2>
+            <div class="sf-field sf-contact-grid">
+              <div>
+                <label for="phone">Phone</label>
+                <input class="sf-input" id="phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="(555) 555-5555" maxlength="50">
+                <p class="sf-error" data-error="phone"></p>
+              </div>
+              <div>
+                <label for="email">Email</label>
+                <input class="sf-input" id="email" name="email" type="email" autocomplete="email" inputmode="email" placeholder="you@example.com" maxlength="254">
+                <p class="sf-error" data-error="email"></p>
+              </div>
+            </div>
+            <div class="sf-actions">
+              <button class="sf-button secondary sf-back" type="button" data-back aria-label="Back">←</button>
+              <button class="sf-button" type="button" data-next>Next</button>
+            </div>
+          </section>
+
+          <section class="sf-screen" data-screen="belt">
+            <p class="sf-kicker">Experience</p>
+            <h2>What belt are you?</h2>
+            <input type="hidden" id="belt" name="belt">
+            <div class="sf-choice-grid" id="belt-options">
+              <button class="sf-choice" type="button" data-belt="blue">Blue</button>
+              <button class="sf-choice" type="button" data-belt="purple">Purple</button>
+              <button class="sf-choice" type="button" data-belt="brown">Brown</button>
+              <button class="sf-choice" type="button" data-belt="black">Black</button>
+            </div>
+            <p class="sf-error" data-error="belt"></p>
+            <div class="sf-actions">
+              <button class="sf-button secondary sf-back" type="button" data-back aria-label="Back">←</button>
+              <button class="sf-button" type="button" data-next>Next</button>
+            </div>
+          </section>
+
+          <section class="sf-screen" data-screen="weight">
+            <p class="sf-kicker">Competition weight</p>
+            <h2>What weight do you compete at?</h2>
+            <div class="sf-field">
+              <label for="weight-option">Configured event weights</label>
+              <select class="sf-select" id="weight-option" name="weightOptionId">
+                <option value="">Select your weight</option>
+              </select>
+              <p class="sf-error" data-error="weightOptionId"></p>
+            </div>
+            <div class="sf-actions">
+              <button class="sf-button secondary sf-back" type="button" data-back aria-label="Back">←</button>
+              <button class="sf-button" type="button" data-next>Next</button>
+            </div>
+          </section>
+
+          <section class="sf-screen" data-screen="gym">
+            <p class="sf-kicker">Your team</p>
+            <h2>What gym or academy do you represent?</h2>
+            <div class="sf-field">
+              <label for="gym">Gym / academy</label>
+              <input class="sf-input" id="gym" name="gym" autocomplete="organization" placeholder="Your academy" maxlength="160">
+              <p class="sf-error" data-error="gym"></p>
+            </div>
+            <div class="sf-actions">
+              <button class="sf-button secondary sf-back" type="button" data-back aria-label="Back">←</button>
+              <button class="sf-button" type="button" data-next>Next</button>
+            </div>
+          </section>
+
+          <section class="sf-screen" data-screen="instagram">
+            <p class="sf-kicker">One last thing</p>
+            <h2>Where can we find you on Instagram?</h2>
+            <div class="sf-field">
+              <label for="instagram">Handle, username, or profile URL</label>
+              <input class="sf-input" id="instagram" name="instagram" autocomplete="url" placeholder="@yourhandle" maxlength="300">
+              <p class="sf-error" data-error="instagram"></p>
+            </div>
+            <p class="sf-note">
+              Follow Liberty Fight League so the promotion can contact you easily.
+              <a id="instagram-link" href="https://instagram.com/libertyfightleague" target="_blank" rel="noopener">Follow LFL on Instagram ↗</a>
+            </p>
+            <div class="sf-actions">
+              <button class="sf-button secondary sf-back" type="button" data-back aria-label="Back">←</button>
+              <button class="sf-button" type="submit" id="submit-button">Send application</button>
+            </div>
+          </section>
+
+          <section class="sf-screen" data-screen="success">
+            <p class="sf-kicker">Application received</p>
+            <h2>You’re in.</h2>
+            <p class="sf-lead">Your superfight application has been received. We’ll begin looking for the right opponent.</p>
+            <div class="sf-field">
+              <label for="status-url">Your permanent status link</label>
+              <input class="sf-input" id="status-url" readonly>
+              <p class="sf-note">Save this link. It shows your matchmaking status without exposing your contact details.</p>
+            </div>
+            <div class="sf-actions">
+              <button class="sf-button" type="button" id="copy-status">Copy status link</button>
+              <a class="sf-button secondary" id="open-status" href="#">Open status</a>
+            </div>
+          </section>
+        </form>
+      </section>
+    </main>
+  </div>
+  <div class="sf-toast" id="toast" role="status"></div>
+</body>
+</html>
