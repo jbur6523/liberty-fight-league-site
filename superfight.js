@@ -22,6 +22,60 @@ const progressWrap = document.querySelector("#progress-wrap");
 const progressBar = document.querySelector("#progress-bar");
 const progressLabel = document.querySelector("#progress-label");
 const toast = document.querySelector("#toast");
+let viewportFrame;
+let focusFrame;
+
+function focusedFieldRegion() {
+  const active = document.activeElement;
+  if (!active || !form.contains(active) || !active.matches("input, select, textarea")) return null;
+  return active.closest(".sf-contact-field, .sf-field") ?? active;
+}
+
+function keepFocusedFieldVisible() {
+  window.cancelAnimationFrame(focusFrame);
+  focusFrame = window.requestAnimationFrame(() => {
+    const region = focusedFieldRegion();
+    if (!region) return;
+    const viewport = window.visualViewport;
+    const viewportTop = viewport?.offsetTop ?? 0;
+    const viewportBottom = viewportTop + (viewport?.height ?? window.innerHeight);
+    const bounds = region.getBoundingClientRect();
+    const actions = region.closest(".sf-screen")?.querySelector(".sf-actions");
+    const actionBounds = actions?.getBoundingClientRect();
+    const combinedTop = Math.min(bounds.top, actionBounds?.top ?? bounds.top);
+    const combinedBottom = Math.max(bounds.bottom, actionBounds?.bottom ?? bounds.bottom);
+    const combinedHeight = combinedBottom - combinedTop;
+    const viewportHeight = viewportBottom - viewportTop;
+
+    if (combinedHeight <= viewportHeight) {
+      const scrollDelta = combinedTop < viewportTop
+        ? combinedTop - viewportTop
+        : combinedBottom > viewportBottom
+          ? combinedBottom - viewportBottom
+          : 0;
+      if (scrollDelta) window.scrollBy({ top: scrollDelta, behavior: "auto" });
+      return;
+    }
+    if (bounds.top < viewportTop || bounds.bottom > viewportBottom) {
+      region.scrollIntoView({ block: "center", inline: "nearest", behavior: "auto" });
+    }
+  });
+}
+
+function syncVisualViewport() {
+  window.cancelAnimationFrame(viewportFrame);
+  viewportFrame = window.requestAnimationFrame(() => {
+    const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
+    document.documentElement.style.setProperty("--sf-viewport-height", `${viewportHeight}px`);
+    keepFocusedFieldVisible();
+  });
+}
+
+window.visualViewport?.addEventListener("resize", syncVisualViewport);
+window.visualViewport?.addEventListener("scroll", syncVisualViewport);
+window.addEventListener("resize", syncVisualViewport);
+form.addEventListener("focusin", keepFocusedFieldVisible);
+syncVisualViewport();
 
 function showToast(message) {
   toast.textContent = message;
@@ -90,8 +144,9 @@ async function moveTo(nextScreen, direction = "forward") {
   outgoing.setAttribute("aria-hidden", "true");
   currentScreen = nextScreen;
   updateProgress(nextScreen);
-  window.scrollTo({ top: 0, behavior: "smooth" });
-  incoming.querySelector("input:not([type=hidden]), select")?.focus({ preventScroll: true });
+  window.scrollTo({ top: 0, behavior: "auto" });
+  incoming.querySelector("input:not([type=hidden]), select")?.focus({ preventScroll: false });
+  keepFocusedFieldVisible();
   moving = false;
 }
 

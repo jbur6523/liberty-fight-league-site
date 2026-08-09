@@ -12,6 +12,7 @@
   --body: "Barlow Condensed", Arial, sans-serif;
   --display: "Black Ops One", Impact, sans-serif;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --sf-viewport-height: 100dvh;
 }
 
 * {
@@ -23,13 +24,16 @@
 }
 
 html {
+  min-height: 100%;
+  overflow-x: hidden;
+  scroll-padding-block: 12vh;
   background: var(--black);
 }
 
 body {
   min-width: 320px;
   min-height: 100vh;
-  min-height: 100dvh;
+  min-height: var(--sf-viewport-height);
   margin: 0;
   background:
     radial-gradient(circle at 50% -20%, rgba(255, 255, 255, 0.09), transparent 36rem),
@@ -38,6 +42,7 @@ body {
   font-family: var(--body);
   font-size: 18px;
   letter-spacing: 0.015em;
+  overflow-x: hidden;
 }
 
 button,
@@ -58,7 +63,7 @@ a {
 
 .sf-page {
   min-height: 100vh;
-  min-height: 100dvh;
+  min-height: var(--sf-viewport-height);
   display: grid;
   grid-template-rows: auto 1fr;
 }
@@ -308,8 +313,20 @@ a {
   padding-inline: 14px;
 }
 
+.sf-back-icon {
+  width: 24px;
+  height: 24px;
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
 .sf-field {
   margin-top: clamp(34px, 8vh, 68px);
+  scroll-margin-block: 12vh;
 }
 
 .sf-field label,
@@ -359,6 +376,7 @@ a {
 .sf-contact-field {
   display: grid;
   gap: 8px;
+  scroll-margin-block: 12vh;
 }
 
 .sf-preferred-choice {
@@ -471,6 +489,25 @@ a {
   color: var(--muted);
   font-size: 17px;
   line-height: 1.4;
+}
+
+.sf-instagram-cta {
+  max-width: 560px;
+  margin-top: 26px;
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
+}
+
+.sf-instagram-cta p {
+  margin: 0 0 14px;
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1.4;
+}
+
+.sf-instagram-cta .sf-button {
+  min-height: 50px;
+  font-size: 15px;
 }
 
 .sf-status-card {
