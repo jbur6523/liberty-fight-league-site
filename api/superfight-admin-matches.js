@@ -12,6 +12,7 @@ import {
 import { getServiceSupabase } from "../src/server/supabase.js";
 import { loadCompetitorWeightOptions } from "../src/server/weight-preferences.js";
 import { confirmationState } from "../src/superfight/contracts.js";
+import { formatPreferencesConflict, resolveMatchWeight } from "../src/superfight/match-agreement.js";
 import { boutType, uuid } from "../src/superfight/validation.js";
 
 async function listMatches(service, eventId) {
@@ -140,21 +141,43 @@ export default async function handler(request, response) {
     const eventId = uuid(body.eventId, "Event");
     const fighterAId = uuid(body.fighterAId, "Fighter A");
     const fighterBId = uuid(body.fighterBId, "Fighter B");
-    const weightOptionId = uuid(body.weightOptionId, "Final weight class");
+    const finalBoutType = boutType(body.boutType);
     if (fighterAId === fighterBId) {
       throw new HttpError(400, "Choose two different competitors.", "invalid_match");
     }
 
-    const preferences = await loadCompetitorWeightOptions(service, [fighterAId, fighterBId]);
-    const fighterAWeights = new Set((preferences.get(fighterAId) ?? []).map((option) => option.id));
-    const fighterBWeights = new Set((preferences.get(fighterBId) ?? []).map((option) => option.id));
-    if (!fighterAWeights.has(weightOptionId) || !fighterBWeights.has(weightOptionId)) {
+    const [preferences, { data: competitors, error: competitorError }] = await Promise.all([
+      loadCompetitorWeightOptions(service, [fighterAId, fighterBId]),
+      service
+        .from("superfight_competitors")
+        .select("id, event_id, grappling_preference")
+        .in("id", [fighterAId, fighterBId]),
+    ]);
+    if (competitorError) throw databaseFailure(competitorError, "match competitor lookup failed");
+    if (competitors.length !== 2 || competitors.some((competitor) => competitor.event_id !== eventId)) {
+      throw new HttpError(400, "Choose two competitors from this event.", "invalid_match");
+    }
+
+    const fighterA = competitors.find((competitor) => competitor.id === fighterAId);
+    const fighterB = competitors.find((competitor) => competitor.id === fighterBId);
+    if (formatPreferencesConflict(fighterA.grappling_preference, fighterB.grappling_preference)
+      && body.formatOverrideConfirmed !== true) {
       throw new HttpError(
         409,
-        "Choose a final weight class accepted by both competitors.",
+        "These competitors selected different format preferences. Confirm the agreed bout type.",
         "match_conflict",
       );
     }
+
+    const fighterAWeights = new Set((preferences.get(fighterAId) ?? []).map((option) => option.id));
+    const sharedWeightOptionIds = (preferences.get(fighterBId) ?? [])
+      .map((option) => option.id)
+      .filter((optionId) => fighterAWeights.has(optionId));
+    const { weightOptionId, matchWeightLbs } = resolveMatchWeight({
+      sharedWeightOptionIds,
+      weightOptionId: body.weightOptionId,
+      agreedWeightLbs: body.agreedWeightLbs,
+    });
 
     const { data, error } = await service
       .from("superfight_matches")
@@ -163,14 +186,15 @@ export default async function handler(request, response) {
         fighter_a_id: fighterAId,
         fighter_b_id: fighterBId,
         weight_option_id: weightOptionId,
-        bout_type: boutType(body.boutType),
+        match_weight_lbs: matchWeightLbs,
+        bout_type: finalBoutType,
         created_by: admin.id,
       })
       .select("id")
       .single();
 
     if (error) {
-      if (/already belongs to an active match|Only active competitors|same gender division|incompatible|final bout type|weight class/i.test(error.message)) {
+      if (/already belongs to an active match|Only active competitors|same gender division|final bout type|weight class|agreed match weight/i.test(error.message)) {
         throw new HttpError(409, error.message, "match_conflict");
       }
       throw databaseFailure(error, "admin match create failed");

@@ -438,6 +438,32 @@ a { -webkit-tap-highlight-color: transparent; }
   color: var(--red);
 }
 
+.admin-warning {
+  margin-top: 18px;
+  padding: 12px 14px;
+  border: 1px solid #d5a327;
+  border-radius: 3px;
+  background: #fff7db;
+  color: #6f4d00;
+  font-weight: 700;
+}
+
+.admin-warning p { margin: 0; }
+.admin-warning p + p { margin-top: 8px; }
+
+.admin-override-confirmation {
+  margin-top: 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  font-weight: 700;
+}
+
+.admin-override-confirmation input {
+  margin-top: 4px;
+  accent-color: var(--ink);
+}
+
 dialog {
   width: min(680px, calc(100% - 28px));
   max-height: calc(100vh - 40px);

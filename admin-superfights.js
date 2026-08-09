@@ -7,6 +7,7 @@ const state = {
   tab: "unmatched",
   selected: null,
   pairing: null,
+  matchAgreement: null,
 };
 
 const elements = {
@@ -113,6 +114,27 @@ function weightChecklist(options, selectedIds = [], name = "weightOptionIds") {
       <input type="checkbox" name="${name}" value="${option.id}"${selected.has(option.id) ? " checked" : ""}>
       <span>${escapeHtml(option.label)}</span>
     </label>`).join("");
+}
+
+function formatPreferencesConflict(leftPreference, rightPreference) {
+  return Boolean(
+    leftPreference
+    && rightPreference
+    && leftPreference !== "both"
+    && rightPreference !== "both"
+    && leftPreference !== rightPreference
+  );
+}
+
+function updateMatchSubmitAvailability() {
+  if (!state.matchAgreement) return;
+  const weightReady = state.matchAgreement.hasSharedWeight
+    ? Boolean(document.querySelector("#match-weight-option").value)
+    : Number(document.querySelector("#match-agreed-weight").value) > 0;
+  const boutTypeReady = Boolean(document.querySelector("#match-bout-type").value);
+  const formatConfirmed = !state.matchAgreement.formatConflict
+    || document.querySelector("#match-format-confirmed").checked;
+  document.querySelector("#match-submit").disabled = !(weightReady && boutTypeReady && formatConfirmed);
 }
 
 function eventOptions() {
@@ -292,6 +314,7 @@ async function loadActiveView() {
 function clearSelection() {
   state.selected = null;
   state.pairing = null;
+  state.matchAgreement = null;
   elements.matchbar.hidden = true;
   renderUnmatched();
 }
@@ -321,15 +344,36 @@ function selectCompetitor(competitorId) {
       .map((option) => option.id),
   );
   const sharedWeights = activeWeightOptions().filter((option) => sharedWeightIds.has(option.id));
+  const hasSharedWeight = sharedWeights.length > 0;
+  const formatConflict = formatPreferencesConflict(
+    state.pairing[0].grapplingPreference,
+    state.pairing[1].grapplingPreference,
+  );
+  state.matchAgreement = { hasSharedWeight, formatConflict };
   document.querySelector("#match-weight-option").innerHTML = [
     '<option value="">Choose a shared weight class</option>',
     ...sharedWeights.map((option) => `<option value="${option.id}">${escapeHtml(option.label)}</option>`),
   ].join("");
+  document.querySelector("#match-weight-class-field").hidden = !hasSharedWeight;
+  document.querySelector("#match-weight-option").required = hasSharedWeight;
+  document.querySelector("#match-manual-weight-field").hidden = hasSharedWeight;
+  document.querySelector("#match-agreed-weight").required = !hasSharedWeight;
+  document.querySelector("#match-agreed-weight").value = "";
   document.querySelector("#match-bout-type").value = "";
-  document.querySelector("#match-error").textContent = sharedWeights.length === 0
-    ? "These competitors do not share an acceptable weight class."
-    : "";
-  document.querySelector("#match-submit").disabled = sharedWeights.length === 0;
+  document.querySelector("#match-format-confirmation").hidden = !formatConflict;
+  document.querySelector("#match-format-confirmed").checked = false;
+  const warnings = [];
+  if (!hasSharedWeight) {
+    warnings.push("These competitors' application weight preferences do not overlap. Enter the agreed match weight.");
+  }
+  if (formatConflict) {
+    warnings.push("These competitors selected different format preferences. Confirm the agreed bout type.");
+  }
+  const warning = document.querySelector("#match-warning");
+  warning.hidden = warnings.length === 0;
+  warning.innerHTML = warnings.map((message) => `<p>${escapeHtml(message)}</p>`).join("");
+  document.querySelector("#match-error").textContent = "";
+  updateMatchSubmitAvailability();
   document.querySelector("#match-dialog").showModal();
 }
 
@@ -355,7 +399,7 @@ async function openDetail(competitorId) {
         <div class="admin-detail"><strong>Application date</strong>${competitor.applicationSubmittedAt ? new Date(competitor.applicationSubmittedAt).toLocaleString() : "Quick add"}</div>
         <div class="admin-detail"><strong>Match status</strong>${competitor.match ? `Matched with ${escapeHtml(competitor.match.opponent.full_name)}` : "Unmatched"}</div>
         ${competitor.match ? `<div class="admin-detail"><strong>Final bout type</strong>${label(competitor.match.boutType)}</div>` : ""}
-        ${competitor.match ? `<div class="admin-detail"><strong>Final weight class</strong>${escapeHtml(competitor.match.weightOption?.label ?? "—")}</div>` : ""}
+        ${competitor.match ? `<div class="admin-detail"><strong>Final match weight</strong>${escapeHtml(competitor.match.weightOption?.label ?? (competitor.match.weightLbs === null ? "—" : `${competitor.match.weightLbs} lb`))}</div>` : ""}
         ${competitor.match ? `<div class="admin-detail"><strong>Fighter confirmation</strong>${label(fighterResponse || "awaiting")}</div><div class="admin-detail"><strong>Opponent confirmation</strong>${label(opponentResponse || "awaiting")}</div>` : ""}
       </div>
       <form id="detail-form" style="margin-top:20px">
@@ -556,7 +600,9 @@ document.querySelector("#match-form").addEventListener("submit", async (event) =
         fighterAId: state.pairing[0].id,
         fighterBId: state.pairing[1].id,
         weightOptionId: document.querySelector("#match-weight-option").value,
+        agreedWeightLbs: document.querySelector("#match-agreed-weight").value,
         boutType: document.querySelector("#match-bout-type").value,
+        formatOverrideConfirmed: document.querySelector("#match-format-confirmed").checked,
       }),
     });
     document.querySelector("#match-dialog").close();
@@ -567,6 +613,9 @@ document.querySelector("#match-form").addEventListener("submit", async (event) =
     document.querySelector("#match-error").textContent = error.message;
   } finally { button.disabled = false; }
 });
+
+["#match-weight-option", "#match-agreed-weight", "#match-bout-type", "#match-format-confirmed"]
+  .forEach((selector) => document.querySelector(selector).addEventListener("input", updateMatchSubmitAvailability));
 
 document.querySelector("#event-form").addEventListener("submit", async (event) => {
   event.preventDefault();

@@ -80,7 +80,7 @@ function renderMatched(payload) {
       ["Opponent belt", payload.opponent.belt ? `${payload.opponent.belt[0].toUpperCase()}${payload.opponent.belt.slice(1)}` : null],
       ["Opponent gym", payload.opponent.gym],
       ["Opponent Instagram", payload.opponent.instagramHandle ? `@${payload.opponent.instagramHandle}` : null, payload.opponent.instagramUrl],
-      ["Final weight class", payload.match.weightOption?.label ?? (payload.match.weightLbs === null ? null : `${payload.match.weightLbs} lb`)],
+      [payload.match.weightOption ? "Final weight class" : "Agreed match weight", payload.match.weightOption?.label ?? (payload.match.weightLbs === null ? null : `${payload.match.weightLbs} lb`)],
       ["Bout type", { gi: "Gi", no_gi: "No-Gi" }[payload.match.boutType] ?? null],
       ["Event date", formattedDateTime(payload.event.startsAt)],
       ["Venue", payload.event.venue],
