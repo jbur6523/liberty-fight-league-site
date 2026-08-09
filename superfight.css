@@ -262,6 +262,10 @@ a {
   gap: 12px;
 }
 
+.sf-actions-centered {
+  justify-content: center;
+}
+
 .sf-button {
   min-height: 56px;
   padding: 15px 22px;
@@ -496,6 +500,10 @@ a {
   margin-top: 26px;
   padding-top: 22px;
   border-top: 1px solid var(--line);
+}
+
+.sf-instagram-cta + .sf-actions {
+  margin-top: 0;
 }
 
 .sf-instagram-cta p {

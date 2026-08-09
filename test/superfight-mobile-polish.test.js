@@ -22,13 +22,21 @@ test("mobile viewport and focus handling use resizing and semantic scrolling", (
   assert.match(script, /scrollIntoView\(\{ block: "center"/);
   assert.match(css, /--sf-viewport-height: 100dvh/);
   assert.match(css, /min-height: var\(--sf-viewport-height\)/);
+  assert.doesNotMatch(script, /incoming\.querySelector\([^\n]+\.focus/);
 });
 
-test("success screen keeps status actions and adds the Instagram CTA", () => {
+test("intro centers its application action", () => {
+  const intro = html.match(/data-screen="intro"[\s\S]*?<\/section>/)?.[0] ?? "";
+  assert.match(intro, /class="sf-actions sf-actions-centered"/);
+  assert.match(css, /\.sf-actions-centered\s*{[\s\S]*?justify-content: center;/);
+});
+
+test("success screen places the Instagram CTA before the status actions", () => {
   const success = html.match(/data-screen="success"[\s\S]*?<\/section>/)?.[0] ?? "";
   assert.match(success, /id="open-status"/);
   assert.match(success, /id="copy-status"/);
   assert.match(success, /Follow @libertyfightleague on Instagram so we can contact you easily about your match\./);
   assert.match(success, /id="follow-instagram" href="https:\/\/www\.instagram\.com\/libertyfightleague"/);
   assert.match(success, />Follow on Instagram<\/a>/);
+  assert.ok(success.indexOf('id="follow-instagram"') < success.indexOf('id="open-status"'));
 });

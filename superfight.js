@@ -145,8 +145,6 @@ async function moveTo(nextScreen, direction = "forward") {
   currentScreen = nextScreen;
   updateProgress(nextScreen);
   window.scrollTo({ top: 0, behavior: "auto" });
-  incoming.querySelector("input:not([type=hidden]), select")?.focus({ preventScroll: false });
-  keepFocusedFieldVisible();
   moving = false;
 }
 
