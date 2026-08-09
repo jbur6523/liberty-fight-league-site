@@ -58,17 +58,20 @@
             <p class="sf-kicker">Stay reachable</p>
             <h2>How can we contact you?</h2>
             <div class="sf-field sf-contact-grid">
-              <div>
-                <label for="phone">Phone</label>
+              <div class="sf-contact-field">
+                <label for="instagram">Instagram</label>
+                <input class="sf-input" id="instagram" name="instagram" autocomplete="url" placeholder="@yourhandle" maxlength="300">
+                <label class="sf-preferred-choice"><input type="radio" name="preferredContactMethod" value="instagram"> Preferred Contact</label>
+                <p class="sf-error" data-error="instagram"></p>
+              </div>
+              <div class="sf-contact-field">
+                <label for="phone">Cell Phone</label>
                 <input class="sf-input" id="phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="(555) 555-5555" maxlength="50">
+                <label class="sf-preferred-choice"><input type="radio" name="preferredContactMethod" value="cell_phone"> Preferred Contact</label>
                 <p class="sf-error" data-error="phone"></p>
               </div>
-              <div>
-                <label for="email">Email</label>
-                <input class="sf-input" id="email" name="email" type="email" autocomplete="email" inputmode="email" placeholder="you@example.com" maxlength="254">
-                <p class="sf-error" data-error="email"></p>
-              </div>
             </div>
+            <p class="sf-error" data-error="preferredContactMethod"></p>
             <div class="sf-actions">
               <button class="sf-button secondary sf-back" type="button" data-back aria-label="Back">←</button>
               <button class="sf-button" type="button" data-next>Next</button>
@@ -162,26 +165,9 @@
             </div>
             <div class="sf-actions">
               <button class="sf-button secondary sf-back" type="button" data-back aria-label="Back">←</button>
-              <button class="sf-button" type="button" data-next>Next</button>
-            </div>
-          </section>
-
-          <section class="sf-screen" data-screen="instagram">
-            <p class="sf-kicker">One last thing</p>
-            <h2>Where can we find you on Instagram?</h2>
-            <div class="sf-field">
-              <label for="instagram">Handle, username, or profile URL</label>
-              <input class="sf-input" id="instagram" name="instagram" autocomplete="url" placeholder="@yourhandle" maxlength="300">
-              <p class="sf-error" data-error="instagram"></p>
-            </div>
-            <p class="sf-note">
-              Follow Liberty Fight League so the promotion can contact you easily.
-              <a id="instagram-link" href="https://instagram.com/libertyfightleague" target="_blank" rel="noopener">Follow LFL on Instagram ↗</a>
-            </p>
-            <div class="sf-actions">
-              <button class="sf-button secondary sf-back" type="button" data-back aria-label="Back">←</button>
               <button class="sf-button" type="submit" id="submit-button">Send application</button>
             </div>
+            <p class="sf-error" data-error="submit"></p>
           </section>
 
           <section class="sf-screen" data-screen="success">
@@ -189,9 +175,9 @@
             <h2>Your application has been received.</h2>
             <p class="sf-lead">Save this link to check your match status and matchup details.</p>
             <div class="sf-field">
-              <label for="status-url">Your private status link</label>
+              <label for="status-url">Your status link</label>
               <input class="sf-input" id="status-url" readonly>
-              <p class="sf-note">This private link works without an account and does not expose your contact details.</p>
+              <p class="sf-note">This link works without an account and does not expose your contact details.</p>
             </div>
             <div class="sf-actions">
               <a class="sf-button" id="open-status" href="#">Open Status Page</a>

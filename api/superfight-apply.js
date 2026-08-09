@@ -13,10 +13,10 @@ import { setCompetitorWeightPreferences } from "../src/server/weight-preferences
 import {
   belt,
   competitorAge,
-  email,
   genderDivision,
   grapplingPreference,
   optionalText,
+  resolvePreferredContact,
   requiredText,
   uuid,
   uuidList,
@@ -36,8 +36,7 @@ export default async function handler(request, response) {
     const eventId = uuid(body.eventId, "Event");
     const weightOptionIds = uuidList(body.weightOptionIds, "Acceptable weight classes");
     const fullName = requiredText(body.fullName, "Full name", 160);
-    const phone = requiredText(body.phone, "Phone", 50);
-    const applicantEmail = email(body.email);
+    const phone = optionalText(body.phone, "Cell Phone", 50);
     const age = competitorAge(body.age);
     const division = genderDivision(body.genderDivision);
     const preference = grapplingPreference(body.grapplingPreference);
@@ -51,6 +50,11 @@ export default async function handler(request, response) {
     } catch (error) {
       throw new HttpError(400, error.message, "invalid_application");
     }
+    const preferredContact = resolvePreferredContact({
+      phone,
+      instagramHandle: instagram.handle,
+      requestedMethod: body.preferredContactMethod,
+    });
 
     const service = getServiceSupabase();
     const { data: event, error: eventError } = await service
@@ -76,7 +80,7 @@ export default async function handler(request, response) {
         source: "public_application",
         full_name: fullName,
         phone,
-        email: applicantEmail,
+        preferred_contact_method: preferredContact,
         age,
         gender_division: division,
         grappling_preference: preference,
@@ -86,7 +90,7 @@ export default async function handler(request, response) {
         instagram_url: instagram.url,
         application_submitted_at: new Date().toISOString(),
       })
-      .select("id, status_token")
+      .select("id, status_slug")
       .single();
 
     if (insertError) {
@@ -106,7 +110,7 @@ export default async function handler(request, response) {
 
     sendJson(response, 201, {
       received: true,
-      statusPath: `/status/${competitor.status_token}`,
+      statusPath: `/status/${competitor.status_slug}`,
     });
   });
 }

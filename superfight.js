@@ -1,15 +1,14 @@
 const screens = [...document.querySelectorAll(".sf-screen")];
-const questionScreens = ["name", "contact", "age", "division", "grappling", "belt", "weight", "gym", "instagram"];
+const questionScreens = ["name", "contact", "age", "division", "grappling", "belt", "weight", "gym"];
 const fieldsByScreen = {
   name: ["fullName"],
-  contact: ["phone", "email"],
+  contact: ["instagram", "phone", "preferredContactMethod"],
   age: ["age"],
   division: ["genderDivision"],
   grappling: ["grapplingPreference"],
   belt: ["belt"],
   weight: ["weightOptionIds"],
   gym: ["gym"],
-  instagram: [],
 };
 
 let currentScreen = "intro";
@@ -112,9 +111,14 @@ function validateScreen(screenName) {
     errors.fullName = "Enter your full name.";
   }
   if (screenName === "contact") {
-    if (!String(data.get("phone") ?? "").trim()) errors.phone = "Enter your phone number.";
-    const email = String(data.get("email") ?? "").trim();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = "Enter a valid email address.";
+    syncPreferredContact();
+    const instagram = String(data.get("instagram") ?? "").trim();
+    const phone = String(data.get("phone") ?? "").trim();
+    if (!instagram && !phone) {
+      errors.preferredContactMethod = "Enter an Instagram username or cell phone number.";
+    } else if (instagram && phone && !data.get("preferredContactMethod")) {
+      errors.preferredContactMethod = "Choose Instagram or Cell Phone as your preferred contact.";
+    }
   }
   if (screenName === "age") {
     const age = Number(data.get("age"));
@@ -178,8 +182,6 @@ async function loadEvent() {
       weightOptions.append(choice);
     }
 
-    const configuredInstagram = event.instagramUrl || "https://instagram.com/libertyfightleague";
-    document.querySelector("#instagram-link").href = configuredInstagram;
     const canApply = event.applicationsOpen && event.weightOptions.length > 0;
     document.querySelector("#start-button").disabled = !canApply;
     if (!event.applicationsOpen) {
@@ -246,8 +248,40 @@ function bindChoiceButtons(selector, inputSelector, dataKey, errorField) {
 bindChoiceButtons("[data-division]", "#gender-division", "division", "genderDivision");
 bindChoiceButtons("[data-preference]", "#grappling-preference", "preference", "grapplingPreference");
 
+const instagramInput = document.querySelector("#instagram");
+const phoneInput = document.querySelector("#phone");
+const preferredContactChoices = [...document.querySelectorAll('[name="preferredContactMethod"]')];
+
+function syncPreferredContact() {
+  const available = {
+    instagram: Boolean(instagramInput.value.trim()),
+    cell_phone: Boolean(phoneInput.value.trim()),
+  };
+  const availableMethods = Object.entries(available)
+    .filter(([, filled]) => filled)
+    .map(([method]) => method);
+
+  for (const choice of preferredContactChoices) {
+    choice.disabled = !available[choice.value];
+    if (!available[choice.value]) choice.checked = false;
+  }
+  if (availableMethods.length === 1) {
+    preferredContactChoices.find((choice) => choice.value === availableMethods[0]).checked = true;
+  }
+  if (availableMethods.length > 0) {
+    document.querySelector('[data-error="preferredContactMethod"]').textContent = "";
+  }
+}
+
+instagramInput.addEventListener("input", syncPreferredContact);
+phoneInput.addEventListener("input", syncPreferredContact);
+preferredContactChoices.forEach((choice) => choice.addEventListener("change", () => {
+  document.querySelector('[data-error="preferredContactMethod"]').textContent = "";
+}));
+syncPreferredContact();
+
 form.addEventListener("keydown", (eventKey) => {
-  if (eventKey.key === "Enter" && currentScreen !== "instagram" && eventKey.target.tagName !== "TEXTAREA") {
+  if (eventKey.key === "Enter" && currentScreen !== "gym" && eventKey.target.tagName !== "TEXTAREA") {
     eventKey.preventDefault();
     screenElement(currentScreen)?.querySelector("[data-next]")?.click();
   }
@@ -255,6 +289,8 @@ form.addEventListener("keydown", (eventKey) => {
 
 form.addEventListener("submit", async (submitEvent) => {
   submitEvent.preventDefault();
+  if (!validateScreen("gym")) return;
+  document.querySelector('[data-error="submit"]').textContent = "";
   const submitButton = document.querySelector("#submit-button");
   submitButton.disabled = true;
   submitButton.textContent = "Sending…";
@@ -283,7 +319,7 @@ form.addEventListener("submit", async (submitEvent) => {
     document.querySelector("#open-status").href = payload.statusPath;
     await moveTo("success");
   } catch (error) {
-    document.querySelector('[data-error="instagram"]').textContent = error.message;
+    document.querySelector('[data-error="submit"]').textContent = error.message;
   } finally {
     submitButton.disabled = false;
     submitButton.textContent = "Send application";

@@ -356,6 +356,38 @@ a {
   gap: 24px;
 }
 
+.sf-contact-field {
+  display: grid;
+  gap: 8px;
+}
+
+.sf-preferred-choice {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  margin-top: 2px;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.sf-preferred-choice:has(input:checked) {
+  color: var(--white);
+}
+
+.sf-preferred-choice input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
+
+.sf-preferred-choice:has(input:disabled) {
+  opacity: .45;
+  cursor: default;
+}
+
 .sf-choice-grid {
   margin-top: clamp(28px, 6vh, 50px);
   display: grid;

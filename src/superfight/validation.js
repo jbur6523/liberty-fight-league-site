@@ -4,6 +4,7 @@ export const BELTS = Object.freeze(["blue", "purple", "brown", "black"]);
 export const GENDER_DIVISIONS = Object.freeze(["mens", "womens"]);
 export const GRAPPLING_PREFERENCES = Object.freeze(["gi", "no_gi", "both"]);
 export const BOUT_TYPES = Object.freeze(["gi", "no_gi"]);
+export const CONTACT_METHODS = Object.freeze(["instagram", "cell_phone"]);
 
 export function optionalText(value, fieldName, maximumLength) {
   if (value === null || value === undefined) {
@@ -51,6 +52,14 @@ export function uuidList(value, fieldName, { optional = false, maximum = 50 } = 
     throw new HttpError(400, `Select valid ${fieldName.toLowerCase()}.`, "invalid_identifier");
   }
   return values;
+}
+
+export function statusIdentifier(value) {
+  const text = requiredText(value, "Status link", 80).toLowerCase();
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(text)) {
+    throw new HttpError(400, "Status link is invalid.", "invalid_identifier");
+  }
+  return text;
 }
 
 export function belt(value, { optional = false } = {}) {
@@ -131,4 +140,39 @@ export function grapplingPreference(value, options) {
 
 export function boutType(value) {
   return structuredChoice(value, "Bout type", BOUT_TYPES);
+}
+
+export function preferredContactMethod(value, options) {
+  return structuredChoice(value, "Preferred contact", CONTACT_METHODS, options);
+}
+
+export function resolvePreferredContact({
+  phone,
+  instagramHandle,
+  requestedMethod,
+  optional = false,
+}) {
+  const availableMethods = [];
+  if (instagramHandle) availableMethods.push("instagram");
+  if (phone) availableMethods.push("cell_phone");
+
+  if (availableMethods.length === 0) {
+    if (optional) return null;
+    throw new HttpError(
+      400,
+      "Enter an Instagram username or cell phone number.",
+      "invalid_application",
+    );
+  }
+
+  if (availableMethods.length === 1) return availableMethods[0];
+  const selected = preferredContactMethod(requestedMethod, { optional: true });
+  if (!selected || !availableMethods.includes(selected)) {
+    throw new HttpError(
+      400,
+      "Choose Instagram or Cell Phone as your preferred contact.",
+      "invalid_application",
+    );
+  }
+  return selected;
 }

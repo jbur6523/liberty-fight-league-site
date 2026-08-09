@@ -8,18 +8,32 @@ import {
   sendJson,
 } from "../src/server/http.js";
 import { getServiceSupabase } from "../src/server/supabase.js";
-import { uuid } from "../src/superfight/validation.js";
+import { statusIdentifier } from "../src/superfight/validation.js";
+
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 
 export default async function handler(request, response) {
   return handleApi(request, response, async () => {
     allowMethods(request, response, ["GET"]);
-    const token = uuid(queryValue(request, "token"), "Status link");
+    const identifier = statusIdentifier(
+      queryValue(request, "status") ?? queryValue(request, "token"),
+    );
     const service = getServiceSupabase();
-    const { data: fighter, error: fighterError } = await service
+    let { data: fighter, error: fighterError } = await service
       .from("superfight_competitors")
       .select("id, event_id, full_name, belt, competition_weight_lbs, gym, instagram_handle, instagram_url, record_state")
-      .eq("status_token", token)
+      .eq("status_slug", identifier)
       .maybeSingle();
+
+    if (!fighter && !fighterError && UUID_PATTERN.test(identifier)) {
+      const legacyLookup = await service
+        .from("superfight_competitors")
+        .select("id, event_id, full_name, belt, competition_weight_lbs, gym, instagram_handle, instagram_url, record_state")
+        .eq("status_token", identifier)
+        .maybeSingle();
+      fighter = legacyLookup.data;
+      fighterError = legacyLookup.error;
+    }
 
     if (fighterError) {
       throw databaseFailure(fighterError, "status fighter lookup failed");

@@ -21,9 +21,9 @@ const previewEvent = {
 };
 
 const competitors = [
-  { id: "00000000-0000-4000-8000-000000000201", name: "Jordan Lee", age: 27, genderDivision: "womens", grapplingPreference: "both", belt: "blue", weightLbs: 150, weightOptions: previewEvent.weightOptions, gym: "North Bay Jiu-Jitsu", instagramHandle: "jordanlee", instagramUrl: "https://instagram.com/jordanlee", source: "public_application", createdAt: new Date().toISOString(), statusPath: "/status/00000000-0000-4000-8000-000000000401" },
-  { id: "00000000-0000-4000-8000-000000000202", name: "Casey Morgan", age: 29, genderDivision: "womens", grapplingPreference: "gi", belt: "blue", weightLbs: 155, weightOptions: [previewEvent.weightOptions[1]], gym: "Bay Area Grappling", instagramHandle: "caseymorgan", instagramUrl: "https://instagram.com/caseymorgan", source: "admin_quick_add", createdAt: new Date().toISOString(), statusPath: "/status/00000000-0000-4000-8000-000000000402" },
-  { id: "00000000-0000-4000-8000-000000000203", name: "Riley Santos", age: 31, genderDivision: "mens", grapplingPreference: "no_gi", belt: "purple", weightLbs: 160, weightOptions: [previewEvent.weightOptions[0]], gym: "Liberty Academy", instagramHandle: "rileysantos", instagramUrl: "https://instagram.com/rileysantos", source: "public_application", createdAt: new Date().toISOString(), statusPath: "/status/00000000-0000-4000-8000-000000000403" },
+  { id: "00000000-0000-4000-8000-000000000201", name: "Jordan Lee", age: 27, genderDivision: "womens", grapplingPreference: "both", belt: "blue", weightLbs: 150, weightOptions: previewEvent.weightOptions, gym: "North Bay Jiu-Jitsu", phone: null, preferredContactMethod: "instagram", instagramHandle: "jordanlee", instagramUrl: "https://instagram.com/jordanlee", source: "public_application", createdAt: new Date().toISOString(), statusPath: "/status/lee" },
+  { id: "00000000-0000-4000-8000-000000000202", name: "Casey Morgan", age: 29, genderDivision: "womens", grapplingPreference: "gi", belt: "blue", weightLbs: 155, weightOptions: [previewEvent.weightOptions[1]], gym: "Bay Area Grappling", phone: "(555) 010-2027", preferredContactMethod: "cell_phone", instagramHandle: "caseymorgan", instagramUrl: "https://instagram.com/caseymorgan", source: "admin_quick_add", createdAt: new Date().toISOString(), statusPath: "/status/morgan" },
+  { id: "00000000-0000-4000-8000-000000000203", name: "Riley Santos", age: 31, genderDivision: "mens", grapplingPreference: "no_gi", belt: "purple", weightLbs: 160, weightOptions: [previewEvent.weightOptions[0]], gym: "Liberty Academy", phone: null, preferredContactMethod: "instagram", instagramHandle: "rileysantos", instagramUrl: "https://instagram.com/rileysantos", source: "public_application", createdAt: new Date().toISOString(), statusPath: "/status/santos" },
 ];
 
 function json(response, statusCode, payload) {
@@ -51,7 +51,7 @@ async function mockApi(request, response, url) {
   if (url.pathname === "/api/superfight-event") return json(response, 200, { event: previewEvent });
   if (url.pathname === "/api/superfight-apply") {
     await body(request);
-    return json(response, 201, { received: true, statusPath: "/status/00000000-0000-4000-8000-000000000401" });
+    return json(response, 201, { received: true, statusPath: "/status/lee" });
   }
   if (url.pathname === "/api/superfight-status") {
     return json(response, 200, {

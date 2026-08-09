@@ -361,8 +361,9 @@ async function openDetail(competitorId) {
       <form id="detail-form" style="margin-top:20px">
         <div class="admin-form-grid">
           <div class="admin-field full"><label>Name</label><input class="admin-input" name="fullName" value="${escapeHtml(competitor.name)}" required></div>
-          <div class="admin-field"><label>Phone</label><input class="admin-input" name="phone" value="${escapeHtml(competitor.phone)}"></div>
+          <div class="admin-field"><label>Cell Phone</label><input class="admin-input" name="phone" value="${escapeHtml(competitor.phone)}"></div>
           <div class="admin-field"><label>Email</label><input class="admin-input" name="email" type="email" value="${escapeHtml(competitor.email)}"></div>
+          <div class="admin-field"><label>Preferred Contact</label><select class="admin-select" name="preferredContactMethod"><option value="">None</option>${["instagram","cell_phone"].map((value) => `<option value="${value}"${competitor.preferredContactMethod === value ? " selected" : ""}>${label(value)}</option>`).join("")}</select></div>
           <div class="admin-field"><label>Gender / division</label><select class="admin-select" name="genderDivision"><option value="">Not entered</option>${["mens","womens"].map((value) => `<option value="${value}"${competitor.genderDivision === value ? " selected" : ""}>${label(value)} division</option>`).join("")}</select></div>
           <div class="admin-field"><label>Age</label><input class="admin-input" name="age" type="number" min="1" max="120" step="1" value="${competitor.age ?? ""}"></div>
           <div class="admin-field"><label>Gi / No-Gi preference</label><select class="admin-select" name="grapplingPreference"><option value="">Not entered</option>${["gi","no_gi","both"].map((value) => `<option value="${value}"${competitor.grapplingPreference === value ? " selected" : ""}>${label(value)}</option>`).join("")}</select></div>
@@ -528,6 +529,7 @@ document.querySelector("#quick-add-form").addEventListener("submit", async (even
         gym: document.querySelector("#add-gym").value,
         instagram: document.querySelector("#add-instagram").value,
         phone: document.querySelector("#add-phone").value,
+        preferredContactMethod: document.querySelector("#add-preferred-contact").value,
         email: document.querySelector("#add-email").value,
         notes: document.querySelector("#add-notes").value,
       }),

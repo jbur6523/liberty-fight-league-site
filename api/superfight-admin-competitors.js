@@ -22,6 +22,7 @@ import {
   genderDivision,
   grapplingPreference,
   optionalText,
+  resolvePreferredContact,
   requiredText,
   uuid,
   uuidList,
@@ -42,9 +43,11 @@ function adminCompetitorPayload(competitor) {
     gym: competitor.gym,
     instagramHandle: competitor.instagram_handle,
     instagramUrl: competitor.instagram_url,
+    phone: competitor.phone,
+    preferredContactMethod: competitor.preferred_contact_method,
     source: competitor.source,
     createdAt: competitor.created_at,
-    statusPath: `/status/${competitor.status_token}`,
+    statusPath: `/status/${competitor.status_slug}`,
   };
 }
 
@@ -65,6 +68,13 @@ export default async function handler(request, response) {
       } catch (error) {
         throw new HttpError(400, error.message, "invalid_competitor");
       }
+      const phone = optionalText(body.phone, "Cell Phone", 50);
+      const preferredContact = resolvePreferredContact({
+        phone,
+        instagramHandle: instagram.handle,
+        requestedMethod: body.preferredContactMethod,
+        optional: true,
+      });
 
       const { data, error } = await service
         .from("superfight_competitors")
@@ -79,12 +89,13 @@ export default async function handler(request, response) {
           gym: optionalText(body.gym, "Gym / academy", 160),
           instagram_handle: instagram.handle,
           instagram_url: instagram.url,
-          phone: optionalText(body.phone, "Phone", 50),
+          phone,
+          preferred_contact_method: preferredContact,
           email: email(body.email, { optional: true }),
           notes: optionalText(body.notes, "Notes", 5_000),
           created_by: admin.id,
         })
-        .select("id, status_token")
+        .select("id, status_slug")
         .single();
 
       if (error) {
@@ -104,7 +115,7 @@ export default async function handler(request, response) {
       }
 
       sendJson(response, 201, {
-        competitor: { id: data.id, statusPath: `/status/${data.status_token}` },
+        competitor: { id: data.id, statusPath: `/status/${data.status_slug}` },
       });
       return;
     }
@@ -113,7 +124,7 @@ export default async function handler(request, response) {
     const sort = queryValue(request, "sort") ?? "suggested";
     const { data: competitors, error: competitorError } = await service
       .from("superfight_competitors")
-      .select("id, full_name, age, gender_division, grappling_preference, belt, competition_weight_lbs, gym, instagram_handle, instagram_url, source, created_at, status_token")
+      .select("id, full_name, age, gender_division, grappling_preference, belt, competition_weight_lbs, gym, phone, preferred_contact_method, instagram_handle, instagram_url, source, created_at, status_slug")
       .eq("event_id", eventId)
       .eq("record_state", "active");
 

@@ -100,7 +100,7 @@ function renderError(message) {
 async function loadStatus() {
   const token = window.location.pathname.split("/").filter(Boolean).at(-1);
   try {
-    const response = await fetch(`/api/superfight-status?token=${encodeURIComponent(token ?? "")}`);
+    const response = await fetch(`/api/superfight-status?status=${encodeURIComponent(token ?? "")}`);
     const payload = await response.json();
     if (!response.ok) throw new Error(payload.message || "The link may be incomplete or expired.");
     if (payload.status === "matched") renderMatched(payload);

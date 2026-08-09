@@ -12,6 +12,8 @@ import {
   grapplingPreference,
   optionalText,
   positiveWeight,
+  resolvePreferredContact,
+  statusIdentifier,
   uuid,
   uuidList,
 } from "../src/superfight/validation.js";
@@ -69,11 +71,36 @@ test("competitor profile and bout values are structured and validated", () => {
   assert.throws(() => boutType("both"), /valid bout type/);
 });
 
-test("public validation accepts secure UUID tokens and rejects guessable identifiers", () => {
+test("status identifiers accept friendly slugs while UUID validation stays strict", () => {
   assert.equal(uuid(fighterAId, "Status link"), fighterAId);
+  assert.equal(statusIdentifier("Smith-2"), "smith-2");
+  assert.throws(() => statusIdentifier("smith/2"), /invalid/);
   assert.throws(
     () => uuid("smith", "Status link"),
     (error) => error instanceof HttpError && error.code === "invalid_identifier",
+  );
+});
+
+test("contact preference is automatic for one method and explicit for two", () => {
+  assert.equal(resolvePreferredContact({ instagramHandle: "fighter", phone: null }), "instagram");
+  assert.equal(resolvePreferredContact({ instagramHandle: null, phone: "415-555-0101" }), "cell_phone");
+  assert.equal(resolvePreferredContact({
+    instagramHandle: "fighter",
+    phone: "415-555-0101",
+    requestedMethod: "cell_phone",
+  }), "cell_phone");
+  assert.equal(resolvePreferredContact({
+    instagramHandle: null,
+    phone: null,
+    optional: true,
+  }), null);
+  assert.throws(
+    () => resolvePreferredContact({ instagramHandle: "fighter", phone: "415-555-0101" }),
+    /Choose Instagram or Cell Phone/,
+  );
+  assert.throws(
+    () => resolvePreferredContact({ instagramHandle: null, phone: null }),
+    /Instagram username or cell phone/,
   );
 });
 

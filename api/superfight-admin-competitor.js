@@ -22,6 +22,7 @@ import {
   genderDivision,
   grapplingPreference,
   optionalText,
+  resolvePreferredContact,
   requiredText,
   uuid,
   uuidList,
@@ -30,7 +31,7 @@ import {
 async function competitorDetail(service, competitorId) {
   const { data: competitor, error } = await service
     .from("superfight_competitors")
-    .select("id, event_id, full_name, phone, email, age, gender_division, grappling_preference, belt, competition_weight_lbs, gym, instagram_handle, instagram_url, notes, source, record_state, merged_into_competitor_id, application_submitted_at, created_at, status_token")
+    .select("id, event_id, full_name, phone, email, preferred_contact_method, age, gender_division, grappling_preference, belt, competition_weight_lbs, gym, instagram_handle, instagram_url, notes, source, record_state, merged_into_competitor_id, application_submitted_at, created_at, status_slug")
     .eq("id", competitorId)
     .maybeSingle();
 
@@ -106,6 +107,7 @@ async function competitorDetail(service, competitorId) {
     name: competitor.full_name,
     phone: competitor.phone,
     email: competitor.email,
+    preferredContactMethod: competitor.preferred_contact_method,
     age: competitor.age,
     genderDivision: competitor.gender_division,
     grapplingPreference: competitor.grappling_preference,
@@ -121,7 +123,7 @@ async function competitorDetail(service, competitorId) {
     mergedIntoCompetitorId: competitor.merged_into_competitor_id,
     applicationSubmittedAt: competitor.application_submitted_at,
     createdAt: competitor.created_at,
-    statusPath: `/status/${competitor.status_token}`,
+    statusPath: `/status/${competitor.status_slug}`,
     match,
   };
 }
@@ -164,9 +166,17 @@ export default async function handler(request, response) {
       throw new HttpError(400, "Choose a valid competitor action.", "invalid_competitor_action");
     }
 
+    const { data: current, error: currentError } = await service
+      .from("superfight_competitors")
+      .select("event_id, phone, preferred_contact_method, instagram_handle, instagram_url")
+      .eq("id", competitorId)
+      .maybeSingle();
+    if (currentError) throw databaseFailure(currentError, "admin competitor lookup failed");
+    if (!current) throw new HttpError(404, "Competitor could not be found.", "competitor_not_found");
+
     const updates = {};
     if (Object.hasOwn(body, "fullName")) updates.full_name = requiredText(body.fullName, "Full name", 160);
-    if (Object.hasOwn(body, "phone")) updates.phone = optionalText(body.phone, "Phone", 50);
+    if (Object.hasOwn(body, "phone")) updates.phone = optionalText(body.phone, "Cell Phone", 50);
     if (Object.hasOwn(body, "email")) updates.email = email(body.email, { optional: true });
     if (Object.hasOwn(body, "age")) updates.age = competitorAge(body.age, { optional: true });
     if (Object.hasOwn(body, "genderDivision")) {
@@ -187,6 +197,20 @@ export default async function handler(request, response) {
         throw new HttpError(400, error.message, "invalid_competitor");
       }
     }
+    const hasContactChange = ["phone", "instagram", "preferredContactMethod"]
+      .some((field) => Object.hasOwn(body, field));
+    if (hasContactChange) {
+      updates.preferred_contact_method = resolvePreferredContact({
+        phone: Object.hasOwn(updates, "phone") ? updates.phone : current.phone,
+        instagramHandle: Object.hasOwn(updates, "instagram_handle")
+          ? updates.instagram_handle
+          : current.instagram_handle,
+        requestedMethod: Object.hasOwn(body, "preferredContactMethod")
+          ? body.preferredContactMethod
+          : current.preferred_contact_method,
+        optional: true,
+      });
+    }
     const hasWeightPreferences = Object.hasOwn(body, "weightOptionIds");
     const weightOptionIds = hasWeightPreferences
       ? uuidList(body.weightOptionIds, "Acceptable weight classes", { optional: true })
@@ -206,16 +230,9 @@ export default async function handler(request, response) {
     }
 
     if (hasWeightPreferences) {
-      const { data: record, error: lookupError } = await service
-        .from("superfight_competitors")
-        .select("event_id")
-        .eq("id", competitorId)
-        .maybeSingle();
-      if (lookupError) throw databaseFailure(lookupError, "admin competitor event lookup failed");
-      if (!record) throw new HttpError(404, "Competitor could not be found.", "competitor_not_found");
       await setCompetitorWeightPreferences(service, {
         competitorId,
-        eventId: record.event_id,
+        eventId: current.event_id,
         weightOptionIds,
         optional: true,
       });
