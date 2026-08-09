@@ -10,6 +10,10 @@ import {
   sendJson,
 } from "../src/server/http.js";
 import { getServiceSupabase } from "../src/server/supabase.js";
+import {
+  loadCompetitorWeightOptions,
+  setCompetitorWeightPreferences,
+} from "../src/server/weight-preferences.js";
 import { normalizeInstagram, sortCompetitors } from "../src/superfight/domain.js";
 import {
   belt,
@@ -18,9 +22,9 @@ import {
   genderDivision,
   grapplingPreference,
   optionalText,
-  positiveWeight,
   requiredText,
   uuid,
+  uuidList,
 } from "../src/superfight/validation.js";
 
 function adminCompetitorPayload(competitor) {
@@ -34,6 +38,7 @@ function adminCompetitorPayload(competitor) {
     weightLbs: competitor.competition_weight_lbs === null
       ? null
       : Number(competitor.competition_weight_lbs),
+    weightOptions: competitor.weightOptions ?? [],
     gym: competitor.gym,
     instagramHandle: competitor.instagram_handle,
     instagramUrl: competitor.instagram_url,
@@ -52,6 +57,8 @@ export default async function handler(request, response) {
     if (request.method === "POST") {
       assertSameOrigin(request);
       const body = await readJsonBody(request);
+      const eventId = uuid(body.eventId, "Event");
+      const weightOptionIds = uuidList(body.weightOptionIds, "Acceptable weight classes", { optional: true });
       let instagram;
       try {
         instagram = normalizeInstagram(optionalText(body.instagram, "Instagram", 300));
@@ -62,14 +69,13 @@ export default async function handler(request, response) {
       const { data, error } = await service
         .from("superfight_competitors")
         .insert({
-          event_id: uuid(body.eventId, "Event"),
+          event_id: eventId,
           source: "admin_quick_add",
           full_name: requiredText(body.fullName, "Full name", 160),
           age: competitorAge(body.age, { optional: true }),
           gender_division: genderDivision(body.genderDivision, { optional: true }),
           grappling_preference: grapplingPreference(body.grapplingPreference, { optional: true }),
           belt: belt(body.belt, { optional: true }),
-          competition_weight_lbs: positiveWeight(body.weightLbs, { optional: true }),
           gym: optionalText(body.gym, "Gym / academy", 160),
           instagram_handle: instagram.handle,
           instagram_url: instagram.url,
@@ -83,6 +89,18 @@ export default async function handler(request, response) {
 
       if (error) {
         throw databaseFailure(error, "admin quick add failed");
+      }
+
+      try {
+        await setCompetitorWeightPreferences(service, {
+          competitorId: data.id,
+          eventId,
+          weightOptionIds,
+          optional: true,
+        });
+      } catch (preferenceError) {
+        await service.from("superfight_competitors").delete().eq("id", data.id);
+        throw preferenceError;
       }
 
       sendJson(response, 201, {
@@ -103,6 +121,15 @@ export default async function handler(request, response) {
       throw databaseFailure(competitorError, "admin competitor pool lookup failed");
     }
 
+    const weightOptionsByCompetitor = await loadCompetitorWeightOptions(
+      service,
+      competitors.map((competitor) => competitor.id),
+    );
+    const competitorsWithWeights = competitors.map((competitor) => ({
+      ...competitor,
+      weightOptions: weightOptionsByCompetitor.get(competitor.id) ?? [],
+    }));
+
     const { data: matches, error: matchError } = await service
       .from("superfight_matches")
       .select("fighter_a_id, fighter_b_id")
@@ -117,7 +144,7 @@ export default async function handler(request, response) {
     let ordered;
     try {
       ordered = sortCompetitors(
-        competitors.filter((competitor) => !matchedIds.has(competitor.id)),
+        competitorsWithWeights.filter((competitor) => !matchedIds.has(competitor.id)),
         sort,
       );
     } catch (error) {

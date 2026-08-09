@@ -13,6 +13,7 @@ import {
   optionalText,
   positiveWeight,
   uuid,
+  uuidList,
 } from "../src/superfight/validation.js";
 
 const fighterAId = "00000000-0000-4000-8000-000000000001";
@@ -74,6 +75,13 @@ test("public validation accepts secure UUID tokens and rejects guessable identif
     () => uuid("smith", "Status link"),
     (error) => error instanceof HttpError && error.code === "invalid_identifier",
   );
+});
+
+test("weight preference identifiers are distinct validated UUID lists", () => {
+  assert.deepEqual(uuidList([fighterAId, fighterBId, fighterAId], "Weight classes"), [fighterAId, fighterBId]);
+  assert.deepEqual(uuidList(null, "Weight classes", { optional: true }), []);
+  assert.throws(() => uuidList([], "Weight classes"), /Select valid weight classes/);
+  assert.throws(() => uuidList(["feather"], "Weight classes"), /invalid/i);
 });
 
 test("belt and weight validation reject unsupported business values", () => {

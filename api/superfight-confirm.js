@@ -27,7 +27,7 @@ async function confirmationDetails(service, token) {
 
   const { data: match, error: matchError } = await service
     .from("superfight_matches")
-    .select("id, event_id, fighter_a_id, fighter_b_id, match_weight_lbs, bout_type, state")
+    .select("id, event_id, fighter_a_id, fighter_b_id, weight_option_id, match_weight_lbs, bout_type, state")
     .eq("id", confirmation.match_id)
     .single();
 
@@ -60,7 +60,18 @@ async function confirmationDetails(service, token) {
     throw databaseFailure(fighterError || opponentError || eventError, "confirmation detail lookup failed");
   }
 
-  return { confirmation, match, fighter, opponent, event };
+  let weightOption = null;
+  if (match.weight_option_id) {
+    const { data, error } = await service
+      .from("superfight_event_weight_options")
+      .select("id, label, value_lbs")
+      .eq("id", match.weight_option_id)
+      .single();
+    if (error) throw databaseFailure(error, "confirmation weight class lookup failed");
+    weightOption = data;
+  }
+
+  return { confirmation, match, fighter, opponent, event, weightOption };
 }
 
 function publicPayload(details) {
@@ -84,6 +95,11 @@ function publicPayload(details) {
       weightLbs: details.match.match_weight_lbs === null
         ? null
         : Number(details.match.match_weight_lbs),
+      weightOption: details.weightOption ? {
+        id: details.weightOption.id,
+        label: details.weightOption.label,
+        valueLbs: Number(details.weightOption.value_lbs),
+      } : null,
       boutType: details.match.bout_type,
       active: details.match.state === "active",
     },

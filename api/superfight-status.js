@@ -40,7 +40,7 @@ export default async function handler(request, response) {
 
     const { data: matches, error: matchError } = await service
       .from("superfight_matches")
-      .select("id, fighter_a_id, fighter_b_id, match_weight_lbs, bout_type")
+      .select("id, fighter_a_id, fighter_b_id, weight_option_id, match_weight_lbs, bout_type")
       .eq("event_id", fighter.event_id)
       .eq("state", "active")
       .or(`fighter_a_id.eq.${fighter.id},fighter_b_id.eq.${fighter.id}`)
@@ -61,23 +61,32 @@ export default async function handler(request, response) {
     }
 
     const opponentId = match.fighter_a_id === fighter.id ? match.fighter_b_id : match.fighter_a_id;
-    const { data: opponent, error: opponentError } = await service
-      .from("superfight_competitors")
-      .select("full_name, belt, gym, instagram_handle, instagram_url")
-      .eq("id", opponentId)
-      .single();
+    const optionLookup = match.weight_option_id
+      ? service
+        .from("superfight_event_weight_options")
+        .select("id, label, value_lbs")
+        .eq("id", match.weight_option_id)
+        .single()
+      : Promise.resolve({ data: null, error: null });
+    const [
+      { data: opponent, error: opponentError },
+      { data: confirmations, error: confirmationError },
+      { data: weightOption, error: weightOptionError },
+    ] = await Promise.all([
+      service
+        .from("superfight_competitors")
+        .select("full_name, belt, gym, instagram_handle, instagram_url")
+        .eq("id", opponentId)
+        .single(),
+      service
+        .from("superfight_match_confirmations")
+        .select("competitor_id, response")
+        .eq("match_id", match.id),
+      optionLookup,
+    ]);
 
-    if (opponentError) {
-      throw databaseFailure(opponentError, "status opponent lookup failed");
-    }
-
-    const { data: confirmations, error: confirmationError } = await service
-      .from("superfight_match_confirmations")
-      .select("competitor_id, response")
-      .eq("match_id", match.id);
-
-    if (confirmationError) {
-      throw databaseFailure(confirmationError, "status confirmation lookup failed");
+    if (opponentError || confirmationError || weightOptionError) {
+      throw databaseFailure(opponentError || confirmationError || weightOptionError, "status match detail lookup failed");
     }
 
     sendJson(response, 200, {
@@ -96,6 +105,11 @@ export default async function handler(request, response) {
       event: { name: event.name, startsAt: event.starts_at, venue: event.venue },
       match: {
         weightLbs: match.match_weight_lbs === null ? null : Number(match.match_weight_lbs),
+        weightOption: weightOption ? {
+          id: weightOption.id,
+          label: weightOption.label,
+          valueLbs: Number(weightOption.value_lbs),
+        } : null,
         boutType: match.bout_type,
         confirmation: confirmationState(confirmations, match.fighter_a_id, match.fighter_b_id),
       },

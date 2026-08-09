@@ -10,6 +10,10 @@ import {
   sendJson,
 } from "../src/server/http.js";
 import { getServiceSupabase } from "../src/server/supabase.js";
+import {
+  loadCompetitorWeightOptions,
+  setCompetitorWeightPreferences,
+} from "../src/server/weight-preferences.js";
 import { normalizeInstagram } from "../src/superfight/domain.js";
 import {
   belt,
@@ -18,9 +22,9 @@ import {
   genderDivision,
   grapplingPreference,
   optionalText,
-  positiveWeight,
   requiredText,
   uuid,
+  uuidList,
 } from "../src/superfight/validation.js";
 
 async function competitorDetail(service, competitorId) {
@@ -36,10 +40,12 @@ async function competitorDetail(service, competitorId) {
   if (!competitor) {
     throw new HttpError(404, "Competitor could not be found.", "competitor_not_found");
   }
+  const weightOptionsByCompetitor = await loadCompetitorWeightOptions(service, [competitor.id]);
+  const weightOptions = weightOptionsByCompetitor.get(competitor.id) ?? [];
 
   const { data: matches, error: matchError } = await service
     .from("superfight_matches")
-    .select("id, fighter_a_id, fighter_b_id, match_weight_lbs, bout_type, state")
+    .select("id, fighter_a_id, fighter_b_id, weight_option_id, match_weight_lbs, bout_type, state")
     .eq("event_id", competitor.event_id)
     .eq("state", "active")
     .or(`fighter_a_id.eq.${competitor.id},fighter_b_id.eq.${competitor.id}`)
@@ -53,7 +59,18 @@ async function competitorDetail(service, competitorId) {
   if (matches?.[0]) {
     const record = matches[0];
     const opponentId = record.fighter_a_id === competitor.id ? record.fighter_b_id : record.fighter_a_id;
-    const [{ data: opponent, error: opponentError }, { data: confirmations, error: confirmationError }] = await Promise.all([
+    const optionLookup = record.weight_option_id
+      ? service
+        .from("superfight_event_weight_options")
+        .select("id, label, value_lbs, sort_order, is_active")
+        .eq("id", record.weight_option_id)
+        .single()
+      : Promise.resolve({ data: null, error: null });
+    const [
+      { data: opponent, error: opponentError },
+      { data: confirmations, error: confirmationError },
+      { data: weightOption, error: weightOptionError },
+    ] = await Promise.all([
       service
         .from("superfight_competitors")
         .select("id, full_name, age, gender_division, grappling_preference, belt, competition_weight_lbs, gym, instagram_handle, instagram_url")
@@ -63,14 +80,20 @@ async function competitorDetail(service, competitorId) {
         .from("superfight_match_confirmations")
         .select("competitor_id, response, responded_at")
         .eq("match_id", record.id),
+      optionLookup,
     ]);
 
-    if (opponentError || confirmationError) {
-      throw databaseFailure(opponentError || confirmationError, "admin competitor opponent detail failed");
+    if (opponentError || confirmationError || weightOptionError) {
+      throw databaseFailure(opponentError || confirmationError || weightOptionError, "admin competitor opponent detail failed");
     }
     match = {
       id: record.id,
       weightLbs: record.match_weight_lbs === null ? null : Number(record.match_weight_lbs),
+      weightOption: weightOption ? {
+        id: weightOption.id,
+        label: weightOption.label,
+        valueLbs: Number(weightOption.value_lbs),
+      } : null,
       boutType: record.bout_type,
       opponent,
       confirmations,
@@ -88,6 +111,7 @@ async function competitorDetail(service, competitorId) {
     grapplingPreference: competitor.grappling_preference,
     belt: competitor.belt,
     weightLbs: competitor.competition_weight_lbs === null ? null : Number(competitor.competition_weight_lbs),
+    weightOptions,
     gym: competitor.gym,
     instagramHandle: competitor.instagram_handle,
     instagramUrl: competitor.instagram_url,
@@ -152,10 +176,6 @@ export default async function handler(request, response) {
       updates.grappling_preference = grapplingPreference(body.grapplingPreference, { optional: true });
     }
     if (Object.hasOwn(body, "belt")) updates.belt = belt(body.belt, { optional: true });
-    if (Object.hasOwn(body, "weightLbs")) {
-      updates.competition_weight_lbs = positiveWeight(body.weightLbs, { optional: true });
-      updates.weight_option_id = null;
-    }
     if (Object.hasOwn(body, "gym")) updates.gym = optionalText(body.gym, "Gym / academy", 160);
     if (Object.hasOwn(body, "notes")) updates.notes = optionalText(body.notes, "Notes", 5_000);
     if (Object.hasOwn(body, "instagram")) {
@@ -167,16 +187,38 @@ export default async function handler(request, response) {
         throw new HttpError(400, error.message, "invalid_competitor");
       }
     }
-    if (Object.keys(updates).length === 0) {
+    const hasWeightPreferences = Object.hasOwn(body, "weightOptionIds");
+    const weightOptionIds = hasWeightPreferences
+      ? uuidList(body.weightOptionIds, "Acceptable weight classes", { optional: true })
+      : null;
+    if (Object.keys(updates).length === 0 && !hasWeightPreferences) {
       throw new HttpError(400, "No competitor changes were supplied.", "invalid_competitor");
     }
 
-    const { error } = await service
-      .from("superfight_competitors")
-      .update(updates)
-      .eq("id", competitorId);
-    if (error) {
-      throw databaseFailure(error, "admin competitor update failed");
+    if (Object.keys(updates).length > 0) {
+      const { error } = await service
+        .from("superfight_competitors")
+        .update(updates)
+        .eq("id", competitorId);
+      if (error) {
+        throw databaseFailure(error, "admin competitor update failed");
+      }
+    }
+
+    if (hasWeightPreferences) {
+      const { data: record, error: lookupError } = await service
+        .from("superfight_competitors")
+        .select("event_id")
+        .eq("id", competitorId)
+        .maybeSingle();
+      if (lookupError) throw databaseFailure(lookupError, "admin competitor event lookup failed");
+      if (!record) throw new HttpError(404, "Competitor could not be found.", "competitor_not_found");
+      await setCompetitorWeightPreferences(service, {
+        competitorId,
+        eventId: record.event_id,
+        weightOptionIds,
+        optional: true,
+      });
     }
 
     sendJson(response, 200, { competitor: await competitorDetail(service, competitorId) });

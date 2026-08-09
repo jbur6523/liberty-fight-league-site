@@ -383,6 +383,49 @@ a {
   background: var(--surface-raised);
 }
 
+.sf-field-label {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.sf-check-grid {
+  display: grid;
+  gap: 9px;
+}
+
+.sf-check-choice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: var(--surface);
+  cursor: pointer;
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+
+.sf-check-choice:hover,
+.sf-check-choice.is-selected {
+  border-color: var(--white);
+  background: var(--surface-raised);
+}
+
+.sf-check-choice input {
+  width: 19px;
+  height: 19px;
+  accent-color: var(--accent);
+}
+
+.sf-check-choice span {
+  font-weight: 700;
+}
+
 .sf-error {
   min-height: 24px;
   margin: 12px 0 0;

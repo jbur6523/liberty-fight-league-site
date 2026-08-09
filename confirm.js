@@ -70,7 +70,7 @@ function render(payload) {
     fieldRow("Your belt", beltLabel(payload.fighter.belt)),
     fieldRow("Opponent belt", beltLabel(payload.opponent.belt)),
     fieldRow("Bout type", boutTypeLabel(payload.match.boutType)),
-    fieldRow("Match weight", payload.match.weightLbs === null ? null : `${payload.match.weightLbs} lb`),
+    fieldRow("Final weight class", payload.match.weightOption?.label ?? (payload.match.weightLbs === null ? null : `${payload.match.weightLbs} lb`)),
     fieldRow("Your gym", payload.fighter.gym || "Not listed"),
     fieldRow("Opponent gym", payload.opponent.gym || "Not listed"),
   ].filter(Boolean).forEach((row) => details.append(row));

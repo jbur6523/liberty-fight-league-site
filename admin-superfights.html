@@ -90,7 +90,7 @@
         <div class="admin-field"><label for="add-age">Age</label><input class="admin-input" id="add-age" type="number" min="1" max="120" step="1"></div>
         <div class="admin-field"><label for="add-preference">Gi / No-Gi preference</label><select class="admin-select" id="add-preference"><option value="">Not entered</option><option value="gi">Gi</option><option value="no_gi">No-Gi</option><option value="both">Both</option></select></div>
         <div class="admin-field"><label for="add-belt">Belt</label><select class="admin-select" id="add-belt"><option value="">Not entered</option><option value="blue">Blue</option><option value="purple">Purple</option><option value="brown">Brown</option><option value="black">Black</option></select></div>
-        <div class="admin-field"><label for="add-weight">Weight (lb)</label><input class="admin-input" id="add-weight" type="number" min="1" step="0.01"></div>
+        <div class="admin-field full"><span class="admin-field-label">Acceptable weight classes</span><div class="admin-check-grid" id="add-weight-options"></div></div>
         <div class="admin-field"><label for="add-gym">Gym / academy</label><input class="admin-input" id="add-gym" maxlength="160"></div>
         <div class="admin-field"><label for="add-instagram">Instagram</label><input class="admin-input" id="add-instagram" maxlength="300"></div>
         <div class="admin-field"><label for="add-phone">Phone</label><input class="admin-input" id="add-phone" maxlength="50"></div>
@@ -106,10 +106,10 @@
     <div class="admin-dialog-header"><h2>Confirm matchup</h2><button class="admin-button ghost" data-close type="button">Close</button></div>
     <form class="admin-dialog-body" id="match-form">
       <div class="admin-detail-grid" id="match-pair"></div>
-      <div class="admin-field" style="margin-top: 18px"><label for="match-weight">Match weight (lb)</label><input class="admin-input" id="match-weight" type="number" min="1" step="0.01"></div>
+      <div class="admin-field" style="margin-top: 18px"><label for="match-weight-option">Final contracted weight class</label><select class="admin-select" id="match-weight-option" required><option value="">Choose a shared weight class</option></select></div>
       <div class="admin-field" style="margin-top: 18px"><label for="match-bout-type">Final bout type</label><select class="admin-select" id="match-bout-type" required><option value="">Choose Gi or No-Gi</option><option value="gi">Gi</option><option value="no_gi">No-Gi</option></select></div>
       <p class="admin-error" id="match-error"></p>
-      <div class="admin-dialog-actions"><button class="admin-button" type="submit">Create match</button></div>
+      <div class="admin-dialog-actions"><button class="admin-button" id="match-submit" type="submit">Create match</button></div>
     </form>
   </dialog>
 

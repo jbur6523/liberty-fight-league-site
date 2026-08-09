@@ -89,6 +89,32 @@ function currentEvent() {
   return state.events.find((event) => event.id === state.eventId) ?? null;
 }
 
+function activeWeightOptions() {
+  return (currentEvent()?.weightOptions ?? []).filter((option) => option.active !== false);
+}
+
+function shortWeightLabel(option) {
+  return String(option.label).split(" — ")[0];
+}
+
+function weightSummary(competitor) {
+  const options = competitor.weightOptions ?? [];
+  if (options.length === 0) return '<span class="admin-muted">—</span>';
+  const short = options.map(shortWeightLabel).join(", ");
+  const full = options.map((option) => option.label).join("; ");
+  return `<span class="admin-weight-summary" title="${escapeHtml(full)}">${escapeHtml(short)}</span>`;
+}
+
+function weightChecklist(options, selectedIds = [], name = "weightOptionIds") {
+  const selected = new Set(selectedIds);
+  if (options.length === 0) return '<span class="admin-muted">No event weight classes configured.</span>';
+  return options.map((option) => `
+    <label class="admin-check-choice">
+      <input type="checkbox" name="${name}" value="${option.id}"${selected.has(option.id) ? " checked" : ""}>
+      <span>${escapeHtml(option.label)}</span>
+    </label>`).join("");
+}
+
 function eventOptions() {
   if (state.events.length === 0) {
     elements.eventSelect.innerHTML = '<option value="">No events configured</option>';
@@ -141,14 +167,14 @@ function renderUnmatched() {
 
   elements.unmatched.innerHTML = `
     <div class="admin-table-wrap"><table class="admin-table">
-      <thead><tr><th>Name</th><th>Gender</th><th>Age</th><th>Belt</th><th>Weight</th><th>Gi / No-Gi</th><th>Instagram</th><th>Match action</th></tr></thead>
+      <thead><tr><th>Name</th><th>Gender</th><th>Age</th><th>Belt</th><th>Acceptable weights</th><th>Gi / No-Gi</th><th>Instagram</th><th>Match action</th></tr></thead>
       <tbody>${state.competitors.map((competitor) => `
         <tr class="${state.selected?.id === competitor.id ? "is-selected" : ""}">
           <td><button class="admin-name-button" type="button" data-detail="${competitor.id}">${escapeHtml(competitor.name)}</button><div class="admin-muted">${escapeHtml(competitor.gym || "No gym")}</div></td>
           <td>${label(competitor.genderDivision)}</td>
           <td>${competitor.age ?? "—"}</td>
           <td>${label(competitor.belt)}</td>
-          <td>${competitor.weightLbs === null ? "—" : `${competitor.weightLbs} lb`}</td>
+          <td>${weightSummary(competitor)}</td>
           <td>${label(competitor.grapplingPreference)}</td>
           <td>${socialCell(competitor)}</td>
           <td><button class="admin-button ${state.selected?.id === competitor.id ? "secondary" : ""}" type="button" data-select="${competitor.id}">${state.selected?.id === competitor.id ? "Selected" : state.selected ? "Match with" : "Select"}</button></td>
@@ -195,7 +221,7 @@ function renderMatched() {
           <td>${matchFighterCell(match.fighterA)}${matchLinks(match.fighterA)}</td>
           <td>${matchFighterCell(match.fighterB)}${matchLinks(match.fighterB)}</td>
           <td>${label(match.boutType)}</td>
-          <td>${match.weightLbs === null ? "—" : `${match.weightLbs} lb`}</td>
+          <td>${escapeHtml(match.weightOption?.label ?? (match.weightLbs === null ? "—" : `${match.weightLbs} lb`))}</td>
           <td>${confirmationBadge(match.confirmation.summary)}</td>
           <td><button class="admin-button danger" type="button" data-unmatch="${match.id}">Unmatch</button></td>
         </tr>`).join("")}</tbody>
@@ -286,12 +312,24 @@ function selectCompetitor(competitorId) {
 
   state.pairing = [state.selected, competitor];
   document.querySelector("#match-pair").innerHTML = state.pairing.map((fighter, index) => `
-    <div class="admin-detail"><strong>Fighter ${index === 0 ? "A" : "B"}</strong>${escapeHtml(fighter.name)}<br><span class="admin-muted">${label(fighter.genderDivision)} · ${fighter.age ?? "No age"} · ${label(fighter.grapplingPreference)} · ${label(fighter.belt)} · ${fighter.weightLbs === null ? "No weight" : `${fighter.weightLbs} lb`}</span></div>
+    <div class="admin-detail"><strong>Fighter ${index === 0 ? "A" : "B"}</strong>${escapeHtml(fighter.name)}<br><span class="admin-muted">${label(fighter.genderDivision)} · ${fighter.age ?? "No age"} · ${label(fighter.grapplingPreference)} · ${label(fighter.belt)}</span><br>${weightSummary(fighter)}</div>
   `).join("");
-  const weights = state.pairing.map((fighter) => fighter.weightLbs).filter((value) => value !== null);
-  document.querySelector("#match-weight").value = weights.length ? Math.max(...weights) : "";
+  const secondWeightIds = new Set((state.pairing[1].weightOptions ?? []).map((option) => option.id));
+  const sharedWeightIds = new Set(
+    (state.pairing[0].weightOptions ?? [])
+      .filter((option) => secondWeightIds.has(option.id))
+      .map((option) => option.id),
+  );
+  const sharedWeights = activeWeightOptions().filter((option) => sharedWeightIds.has(option.id));
+  document.querySelector("#match-weight-option").innerHTML = [
+    '<option value="">Choose a shared weight class</option>',
+    ...sharedWeights.map((option) => `<option value="${option.id}">${escapeHtml(option.label)}</option>`),
+  ].join("");
   document.querySelector("#match-bout-type").value = "";
-  document.querySelector("#match-error").textContent = "";
+  document.querySelector("#match-error").textContent = sharedWeights.length === 0
+    ? "These competitors do not share an acceptable weight class."
+    : "";
+  document.querySelector("#match-submit").disabled = sharedWeights.length === 0;
   document.querySelector("#match-dialog").showModal();
 }
 
@@ -317,6 +355,7 @@ async function openDetail(competitorId) {
         <div class="admin-detail"><strong>Application date</strong>${competitor.applicationSubmittedAt ? new Date(competitor.applicationSubmittedAt).toLocaleString() : "Quick add"}</div>
         <div class="admin-detail"><strong>Match status</strong>${competitor.match ? `Matched with ${escapeHtml(competitor.match.opponent.full_name)}` : "Unmatched"}</div>
         ${competitor.match ? `<div class="admin-detail"><strong>Final bout type</strong>${label(competitor.match.boutType)}</div>` : ""}
+        ${competitor.match ? `<div class="admin-detail"><strong>Final weight class</strong>${escapeHtml(competitor.match.weightOption?.label ?? "—")}</div>` : ""}
         ${competitor.match ? `<div class="admin-detail"><strong>Fighter confirmation</strong>${label(fighterResponse || "awaiting")}</div><div class="admin-detail"><strong>Opponent confirmation</strong>${label(opponentResponse || "awaiting")}</div>` : ""}
       </div>
       <form id="detail-form" style="margin-top:20px">
@@ -328,7 +367,7 @@ async function openDetail(competitorId) {
           <div class="admin-field"><label>Age</label><input class="admin-input" name="age" type="number" min="1" max="120" step="1" value="${competitor.age ?? ""}"></div>
           <div class="admin-field"><label>Gi / No-Gi preference</label><select class="admin-select" name="grapplingPreference"><option value="">Not entered</option>${["gi","no_gi","both"].map((value) => `<option value="${value}"${competitor.grapplingPreference === value ? " selected" : ""}>${label(value)}</option>`).join("")}</select></div>
           <div class="admin-field"><label>Belt</label><select class="admin-select" name="belt"><option value="">Not entered</option>${["blue","purple","brown","black"].map((beltValue) => `<option value="${beltValue}"${competitor.belt === beltValue ? " selected" : ""}>${label(beltValue)}</option>`).join("")}</select></div>
-          <div class="admin-field"><label>Weight (lb)</label><input class="admin-input" name="weightLbs" type="number" min="1" step=".01" value="${competitor.weightLbs ?? ""}"></div>
+          <div class="admin-field full"><span class="admin-field-label">Acceptable weight classes</span><div class="admin-check-grid">${weightChecklist(activeWeightOptions(), competitor.weightOptions?.map((option) => option.id))}</div></div>
           <div class="admin-field"><label>Gym</label><input class="admin-input" name="gym" value="${escapeHtml(competitor.gym)}"></div>
           <div class="admin-field"><label>Instagram</label><input class="admin-input" name="instagram" value="${escapeHtml(competitor.instagramHandle ? `@${competitor.instagramHandle}` : "")}"></div>
           <div class="admin-field full"><label>Admin notes</label><textarea class="admin-textarea" name="notes">${escapeHtml(competitor.notes)}</textarea></div>
@@ -344,7 +383,9 @@ async function openDetail(competitorId) {
       submitEvent.preventDefault();
       const button = submitEvent.submitter;
       button.disabled = true;
-      const data = Object.fromEntries(new FormData(submitEvent.currentTarget));
+      const formData = new FormData(submitEvent.currentTarget);
+      const data = Object.fromEntries(formData);
+      data.weightOptionIds = formData.getAll("weightOptionIds");
       try {
         await api("/api/superfight-admin-competitor", {
           method: "PATCH",
@@ -457,7 +498,10 @@ document.querySelectorAll("[data-sort]").forEach((button) => {
 });
 
 document.querySelector("#cancel-selection").addEventListener("click", clearSelection);
-document.querySelector("#quick-add").addEventListener("click", () => document.querySelector("#quick-add-dialog").showModal());
+document.querySelector("#quick-add").addEventListener("click", () => {
+  document.querySelector("#add-weight-options").innerHTML = weightChecklist(activeWeightOptions());
+  document.querySelector("#quick-add-dialog").showModal();
+});
 document.querySelector("#event-settings").addEventListener("click", () => openEventDialog(!currentEvent()));
 
 document.querySelectorAll("dialog [data-close]").forEach((button) => {
@@ -466,6 +510,7 @@ document.querySelectorAll("dialog [data-close]").forEach((button) => {
 
 document.querySelector("#quick-add-form").addEventListener("submit", async (event) => {
   event.preventDefault();
+  const form = event.currentTarget;
   const button = event.submitter;
   button.disabled = true;
   document.querySelector("#add-error").textContent = "";
@@ -479,7 +524,7 @@ document.querySelector("#quick-add-form").addEventListener("submit", async (even
         genderDivision: document.querySelector("#add-division").value,
         grapplingPreference: document.querySelector("#add-preference").value,
         belt: document.querySelector("#add-belt").value,
-        weightLbs: document.querySelector("#add-weight").value,
+        weightOptionIds: [...form.querySelectorAll('[name="weightOptionIds"]:checked')].map((input) => input.value),
         gym: document.querySelector("#add-gym").value,
         instagram: document.querySelector("#add-instagram").value,
         phone: document.querySelector("#add-phone").value,
@@ -487,7 +532,7 @@ document.querySelector("#quick-add-form").addEventListener("submit", async (even
         notes: document.querySelector("#add-notes").value,
       }),
     });
-    event.currentTarget.reset();
+    form.reset();
     document.querySelector("#quick-add-dialog").close();
     showToast("Competitor added to unmatched");
     await loadUnmatched();
@@ -508,7 +553,7 @@ document.querySelector("#match-form").addEventListener("submit", async (event) =
         eventId: state.eventId,
         fighterAId: state.pairing[0].id,
         fighterBId: state.pairing[1].id,
-        matchWeightLbs: document.querySelector("#match-weight").value,
+        weightOptionId: document.querySelector("#match-weight-option").value,
         boutType: document.querySelector("#match-bout-type").value,
       }),
     });
@@ -557,6 +602,7 @@ document.querySelector("#event-form").addEventListener("submit", async (event) =
 
 document.querySelector("#weight-form").addEventListener("submit", async (event) => {
   event.preventDefault();
+  const form = event.currentTarget;
   const button = event.submitter;
   button.disabled = true;
   try {
@@ -570,7 +616,7 @@ document.querySelector("#weight-form").addEventListener("submit", async (event) 
       }),
     });
     state.events = payload.events;
-    event.currentTarget.reset();
+    form.reset();
     document.querySelector("#event-dialog").close();
     openEventDialog(false);
     showToast("Weight choice added");

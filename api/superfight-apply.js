@@ -9,6 +9,7 @@ import {
   sendJson,
 } from "../src/server/http.js";
 import { getServiceSupabase } from "../src/server/supabase.js";
+import { setCompetitorWeightPreferences } from "../src/server/weight-preferences.js";
 import {
   belt,
   competitorAge,
@@ -18,6 +19,7 @@ import {
   optionalText,
   requiredText,
   uuid,
+  uuidList,
 } from "../src/superfight/validation.js";
 
 export default async function handler(request, response) {
@@ -32,7 +34,7 @@ export default async function handler(request, response) {
     }
 
     const eventId = uuid(body.eventId, "Event");
-    const weightOptionId = uuid(body.weightOptionId, "Competition weight");
+    const weightOptionIds = uuidList(body.weightOptionIds, "Acceptable weight classes");
     const fullName = requiredText(body.fullName, "Full name", 160);
     const phone = requiredText(body.phone, "Phone", 50);
     const applicantEmail = email(body.email);
@@ -67,21 +69,6 @@ export default async function handler(request, response) {
       throw new HttpError(409, "Applications are closed for this event.", "applications_closed");
     }
 
-    const { data: weightOption, error: weightError } = await service
-      .from("superfight_event_weight_options")
-      .select("id, value_lbs")
-      .eq("id", weightOptionId)
-      .eq("event_id", eventId)
-      .eq("is_active", true)
-      .maybeSingle();
-
-    if (weightError) {
-      throw databaseFailure(weightError, "application weight validation failed");
-    }
-    if (!weightOption) {
-      throw new HttpError(400, "Select an available competition weight.", "invalid_application");
-    }
-
     const { data: competitor, error: insertError } = await service
       .from("superfight_competitors")
       .insert({
@@ -94,18 +81,27 @@ export default async function handler(request, response) {
         gender_division: division,
         grappling_preference: preference,
         belt: applicantBelt,
-        competition_weight_lbs: Number(weightOption.value_lbs),
-        weight_option_id: weightOption.id,
         gym,
         instagram_handle: instagram.handle,
         instagram_url: instagram.url,
         application_submitted_at: new Date().toISOString(),
       })
-      .select("status_token")
+      .select("id, status_token")
       .single();
 
     if (insertError) {
       throw databaseFailure(insertError, "application insert failed");
+    }
+
+    try {
+      await setCompetitorWeightPreferences(service, {
+        competitorId: competitor.id,
+        eventId,
+        weightOptionIds,
+      });
+    } catch (error) {
+      await service.from("superfight_competitors").delete().eq("id", competitor.id);
+      throw error;
     }
 
     sendJson(response, 201, {

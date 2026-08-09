@@ -7,7 +7,7 @@ const fieldsByScreen = {
   division: ["genderDivision"],
   grappling: ["grapplingPreference"],
   belt: ["belt"],
-  weight: ["weightOptionId"],
+  weight: ["weightOptionIds"],
   gym: ["gym"],
   instagram: [],
 };
@@ -129,8 +129,8 @@ function validateScreen(screenName) {
     errors.grapplingPreference = "Select Gi, No-Gi, or Both.";
   }
   if (screenName === "belt" && !data.get("belt")) errors.belt = "Select your belt.";
-  if (screenName === "weight" && !data.get("weightOptionId")) {
-    errors.weightOptionId = "Select your competition weight.";
+  if (screenName === "weight" && data.getAll("weightOptionIds").length === 0) {
+    errors.weightOptionIds = "Select at least one acceptable weight class.";
   }
   if (screenName === "gym" && !String(data.get("gym") ?? "").trim()) {
     errors.gym = "Enter your gym or academy.";
@@ -160,12 +160,22 @@ async function loadEvent() {
       eventMeta("Venue", event.venue),
     ].join("");
 
-    const weightSelect = document.querySelector("#weight-option");
+    const weightOptions = document.querySelector("#weight-options");
     for (const option of event.weightOptions) {
-      const element = document.createElement("option");
-      element.value = option.id;
-      element.textContent = option.label;
-      weightSelect.append(element);
+      const choice = document.createElement("label");
+      choice.className = "sf-check-choice";
+      const input = document.createElement("input");
+      input.type = "checkbox";
+      input.name = "weightOptionIds";
+      input.value = option.id;
+      input.addEventListener("change", () => {
+        choice.classList.toggle("is-selected", input.checked);
+        document.querySelector('[data-error="weightOptionIds"]').textContent = "";
+      });
+      const text = document.createElement("span");
+      text.textContent = option.label;
+      choice.append(input, text);
+      weightOptions.append(choice);
     }
 
     const configuredInstagram = event.instagramUrl || "https://instagram.com/libertyfightleague";
@@ -248,7 +258,9 @@ form.addEventListener("submit", async (submitEvent) => {
   const submitButton = document.querySelector("#submit-button");
   submitButton.disabled = true;
   submitButton.textContent = "Sending…";
-  const data = Object.fromEntries(new FormData(form));
+  const formData = new FormData(form);
+  const data = Object.fromEntries(formData);
+  data.weightOptionIds = formData.getAll("weightOptionIds");
 
   try {
     const response = await fetch("/api/superfight-apply", {

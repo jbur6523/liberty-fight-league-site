@@ -38,6 +38,21 @@ export function uuid(value, fieldName) {
   return text;
 }
 
+export function uuidList(value, fieldName, { optional = false, maximum = 50 } = {}) {
+  if ((value === null || value === undefined || value === "") && optional) {
+    return [];
+  }
+  if (!Array.isArray(value)) {
+    throw new HttpError(400, `${fieldName} must be a list.`, "invalid_identifier");
+  }
+
+  const values = [...new Set(value.map((item) => uuid(item, fieldName)))];
+  if ((!optional && values.length === 0) || values.length > maximum) {
+    throw new HttpError(400, `Select valid ${fieldName.toLowerCase()}.`, "invalid_identifier");
+  }
+  return values;
+}
+
 export function belt(value, { optional = false } = {}) {
   const normalized = optionalText(value, "Belt", 20)?.toLowerCase() ?? null;
 

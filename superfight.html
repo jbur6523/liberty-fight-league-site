@@ -139,13 +139,12 @@
 
           <section class="sf-screen" data-screen="weight">
             <p class="sf-kicker">Competition weight</p>
-            <h2>What weight do you compete at?</h2>
+            <h2>Which weight classes work for you?</h2>
             <div class="sf-field">
-              <label for="weight-option">Configured event weights</label>
-              <select class="sf-select" id="weight-option" name="weightOptionId">
-                <option value="">Select your weight</option>
-              </select>
-              <p class="sf-error" data-error="weightOptionId"></p>
+              <span class="sf-field-label">Select all acceptable weight classes</span>
+              <div class="sf-check-grid" id="weight-options"></div>
+              <p class="sf-note">You can choose one or more. The promoter will select the final class when creating a matchup.</p>
+              <p class="sf-error" data-error="weightOptionIds"></p>
             </div>
             <div class="sf-actions">
               <button class="sf-button secondary sf-back" type="button" data-back aria-label="Back">←</button>
@@ -187,16 +186,16 @@
 
           <section class="sf-screen" data-screen="success">
             <p class="sf-kicker">Application received</p>
-            <h2>You’re in.</h2>
-            <p class="sf-lead">Your superfight application has been received. We’ll begin looking for the right opponent.</p>
+            <h2>Your application has been received.</h2>
+            <p class="sf-lead">Save this link to check your match status and matchup details.</p>
             <div class="sf-field">
-              <label for="status-url">Your permanent status link</label>
+              <label for="status-url">Your private status link</label>
               <input class="sf-input" id="status-url" readonly>
-              <p class="sf-note">Save this link. It shows your matchmaking status without exposing your contact details.</p>
+              <p class="sf-note">This private link works without an account and does not expose your contact details.</p>
             </div>
             <div class="sf-actions">
-              <button class="sf-button" type="button" id="copy-status">Copy status link</button>
-              <a class="sf-button secondary" id="open-status" href="#">Open status</a>
+              <a class="sf-button" id="open-status" href="#">Open Status Page</a>
+              <button class="sf-button secondary" type="button" id="copy-status">Copy Link</button>
             </div>
           </section>
         </form>

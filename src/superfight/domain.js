@@ -94,6 +94,25 @@ function normalizedWeight(value) {
   return Number.isFinite(weight) && weight > 0 ? weight : null;
 }
 
+function normalizedWeightOptions(competitor) {
+  const options = competitor.weightOptions ?? competitor.weight_options;
+  if (!Array.isArray(options)) return [];
+  return options
+    .map((option) => ({
+      id: option.id ?? option.weightOptionId ?? option.weight_option_id,
+      valueLbs: normalizedWeight(option.valueLbs ?? option.value_lbs),
+      sortOrder: Number(option.sortOrder ?? option.sort_order ?? 0),
+    }))
+    .filter((option) => option.id);
+}
+
+export function sharedWeightOptionIds(left, right) {
+  const rightIds = new Set(normalizedWeightOptions(right).map((option) => option.id));
+  return normalizedWeightOptions(left)
+    .map((option) => option.id)
+    .filter((id) => rightIds.has(id));
+}
+
 function normalizedAge(value) {
   if (value === null || value === undefined || value === "") {
     return null;
@@ -143,6 +162,9 @@ function beltSortValue(competitor) {
 }
 
 function weightSortValue(competitor) {
+  const [firstOption] = normalizedWeightOptions(competitor)
+    .sort((left, right) => left.sortOrder - right.sortOrder || (left.valueLbs ?? 0) - (right.valueLbs ?? 0));
+  if (firstOption?.valueLbs !== null && firstOption?.valueLbs !== undefined) return firstOption.valueLbs;
   return normalizedWeight(competitor.competitionWeightLbs ?? competitor.competition_weight_lbs)
     ?? Number.POSITIVE_INFINITY;
 }
@@ -200,11 +222,19 @@ export function scoreCompatibility(left, right) {
     ? MATCHMAKING_PENALTIES.unknownBelt
     : Math.abs(BELT_RANK[leftBelt] - BELT_RANK[rightBelt]) * MATCHMAKING_PENALTIES.beltStep;
 
-  const leftWeight = normalizedWeight(left.competitionWeightLbs ?? left.competition_weight_lbs);
-  const rightWeight = normalizedWeight(right.competitionWeightLbs ?? right.competition_weight_lbs);
-  const weightPenalty = leftWeight === null || rightWeight === null
-    ? (leftWeight === null && rightWeight === null ? 0 : MATCHMAKING_PENALTIES.missingWeight)
-    : Math.abs(leftWeight - rightWeight);
+  const leftWeightOptions = normalizedWeightOptions(left);
+  const rightWeightOptions = normalizedWeightOptions(right);
+  let weightPenalty;
+  if (leftWeightOptions.length > 0 && rightWeightOptions.length > 0) {
+    if (sharedWeightOptionIds(left, right).length === 0) return Number.POSITIVE_INFINITY;
+    weightPenalty = 0;
+  } else {
+    const leftWeight = normalizedWeight(left.competitionWeightLbs ?? left.competition_weight_lbs);
+    const rightWeight = normalizedWeight(right.competitionWeightLbs ?? right.competition_weight_lbs);
+    weightPenalty = leftWeight === null || rightWeight === null
+      ? (leftWeight === null && rightWeight === null ? 0 : MATCHMAKING_PENALTIES.missingWeight)
+      : Math.abs(leftWeight - rightWeight);
+  }
 
   const leftAge = normalizedAge(left.age);
   const rightAge = normalizedAge(right.age);

@@ -5,9 +5,12 @@ import {
   MATCHMAKING_PENALTIES,
   normalizeInstagram,
   scoreCompatibility,
+  sharedWeightOptionIds,
   sortCompetitors,
   suggestedOrder,
 } from "../src/superfight/domain.js";
+
+const weight = (id, valueLbs, sortOrder = 0) => ({ id, valueLbs, sortOrder });
 
 test("normalizes Instagram handles, usernames, and profile URLs", () => {
   const expected = {
@@ -51,6 +54,17 @@ test("competitors from different events are never suggested to one another", () 
   const right = { eventId: "event-2", belt: "blue", competitionWeightLbs: 150 };
 
   assert.equal(scoreCompatibility(left, right), Number.POSITIVE_INFINITY);
+});
+
+test("competitors are weight-compatible only when configured choices overlap", () => {
+  const common = { eventId: "event-1", genderDivision: "mens", grapplingPreference: "both", belt: "blue" };
+  const featherLight = { ...common, weightOptions: [weight("feather", 154, 2), weight("light", 168, 3)] };
+  const lightMiddle = { ...common, weightOptions: [weight("light", 168, 3), weight("middle", 182, 4)] };
+  const middleOnly = { ...common, weightOptions: [weight("middle", 182, 4)] };
+
+  assert.deepEqual(sharedWeightOptionIds(featherLight, lightMiddle), ["light"]);
+  assert.ok(Number.isFinite(scoreCompatibility(featherLight, lightMiddle)));
+  assert.equal(scoreCompatibility(featherLight, middleOnly), Number.POSITIVE_INFINITY);
 });
 
 test("gender divisions are hard matchmaking boundaries", () => {

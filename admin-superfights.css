@@ -287,6 +287,13 @@ a { -webkit-tap-highlight-color: transparent; }
 
 .admin-muted { color: var(--muted); }
 
+.admin-weight-summary {
+  display: block;
+  max-width: 220px;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
 .admin-social {
   display: flex;
   align-items: center;
@@ -377,6 +384,39 @@ a { -webkit-tap-highlight-color: transparent; }
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
+}
+
+.admin-field-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.admin-check-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 14px;
+}
+
+.admin-check-choice {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.admin-check-choice input {
+  margin-top: 2px;
+  accent-color: var(--ink);
 }
 
 .admin-field { display: grid; gap: 6px; }
@@ -481,6 +521,7 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.58); }
   .admin-account span { display: none; }
   .admin-main { padding-inline: 14px; }
   .admin-form-grid,
-  .admin-detail-grid { grid-template-columns: 1fr; }
+  .admin-detail-grid,
+  .admin-check-grid { grid-template-columns: 1fr; }
   .admin-matchbar { right: 14px; bottom: 14px; left: 14px; width: auto; }
 }

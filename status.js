@@ -45,11 +45,28 @@ function confirmationLabel(value) {
   }[value] ?? "Awaiting confirmation";
 }
 
+function formattedDateTime(value) {
+  if (!value) return null;
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZoneName: "short",
+  }).format(new Date(value));
+}
+
 function renderUnmatched(payload) {
   content.append(
     textElement("p", "sf-kicker", payload.event.name),
-    textElement("h1", "", "We’re still looking for the right opponent."),
-    textElement("p", "sf-lead", `${payload.fighter.name}, your application is active. Check this page again for updates.`),
+    textElement("h1", "", "Application received."),
+    textElement("p", "sf-lead", `${payload.fighter.name}, we’re still looking for the right opponent. Check this page again for updates.`),
+    definitionList([
+      ["Event date", formattedDateTime(payload.event.startsAt)],
+      ["Venue", payload.event.venue],
+    ]),
   );
 }
 
@@ -61,10 +78,12 @@ function renderMatched(payload) {
     definitionList([
       ["Opponent", payload.opponent.name],
       ["Opponent belt", payload.opponent.belt ? `${payload.opponent.belt[0].toUpperCase()}${payload.opponent.belt.slice(1)}` : null],
-      ["Bout type", { gi: "Gi", no_gi: "No-Gi" }[payload.match.boutType] ?? null],
-      ["Match weight", payload.match.weightLbs === null ? null : `${payload.match.weightLbs} lb`],
       ["Opponent gym", payload.opponent.gym],
       ["Opponent Instagram", payload.opponent.instagramHandle ? `@${payload.opponent.instagramHandle}` : null, payload.opponent.instagramUrl],
+      ["Final weight class", payload.match.weightOption?.label ?? (payload.match.weightLbs === null ? null : `${payload.match.weightLbs} lb`)],
+      ["Bout type", { gi: "Gi", no_gi: "No-Gi" }[payload.match.boutType] ?? null],
+      ["Event date", formattedDateTime(payload.event.startsAt)],
+      ["Venue", payload.event.venue],
       ["Match status", confirmationLabel(payload.match.confirmation.summary)],
     ]),
   );
