@@ -39,4 +39,5 @@ test("success screen places the Instagram CTA before the status actions", () => 
   assert.match(success, /id="follow-instagram" href="https:\/\/www\.instagram\.com\/libertyfightleague"/);
   assert.match(success, />Follow on Instagram<\/a>/);
   assert.ok(success.indexOf('id="follow-instagram"') < success.indexOf('id="open-status"'));
+  assert.match(css, /\.sf-instagram-cta \.sf-button\.secondary\s*{[\s\S]*?linear-gradient\([\s\S]*?#833ab4[\s\S]*?#e1306c[\s\S]*?#fcb045/);
 });
