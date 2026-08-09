@@ -22,7 +22,7 @@ The migration in `migrations/20260808220000_superfight_foundation.sql` is intend
 
 ## First promoter authorization
 
-The first promoter must already be a user in the existing Supabase Auth project. Bootstrap that user through a trusted server-side process or the Supabase SQL editor by inserting their Auth UUID into `public.superfight_admin_users`. Do not put a promoter email or UUID in a committed migration.
+The first promoter must already be a user in the existing Supabase Auth project and have an active row in the existing `public.promoters` table. Bootstrap that user through a trusted server-side process or the Supabase SQL editor by inserting their Auth UUID and promoter UUID into `public.superfight_admin_users`. The promoter row remains the source of truth for active/disabled status. Do not put an email or UUID in a committed migration.
 
 Later promoter access can be managed by an already-authorized promoter or another trusted server-side process.
 

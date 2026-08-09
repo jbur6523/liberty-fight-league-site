@@ -40,7 +40,7 @@ export default async function handler(request, response) {
 
     const { data: matches, error: matchError } = await service
       .from("superfight_matches")
-      .select("id, fighter_a_id, fighter_b_id, match_weight_lbs")
+      .select("id, fighter_a_id, fighter_b_id, match_weight_lbs, bout_type")
       .eq("event_id", fighter.event_id)
       .eq("state", "active")
       .or(`fighter_a_id.eq.${fighter.id},fighter_b_id.eq.${fighter.id}`)
@@ -96,6 +96,7 @@ export default async function handler(request, response) {
       event: { name: event.name, startsAt: event.starts_at, venue: event.venue },
       match: {
         weightLbs: match.match_weight_lbs === null ? null : Number(match.match_weight_lbs),
+        boutType: match.bout_type,
         confirmation: confirmationState(confirmations, match.fighter_a_id, match.fighter_b_id),
       },
       status: "matched",

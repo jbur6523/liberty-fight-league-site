@@ -21,9 +21,9 @@ const previewEvent = {
 };
 
 const competitors = [
-  { id: "00000000-0000-4000-8000-000000000201", name: "Jordan Lee", belt: "blue", weightLbs: 150, gym: "North Bay Jiu-Jitsu", instagramHandle: "jordanlee", instagramUrl: "https://instagram.com/jordanlee", source: "public_application", createdAt: new Date().toISOString(), statusPath: "/status/00000000-0000-4000-8000-000000000401" },
-  { id: "00000000-0000-4000-8000-000000000202", name: "Casey Morgan", belt: "blue", weightLbs: 155, gym: "Bay Area Grappling", instagramHandle: "caseymorgan", instagramUrl: "https://instagram.com/caseymorgan", source: "admin_quick_add", createdAt: new Date().toISOString(), statusPath: "/status/00000000-0000-4000-8000-000000000402" },
-  { id: "00000000-0000-4000-8000-000000000203", name: "Riley Santos", belt: "purple", weightLbs: 160, gym: "Liberty Academy", instagramHandle: "rileysantos", instagramUrl: "https://instagram.com/rileysantos", source: "public_application", createdAt: new Date().toISOString(), statusPath: "/status/00000000-0000-4000-8000-000000000403" },
+  { id: "00000000-0000-4000-8000-000000000201", name: "Jordan Lee", age: 27, genderDivision: "womens", grapplingPreference: "both", belt: "blue", weightLbs: 150, gym: "North Bay Jiu-Jitsu", instagramHandle: "jordanlee", instagramUrl: "https://instagram.com/jordanlee", source: "public_application", createdAt: new Date().toISOString(), statusPath: "/status/00000000-0000-4000-8000-000000000401" },
+  { id: "00000000-0000-4000-8000-000000000202", name: "Casey Morgan", age: 29, genderDivision: "womens", grapplingPreference: "gi", belt: "blue", weightLbs: 155, gym: "Bay Area Grappling", instagramHandle: "caseymorgan", instagramUrl: "https://instagram.com/caseymorgan", source: "admin_quick_add", createdAt: new Date().toISOString(), statusPath: "/status/00000000-0000-4000-8000-000000000402" },
+  { id: "00000000-0000-4000-8000-000000000203", name: "Riley Santos", age: 31, genderDivision: "mens", grapplingPreference: "no_gi", belt: "purple", weightLbs: 160, gym: "Liberty Academy", instagramHandle: "rileysantos", instagramUrl: "https://instagram.com/rileysantos", source: "public_application", createdAt: new Date().toISOString(), statusPath: "/status/00000000-0000-4000-8000-000000000403" },
 ];
 
 function json(response, statusCode, payload) {
@@ -42,7 +42,7 @@ function confirmationPayload(response = "awaiting", gym = "North Bay Jiu-Jitsu")
     event: { name: previewEvent.name, startsAt: previewEvent.startsAt, venue: previewEvent.venue },
     fighter: { name: "Jordan Lee", belt: "blue", gym },
     opponent: { name: "Casey Morgan", belt: "blue", gym: "Bay Area Grappling" },
-    match: { weightLbs: 155, active: true },
+    match: { weightLbs: 155, boutType: "gi", active: true },
     confirmation: { response, respondedAt: response === "awaiting" ? null : new Date().toISOString() },
   };
 }
@@ -58,7 +58,7 @@ async function mockApi(request, response, url) {
       fighter: { name: "Jordan Lee", belt: "blue", gym: "North Bay Jiu-Jitsu" },
       opponent: { name: "Casey Morgan", belt: "blue", gym: "Bay Area Grappling", instagramHandle: "caseymorgan", instagramUrl: "https://instagram.com/caseymorgan" },
       event: { name: previewEvent.name, startsAt: previewEvent.startsAt, venue: previewEvent.venue },
-      match: { weightLbs: 155, confirmation: { fighterA: "accepted", fighterB: "awaiting", summary: "fighter_a_accepted" } },
+      match: { weightLbs: 155, boutType: "gi", confirmation: { fighterA: "accepted", fighterB: "awaiting", summary: "fighter_a_accepted" } },
       status: "matched",
     });
   }
@@ -82,6 +82,7 @@ async function mockApi(request, response, url) {
       matches: [{
         id: "00000000-0000-4000-8000-000000000301",
         weightLbs: 155,
+        boutType: "gi",
         confirmation: { summary: "fighter_a_accepted" },
         fighterA: { ...competitors[0], confirmationPath: "/confirm/00000000-0000-4000-8000-000000000501", response: "accepted" },
         fighterB: { ...competitors[1], confirmationPath: "/confirm/00000000-0000-4000-8000-000000000502", response: "awaiting" },

@@ -6,9 +6,13 @@ const BELT_RANK = Object.freeze({
 });
 
 export const MATCHMAKING_PENALTIES = Object.freeze({
+  unknownDivision: 100_000,
+  unknownPreference: 10_000,
   beltStep: 1_000,
   unknownBelt: 4_000,
   missingWeight: 250,
+  ageYear: 0.01,
+  missingAge: 5,
 });
 
 const INSTAGRAM_HOSTS = new Set([
@@ -90,6 +94,33 @@ function normalizedWeight(value) {
   return Number.isFinite(weight) && weight > 0 ? weight : null;
 }
 
+function normalizedAge(value) {
+  if (value === null || value === undefined || value === "") {
+    return null;
+  }
+
+  const age = Number(value);
+  return Number.isInteger(age) && age >= 1 && age <= 120 ? age : null;
+}
+
+function normalizedDivision(competitor) {
+  const value = normalizeOptionalText(competitor.genderDivision ?? competitor.gender_division)?.toLowerCase();
+  return new Set(["mens", "womens"]).has(value) ? value : null;
+}
+
+function normalizedPreference(competitor) {
+  const value = normalizeOptionalText(
+    competitor.grapplingPreference ?? competitor.grappling_preference,
+  )?.toLowerCase();
+  return new Set(["gi", "no_gi", "both"]).has(value) ? value : null;
+}
+
+function preferencesCompatible(left, right) {
+  if (!left || !right) return true;
+  if (left === "both" || right === "both") return true;
+  return left === right;
+}
+
 function eventIdentity(competitor) {
   return competitor.eventId ?? competitor.event_id ?? null;
 }
@@ -116,6 +147,18 @@ function weightSortValue(competitor) {
     ?? Number.POSITIVE_INFINITY;
 }
 
+function ageSortValue(competitor) {
+  return normalizedAge(competitor.age) ?? Number.POSITIVE_INFINITY;
+}
+
+function divisionSortValue(competitor) {
+  return { mens: 0, womens: 1 }[normalizedDivision(competitor)] ?? 2;
+}
+
+function preferenceSortValue(competitor) {
+  return { gi: 0, both: 1, no_gi: 2 }[normalizedPreference(competitor)] ?? 3;
+}
+
 function stableIdentityComparison(left, right) {
   return compareText(competitorName(left), competitorName(right))
     || compareText(competitorIdentity(left), competitorIdentity(right));
@@ -133,6 +176,24 @@ export function scoreCompatibility(left, right) {
     return Number.POSITIVE_INFINITY;
   }
 
+  const leftDivision = normalizedDivision(left);
+  const rightDivision = normalizedDivision(right);
+  if (leftDivision && rightDivision && leftDivision !== rightDivision) {
+    return Number.POSITIVE_INFINITY;
+  }
+  const divisionPenalty = Boolean(leftDivision) === Boolean(rightDivision)
+    ? 0
+    : MATCHMAKING_PENALTIES.unknownDivision;
+
+  const leftPreference = normalizedPreference(left);
+  const rightPreference = normalizedPreference(right);
+  if (!preferencesCompatible(leftPreference, rightPreference)) {
+    return Number.POSITIVE_INFINITY;
+  }
+  const preferencePenalty = Boolean(leftPreference) === Boolean(rightPreference)
+    ? 0
+    : MATCHMAKING_PENALTIES.unknownPreference;
+
   const leftBelt = normalizedBelt(left.belt);
   const rightBelt = normalizedBelt(right.belt);
   const beltPenalty = leftBelt === null || rightBelt === null
@@ -142,15 +203,24 @@ export function scoreCompatibility(left, right) {
   const leftWeight = normalizedWeight(left.competitionWeightLbs ?? left.competition_weight_lbs);
   const rightWeight = normalizedWeight(right.competitionWeightLbs ?? right.competition_weight_lbs);
   const weightPenalty = leftWeight === null || rightWeight === null
-    ? MATCHMAKING_PENALTIES.missingWeight
+    ? (leftWeight === null && rightWeight === null ? 0 : MATCHMAKING_PENALTIES.missingWeight)
     : Math.abs(leftWeight - rightWeight);
 
-  return beltPenalty + weightPenalty;
+  const leftAge = normalizedAge(left.age);
+  const rightAge = normalizedAge(right.age);
+  const agePenalty = leftAge === null || rightAge === null
+    ? (leftAge === null && rightAge === null ? 0 : MATCHMAKING_PENALTIES.missingAge)
+    : Math.abs(leftAge - rightAge) * MATCHMAKING_PENALTIES.ageYear;
+
+  return divisionPenalty + preferencePenalty + beltPenalty + weightPenalty + agePenalty;
 }
 
 function canonicalComparison(left, right) {
-  return beltSortValue(left) - beltSortValue(right)
+  return divisionSortValue(left) - divisionSortValue(right)
+    || preferenceSortValue(left) - preferenceSortValue(right)
+    || beltSortValue(left) - beltSortValue(right)
     || weightSortValue(left) - weightSortValue(right)
+    || ageSortValue(left) - ageSortValue(right)
     || stableIdentityComparison(left, right);
 }
 
@@ -170,16 +240,17 @@ export function suggestedOrder(competitors) {
       break;
     }
 
-    let bestIndex = 0;
-    let bestScore = scoreCompatibility(anchor, remaining[0]);
+    let bestIndex = -1;
+    let bestScore = Number.POSITIVE_INFINITY;
 
-    for (let index = 1; index < remaining.length; index += 1) {
+    for (let index = 0; index < remaining.length; index += 1) {
       const candidateScore = scoreCompatibility(anchor, remaining[index]);
 
       if (
         candidateScore < bestScore
         || (
           candidateScore === bestScore
+          && bestIndex >= 0
           && canonicalComparison(remaining[index], remaining[bestIndex]) < 0
         )
       ) {
@@ -188,7 +259,9 @@ export function suggestedOrder(competitors) {
       }
     }
 
-    ordered.push(remaining.splice(bestIndex, 1)[0]);
+    if (bestIndex >= 0) {
+      ordered.push(remaining.splice(bestIndex, 1)[0]);
+    }
   }
 
   return ordered;

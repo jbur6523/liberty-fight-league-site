@@ -11,7 +11,10 @@ import {
 import { getServiceSupabase } from "../src/server/supabase.js";
 import {
   belt,
+  competitorAge,
   email,
+  genderDivision,
+  grapplingPreference,
   optionalText,
   requiredText,
   uuid,
@@ -33,6 +36,9 @@ export default async function handler(request, response) {
     const fullName = requiredText(body.fullName, "Full name", 160);
     const phone = requiredText(body.phone, "Phone", 50);
     const applicantEmail = email(body.email);
+    const age = competitorAge(body.age);
+    const division = genderDivision(body.genderDivision);
+    const preference = grapplingPreference(body.grapplingPreference);
     const applicantBelt = belt(body.belt);
     const gym = requiredText(body.gym, "Gym / academy", 160);
     const instagramInput = optionalText(body.instagram, "Instagram", 300);
@@ -84,6 +90,9 @@ export default async function handler(request, response) {
         full_name: fullName,
         phone,
         email: applicantEmail,
+        age,
+        gender_division: division,
+        grappling_preference: preference,
         belt: applicantBelt,
         competition_weight_lbs: Number(weightOption.value_lbs),
         weight_option_id: weightOption.id,

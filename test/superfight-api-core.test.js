@@ -5,7 +5,11 @@ import { HttpError } from "../src/server/http.js";
 import { confirmationState } from "../src/superfight/contracts.js";
 import {
   belt,
+  boutType,
+  competitorAge,
   email,
+  genderDivision,
+  grapplingPreference,
   optionalText,
   positiveWeight,
   uuid,
@@ -46,7 +50,22 @@ test("quick-add validation allows intentionally incomplete secondary fields", ()
   assert.equal(belt(null, { optional: true }), null);
   assert.equal(email("", { optional: true }), null);
   assert.equal(positiveWeight(undefined, { optional: true }), null);
+  assert.equal(competitorAge("", { optional: true }), null);
+  assert.equal(genderDivision(null, { optional: true }), null);
+  assert.equal(grapplingPreference("", { optional: true }), null);
   assert.equal(optionalText("   ", "Gym", 160), null);
+});
+
+test("competitor profile and bout values are structured and validated", () => {
+  assert.equal(competitorAge("27"), 27);
+  assert.equal(genderDivision("MENS"), "mens");
+  assert.equal(grapplingPreference("no_gi"), "no_gi");
+  assert.equal(grapplingPreference("both"), "both");
+  assert.equal(boutType("gi"), "gi");
+  assert.throws(() => competitorAge("27.5"), /valid age/);
+  assert.throws(() => genderDivision("open"), /valid gender/);
+  assert.throws(() => grapplingPreference("either"), /valid gi \/ no-gi preference/i);
+  assert.throws(() => boutType("both"), /valid bout type/);
 });
 
 test("public validation accepts secure UUID tokens and rejects guessable identifiers", () => {

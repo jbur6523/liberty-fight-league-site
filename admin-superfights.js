@@ -32,6 +32,13 @@ function escapeHtml(value) {
 
 function label(value) {
   if (!value) return "—";
+  const labels = {
+    mens: "Men's",
+    womens: "Women's",
+    gi: "Gi",
+    no_gi: "No-Gi",
+  };
+  if (labels[value]) return labels[value];
   return `${value[0].toUpperCase()}${value.slice(1).replaceAll("_", " ")}`;
 }
 
@@ -134,13 +141,15 @@ function renderUnmatched() {
 
   elements.unmatched.innerHTML = `
     <div class="admin-table-wrap"><table class="admin-table">
-      <thead><tr><th>Name</th><th>Belt</th><th>Weight</th><th>Gym</th><th>Instagram</th><th>Match action</th></tr></thead>
+      <thead><tr><th>Name</th><th>Gender</th><th>Age</th><th>Belt</th><th>Weight</th><th>Gi / No-Gi</th><th>Instagram</th><th>Match action</th></tr></thead>
       <tbody>${state.competitors.map((competitor) => `
         <tr class="${state.selected?.id === competitor.id ? "is-selected" : ""}">
-          <td><button class="admin-name-button" type="button" data-detail="${competitor.id}">${escapeHtml(competitor.name)}</button></td>
+          <td><button class="admin-name-button" type="button" data-detail="${competitor.id}">${escapeHtml(competitor.name)}</button><div class="admin-muted">${escapeHtml(competitor.gym || "No gym")}</div></td>
+          <td>${label(competitor.genderDivision)}</td>
+          <td>${competitor.age ?? "—"}</td>
           <td>${label(competitor.belt)}</td>
           <td>${competitor.weightLbs === null ? "—" : `${competitor.weightLbs} lb`}</td>
-          <td>${escapeHtml(competitor.gym || "—")}</td>
+          <td>${label(competitor.grapplingPreference)}</td>
           <td>${socialCell(competitor)}</td>
           <td><button class="admin-button ${state.selected?.id === competitor.id ? "secondary" : ""}" type="button" data-select="${competitor.id}">${state.selected?.id === competitor.id ? "Selected" : state.selected ? "Match with" : "Select"}</button></td>
         </tr>`).join("")}</tbody>
@@ -180,11 +189,12 @@ function renderMatched() {
 
   elements.matched.innerHTML = `
     <div class="admin-table-wrap"><table class="admin-table">
-      <thead><tr><th>Fighter A</th><th>Fighter B</th><th>Match weight</th><th>Confirmation</th><th>Quick actions</th></tr></thead>
+      <thead><tr><th>Fighter A</th><th>Fighter B</th><th>Bout type</th><th>Match weight</th><th>Confirmation</th><th>Quick actions</th></tr></thead>
       <tbody>${state.matches.map((match) => `
         <tr>
           <td>${matchFighterCell(match.fighterA)}${matchLinks(match.fighterA)}</td>
           <td>${matchFighterCell(match.fighterB)}${matchLinks(match.fighterB)}</td>
+          <td>${label(match.boutType)}</td>
           <td>${match.weightLbs === null ? "—" : `${match.weightLbs} lb`}</td>
           <td>${confirmationBadge(match.confirmation.summary)}</td>
           <td><button class="admin-button danger" type="button" data-unmatch="${match.id}">Unmatch</button></td>
@@ -276,10 +286,11 @@ function selectCompetitor(competitorId) {
 
   state.pairing = [state.selected, competitor];
   document.querySelector("#match-pair").innerHTML = state.pairing.map((fighter, index) => `
-    <div class="admin-detail"><strong>Fighter ${index === 0 ? "A" : "B"}</strong>${escapeHtml(fighter.name)}<br><span class="admin-muted">${label(fighter.belt)} · ${fighter.weightLbs === null ? "No weight" : `${fighter.weightLbs} lb`}</span></div>
+    <div class="admin-detail"><strong>Fighter ${index === 0 ? "A" : "B"}</strong>${escapeHtml(fighter.name)}<br><span class="admin-muted">${label(fighter.genderDivision)} · ${fighter.age ?? "No age"} · ${label(fighter.grapplingPreference)} · ${label(fighter.belt)} · ${fighter.weightLbs === null ? "No weight" : `${fighter.weightLbs} lb`}</span></div>
   `).join("");
   const weights = state.pairing.map((fighter) => fighter.weightLbs).filter((value) => value !== null);
   document.querySelector("#match-weight").value = weights.length ? Math.max(...weights) : "";
+  document.querySelector("#match-bout-type").value = "";
   document.querySelector("#match-error").textContent = "";
   document.querySelector("#match-dialog").showModal();
 }
@@ -305,6 +316,7 @@ async function openDetail(competitorId) {
         <div class="admin-detail"><strong>Source</strong>${label(competitor.source)}</div>
         <div class="admin-detail"><strong>Application date</strong>${competitor.applicationSubmittedAt ? new Date(competitor.applicationSubmittedAt).toLocaleString() : "Quick add"}</div>
         <div class="admin-detail"><strong>Match status</strong>${competitor.match ? `Matched with ${escapeHtml(competitor.match.opponent.full_name)}` : "Unmatched"}</div>
+        ${competitor.match ? `<div class="admin-detail"><strong>Final bout type</strong>${label(competitor.match.boutType)}</div>` : ""}
         ${competitor.match ? `<div class="admin-detail"><strong>Fighter confirmation</strong>${label(fighterResponse || "awaiting")}</div><div class="admin-detail"><strong>Opponent confirmation</strong>${label(opponentResponse || "awaiting")}</div>` : ""}
       </div>
       <form id="detail-form" style="margin-top:20px">
@@ -312,6 +324,9 @@ async function openDetail(competitorId) {
           <div class="admin-field full"><label>Name</label><input class="admin-input" name="fullName" value="${escapeHtml(competitor.name)}" required></div>
           <div class="admin-field"><label>Phone</label><input class="admin-input" name="phone" value="${escapeHtml(competitor.phone)}"></div>
           <div class="admin-field"><label>Email</label><input class="admin-input" name="email" type="email" value="${escapeHtml(competitor.email)}"></div>
+          <div class="admin-field"><label>Gender / division</label><select class="admin-select" name="genderDivision"><option value="">Not entered</option>${["mens","womens"].map((value) => `<option value="${value}"${competitor.genderDivision === value ? " selected" : ""}>${label(value)} division</option>`).join("")}</select></div>
+          <div class="admin-field"><label>Age</label><input class="admin-input" name="age" type="number" min="1" max="120" step="1" value="${competitor.age ?? ""}"></div>
+          <div class="admin-field"><label>Gi / No-Gi preference</label><select class="admin-select" name="grapplingPreference"><option value="">Not entered</option>${["gi","no_gi","both"].map((value) => `<option value="${value}"${competitor.grapplingPreference === value ? " selected" : ""}>${label(value)}</option>`).join("")}</select></div>
           <div class="admin-field"><label>Belt</label><select class="admin-select" name="belt"><option value="">Not entered</option>${["blue","purple","brown","black"].map((beltValue) => `<option value="${beltValue}"${competitor.belt === beltValue ? " selected" : ""}>${label(beltValue)}</option>`).join("")}</select></div>
           <div class="admin-field"><label>Weight (lb)</label><input class="admin-input" name="weightLbs" type="number" min="1" step=".01" value="${competitor.weightLbs ?? ""}"></div>
           <div class="admin-field"><label>Gym</label><input class="admin-input" name="gym" value="${escapeHtml(competitor.gym)}"></div>
@@ -460,6 +475,9 @@ document.querySelector("#quick-add-form").addEventListener("submit", async (even
       body: JSON.stringify({
         eventId: state.eventId,
         fullName: document.querySelector("#add-name").value,
+        age: document.querySelector("#add-age").value,
+        genderDivision: document.querySelector("#add-division").value,
+        grapplingPreference: document.querySelector("#add-preference").value,
         belt: document.querySelector("#add-belt").value,
         weightLbs: document.querySelector("#add-weight").value,
         gym: document.querySelector("#add-gym").value,
@@ -491,6 +509,7 @@ document.querySelector("#match-form").addEventListener("submit", async (event) =
         fighterAId: state.pairing[0].id,
         fighterBId: state.pairing[1].id,
         matchWeightLbs: document.querySelector("#match-weight").value,
+        boutType: document.querySelector("#match-bout-type").value,
       }),
     });
     document.querySelector("#match-dialog").close();

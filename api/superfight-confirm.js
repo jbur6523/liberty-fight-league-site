@@ -27,7 +27,7 @@ async function confirmationDetails(service, token) {
 
   const { data: match, error: matchError } = await service
     .from("superfight_matches")
-    .select("id, event_id, fighter_a_id, fighter_b_id, match_weight_lbs, state")
+    .select("id, event_id, fighter_a_id, fighter_b_id, match_weight_lbs, bout_type, state")
     .eq("id", confirmation.match_id)
     .single();
 
@@ -84,6 +84,7 @@ function publicPayload(details) {
       weightLbs: details.match.match_weight_lbs === null
         ? null
         : Number(details.match.match_weight_lbs),
+      boutType: details.match.bout_type,
       active: details.match.state === "active",
     },
     confirmation: {

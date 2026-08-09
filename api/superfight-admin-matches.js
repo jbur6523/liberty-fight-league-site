@@ -11,12 +11,12 @@ import {
 } from "../src/server/http.js";
 import { getServiceSupabase } from "../src/server/supabase.js";
 import { confirmationState } from "../src/superfight/contracts.js";
-import { positiveWeight, uuid } from "../src/superfight/validation.js";
+import { boutType, positiveWeight, uuid } from "../src/superfight/validation.js";
 
 async function listMatches(service, eventId) {
   const { data: matches, error: matchError } = await service
     .from("superfight_matches")
-    .select("id, fighter_a_id, fighter_b_id, match_weight_lbs, state, created_at")
+    .select("id, fighter_a_id, fighter_b_id, match_weight_lbs, bout_type, state, created_at")
     .eq("event_id", eventId)
     .eq("state", "active")
     .order("created_at", { ascending: false });
@@ -67,6 +67,7 @@ async function listMatches(service, eventId) {
     return {
       id: match.id,
       weightLbs: match.match_weight_lbs === null ? null : Number(match.match_weight_lbs),
+      boutType: match.bout_type,
       state: match.state,
       createdAt: match.created_at,
       confirmation: confirmationState(matchConfirmations, match.fighter_a_id, match.fighter_b_id),
@@ -131,13 +132,14 @@ export default async function handler(request, response) {
         fighter_a_id: fighterAId,
         fighter_b_id: fighterBId,
         match_weight_lbs: positiveWeight(body.matchWeightLbs, { optional: true }),
+        bout_type: boutType(body.boutType),
         created_by: admin.id,
       })
       .select("id")
       .single();
 
     if (error) {
-      if (/already belongs to an active match|Only active competitors/i.test(error.message)) {
+      if (/already belongs to an active match|Only active competitors|same gender division|incompatible|final bout type/i.test(error.message)) {
         throw new HttpError(409, error.message, "match_conflict");
       }
       throw databaseFailure(error, "admin match create failed");

@@ -75,6 +75,51 @@
             </div>
           </section>
 
+          <section class="sf-screen" data-screen="age">
+            <p class="sf-kicker">Competition profile</p>
+            <h2>How old are you?</h2>
+            <div class="sf-field">
+              <label for="age">Age in completed years</label>
+              <input class="sf-input" id="age" name="age" type="number" inputmode="numeric" min="1" max="120" step="1" placeholder="Your age">
+              <p class="sf-error" data-error="age"></p>
+            </div>
+            <div class="sf-actions">
+              <button class="sf-button secondary sf-back" type="button" data-back aria-label="Back">â†</button>
+              <button class="sf-button" type="button" data-next>Next</button>
+            </div>
+          </section>
+
+          <section class="sf-screen" data-screen="division">
+            <p class="sf-kicker">Competition division</p>
+            <h2>Which division do you compete in?</h2>
+            <input type="hidden" id="gender-division" name="genderDivision">
+            <div class="sf-choice-grid" id="division-options">
+              <button class="sf-choice" type="button" data-division="mens">Men's division</button>
+              <button class="sf-choice" type="button" data-division="womens">Women's division</button>
+            </div>
+            <p class="sf-error" data-error="genderDivision"></p>
+            <div class="sf-actions">
+              <button class="sf-button secondary sf-back" type="button" data-back aria-label="Back">â†</button>
+              <button class="sf-button" type="button" data-next>Next</button>
+            </div>
+          </section>
+
+          <section class="sf-screen" data-screen="grappling">
+            <p class="sf-kicker">Match format</p>
+            <h2>What do you want to compete in?</h2>
+            <input type="hidden" id="grappling-preference" name="grapplingPreference">
+            <div class="sf-choice-grid" id="grappling-options">
+              <button class="sf-choice" type="button" data-preference="gi">Gi</button>
+              <button class="sf-choice" type="button" data-preference="no_gi">No-Gi</button>
+              <button class="sf-choice" type="button" data-preference="both">Both</button>
+            </div>
+            <p class="sf-error" data-error="grapplingPreference"></p>
+            <div class="sf-actions">
+              <button class="sf-button secondary sf-back" type="button" data-back aria-label="Back">â†</button>
+              <button class="sf-button" type="button" data-next>Next</button>
+            </div>
+          </section>
+
           <section class="sf-screen" data-screen="belt">
             <p class="sf-kicker">Experience</p>
             <h2>What belt are you?</h2>

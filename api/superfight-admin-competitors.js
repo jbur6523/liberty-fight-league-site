@@ -13,7 +13,10 @@ import { getServiceSupabase } from "../src/server/supabase.js";
 import { normalizeInstagram, sortCompetitors } from "../src/superfight/domain.js";
 import {
   belt,
+  competitorAge,
   email,
+  genderDivision,
+  grapplingPreference,
   optionalText,
   positiveWeight,
   requiredText,
@@ -24,6 +27,9 @@ function adminCompetitorPayload(competitor) {
   return {
     id: competitor.id,
     name: competitor.full_name,
+    age: competitor.age,
+    genderDivision: competitor.gender_division,
+    grapplingPreference: competitor.grappling_preference,
     belt: competitor.belt,
     weightLbs: competitor.competition_weight_lbs === null
       ? null
@@ -59,6 +65,9 @@ export default async function handler(request, response) {
           event_id: uuid(body.eventId, "Event"),
           source: "admin_quick_add",
           full_name: requiredText(body.fullName, "Full name", 160),
+          age: competitorAge(body.age, { optional: true }),
+          gender_division: genderDivision(body.genderDivision, { optional: true }),
+          grappling_preference: grapplingPreference(body.grapplingPreference, { optional: true }),
           belt: belt(body.belt, { optional: true }),
           competition_weight_lbs: positiveWeight(body.weightLbs, { optional: true }),
           gym: optionalText(body.gym, "Gym / academy", 160),
@@ -86,7 +95,7 @@ export default async function handler(request, response) {
     const sort = queryValue(request, "sort") ?? "suggested";
     const { data: competitors, error: competitorError } = await service
       .from("superfight_competitors")
-      .select("id, full_name, belt, competition_weight_lbs, gym, instagram_handle, instagram_url, source, created_at, status_token")
+      .select("id, full_name, age, gender_division, grappling_preference, belt, competition_weight_lbs, gym, instagram_handle, instagram_url, source, created_at, status_token")
       .eq("event_id", eventId)
       .eq("record_state", "active");
 

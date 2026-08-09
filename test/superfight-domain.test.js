@@ -53,6 +53,83 @@ test("competitors from different events are never suggested to one another", () 
   assert.equal(scoreCompatibility(left, right), Number.POSITIVE_INFINITY);
 });
 
+test("gender divisions are hard matchmaking boundaries", () => {
+  const common = {
+    eventId: "event-1",
+    grapplingPreference: "both",
+    belt: "blue",
+    competitionWeightLbs: 155,
+    age: 28,
+  };
+
+  assert.equal(
+    scoreCompatibility(
+      { ...common, genderDivision: "mens" },
+      { ...common, genderDivision: "womens" },
+    ),
+    Number.POSITIVE_INFINITY,
+  );
+});
+
+test("Gi and No-Gi preferences follow the compatibility matrix", () => {
+  const competitor = (grapplingPreference) => ({
+    eventId: "event-1",
+    genderDivision: "mens",
+    grapplingPreference,
+    belt: "purple",
+    competitionWeightLbs: 170,
+    age: 30,
+  });
+
+  assert.ok(Number.isFinite(scoreCompatibility(competitor("gi"), competitor("gi"))));
+  assert.ok(Number.isFinite(scoreCompatibility(competitor("no_gi"), competitor("no_gi"))));
+  assert.ok(Number.isFinite(scoreCompatibility(competitor("gi"), competitor("both"))));
+  assert.ok(Number.isFinite(scoreCompatibility(competitor("no_gi"), competitor("both"))));
+  assert.ok(Number.isFinite(scoreCompatibility(competitor("both"), competitor("both"))));
+  assert.equal(
+    scoreCompatibility(competitor("gi"), competitor("no_gi")),
+    Number.POSITIVE_INFINITY,
+  );
+});
+
+test("belt, weight, then age determine compatible candidate proximity", () => {
+  const anchor = {
+    eventId: "event-1",
+    genderDivision: "womens",
+    grapplingPreference: "both",
+    belt: "blue",
+    competitionWeightLbs: 150,
+    age: 25,
+  };
+  const sameBeltFartherWeight = { ...anchor, competitionWeightLbs: 175, age: 25 };
+  const crossBeltCloserWeight = { ...anchor, belt: "purple", competitionWeightLbs: 151, age: 25 };
+  const sameWeightCloseAge = { ...anchor, age: 26 };
+  const sameWeightFarAge = { ...anchor, age: 40 };
+
+  assert.ok(
+    scoreCompatibility(anchor, sameBeltFartherWeight)
+      < scoreCompatibility(anchor, crossBeltCloserWeight),
+  );
+  assert.ok(
+    scoreCompatibility(anchor, sameWeightCloseAge)
+      < scoreCompatibility(anchor, sameWeightFarAge),
+  );
+});
+
+test("suggested ordering does not pair across incompatible divisions or formats", () => {
+  const competitors = [
+    { id: "mens-gi-a", fullName: "A", genderDivision: "mens", grapplingPreference: "gi", belt: "blue", competitionWeightLbs: 150, age: 24 },
+    { id: "womens-gi-a", fullName: "B", genderDivision: "womens", grapplingPreference: "gi", belt: "blue", competitionWeightLbs: 150, age: 24 },
+    { id: "mens-no-gi", fullName: "C", genderDivision: "mens", grapplingPreference: "no_gi", belt: "blue", competitionWeightLbs: 150, age: 24 },
+    { id: "mens-gi-b", fullName: "D", genderDivision: "mens", grapplingPreference: "gi", belt: "blue", competitionWeightLbs: 152, age: 25 },
+  ];
+
+  const order = suggestedOrder(competitors).map(({ id }) => id);
+  assert.deepEqual(order.slice(0, 2), ["mens-gi-a", "mens-gi-b"]);
+  assert.equal(scoreCompatibility(competitors[0], competitors[1]), Number.POSITIVE_INFINITY);
+  assert.equal(scoreCompatibility(competitors[0], competitors[2]), Number.POSITIVE_INFINITY);
+});
+
 test("suggested ordering places each anchor beside its nearest available candidate", () => {
   const competitors = [
     { id: "blue-205", fullName: "Blue 205", belt: "blue", competitionWeightLbs: 205 },

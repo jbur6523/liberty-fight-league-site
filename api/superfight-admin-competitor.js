@@ -13,7 +13,10 @@ import { getServiceSupabase } from "../src/server/supabase.js";
 import { normalizeInstagram } from "../src/superfight/domain.js";
 import {
   belt,
+  competitorAge,
   email,
+  genderDivision,
+  grapplingPreference,
   optionalText,
   positiveWeight,
   requiredText,
@@ -23,7 +26,7 @@ import {
 async function competitorDetail(service, competitorId) {
   const { data: competitor, error } = await service
     .from("superfight_competitors")
-    .select("id, event_id, full_name, phone, email, belt, competition_weight_lbs, gym, instagram_handle, instagram_url, notes, source, record_state, merged_into_competitor_id, application_submitted_at, created_at, status_token")
+    .select("id, event_id, full_name, phone, email, age, gender_division, grappling_preference, belt, competition_weight_lbs, gym, instagram_handle, instagram_url, notes, source, record_state, merged_into_competitor_id, application_submitted_at, created_at, status_token")
     .eq("id", competitorId)
     .maybeSingle();
 
@@ -36,7 +39,7 @@ async function competitorDetail(service, competitorId) {
 
   const { data: matches, error: matchError } = await service
     .from("superfight_matches")
-    .select("id, fighter_a_id, fighter_b_id, match_weight_lbs, state")
+    .select("id, fighter_a_id, fighter_b_id, match_weight_lbs, bout_type, state")
     .eq("event_id", competitor.event_id)
     .eq("state", "active")
     .or(`fighter_a_id.eq.${competitor.id},fighter_b_id.eq.${competitor.id}`)
@@ -53,7 +56,7 @@ async function competitorDetail(service, competitorId) {
     const [{ data: opponent, error: opponentError }, { data: confirmations, error: confirmationError }] = await Promise.all([
       service
         .from("superfight_competitors")
-        .select("id, full_name, belt, competition_weight_lbs, gym, instagram_handle, instagram_url")
+        .select("id, full_name, age, gender_division, grappling_preference, belt, competition_weight_lbs, gym, instagram_handle, instagram_url")
         .eq("id", opponentId)
         .single(),
       service
@@ -68,6 +71,7 @@ async function competitorDetail(service, competitorId) {
     match = {
       id: record.id,
       weightLbs: record.match_weight_lbs === null ? null : Number(record.match_weight_lbs),
+      boutType: record.bout_type,
       opponent,
       confirmations,
     };
@@ -79,6 +83,9 @@ async function competitorDetail(service, competitorId) {
     name: competitor.full_name,
     phone: competitor.phone,
     email: competitor.email,
+    age: competitor.age,
+    genderDivision: competitor.gender_division,
+    grapplingPreference: competitor.grappling_preference,
     belt: competitor.belt,
     weightLbs: competitor.competition_weight_lbs === null ? null : Number(competitor.competition_weight_lbs),
     gym: competitor.gym,
@@ -137,6 +144,13 @@ export default async function handler(request, response) {
     if (Object.hasOwn(body, "fullName")) updates.full_name = requiredText(body.fullName, "Full name", 160);
     if (Object.hasOwn(body, "phone")) updates.phone = optionalText(body.phone, "Phone", 50);
     if (Object.hasOwn(body, "email")) updates.email = email(body.email, { optional: true });
+    if (Object.hasOwn(body, "age")) updates.age = competitorAge(body.age, { optional: true });
+    if (Object.hasOwn(body, "genderDivision")) {
+      updates.gender_division = genderDivision(body.genderDivision, { optional: true });
+    }
+    if (Object.hasOwn(body, "grapplingPreference")) {
+      updates.grappling_preference = grapplingPreference(body.grapplingPreference, { optional: true });
+    }
     if (Object.hasOwn(body, "belt")) updates.belt = belt(body.belt, { optional: true });
     if (Object.hasOwn(body, "weightLbs")) {
       updates.competition_weight_lbs = positiveWeight(body.weightLbs, { optional: true });

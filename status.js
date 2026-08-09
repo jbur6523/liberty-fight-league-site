@@ -61,6 +61,7 @@ function renderMatched(payload) {
     definitionList([
       ["Opponent", payload.opponent.name],
       ["Opponent belt", payload.opponent.belt ? `${payload.opponent.belt[0].toUpperCase()}${payload.opponent.belt.slice(1)}` : null],
+      ["Bout type", { gi: "Gi", no_gi: "No-Gi" }[payload.match.boutType] ?? null],
       ["Match weight", payload.match.weightLbs === null ? null : `${payload.match.weightLbs} lb`],
       ["Opponent gym", payload.opponent.gym],
       ["Opponent Instagram", payload.opponent.instagramHandle ? `@${payload.opponent.instagramHandle}` : null, payload.opponent.instagramUrl],

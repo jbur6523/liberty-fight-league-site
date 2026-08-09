@@ -1,8 +1,11 @@
 const screens = [...document.querySelectorAll(".sf-screen")];
-const questionScreens = ["name", "contact", "belt", "weight", "gym", "instagram"];
+const questionScreens = ["name", "contact", "age", "division", "grappling", "belt", "weight", "gym", "instagram"];
 const fieldsByScreen = {
   name: ["fullName"],
   contact: ["phone", "email"],
+  age: ["age"],
+  division: ["genderDivision"],
+  grappling: ["grapplingPreference"],
   belt: ["belt"],
   weight: ["weightOptionId"],
   gym: ["gym"],
@@ -113,6 +116,18 @@ function validateScreen(screenName) {
     const email = String(data.get("email") ?? "").trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = "Enter a valid email address.";
   }
+  if (screenName === "age") {
+    const age = Number(data.get("age"));
+    if (!Number.isInteger(age) || age < 1 || age > 120) {
+      errors.age = "Enter your age in completed years.";
+    }
+  }
+  if (screenName === "division" && !data.get("genderDivision")) {
+    errors.genderDivision = "Select your competition division.";
+  }
+  if (screenName === "grappling" && !data.get("grapplingPreference")) {
+    errors.grapplingPreference = "Select Gi, No-Gi, or Both.";
+  }
   if (screenName === "belt" && !data.get("belt")) errors.belt = "Select your belt.";
   if (screenName === "weight" && !data.get("weightOptionId")) {
     errors.weightOptionId = "Select your competition weight.";
@@ -205,6 +220,21 @@ document.querySelectorAll("[data-belt]").forEach((button) => {
     document.querySelector('[data-error="belt"]').textContent = "";
   });
 });
+
+function bindChoiceButtons(selector, inputSelector, dataKey, errorField) {
+  document.querySelectorAll(selector).forEach((button) => {
+    button.addEventListener("click", () => {
+      document.querySelector(inputSelector).value = button.dataset[dataKey];
+      document.querySelectorAll(selector).forEach((choice) => {
+        choice.classList.toggle("is-selected", choice === button);
+      });
+      document.querySelector(`[data-error="${errorField}"]`).textContent = "";
+    });
+  });
+}
+
+bindChoiceButtons("[data-division]", "#gender-division", "division", "genderDivision");
+bindChoiceButtons("[data-preference]", "#grappling-preference", "preference", "grapplingPreference");
 
 form.addEventListener("keydown", (eventKey) => {
   if (eventKey.key === "Enter" && currentScreen !== "instagram" && eventKey.target.tagName !== "TEXTAREA") {

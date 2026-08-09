@@ -65,17 +65,15 @@ export function clearAdminSessionCookies(request, response) {
 
 async function authorizedAdmin(user) {
   const service = getServiceSupabase();
-  const { data, error } = await service
-    .from("superfight_admin_users")
-    .select("user_id")
-    .eq("user_id", user.id)
-    .maybeSingle();
+  const { data, error } = await service.rpc("is_superfight_admin", {
+    check_user_id: user.id,
+  });
 
   if (error) {
     throw databaseFailure(error, "admin membership lookup failed");
   }
 
-  return Boolean(data);
+  return data === true;
 }
 
 export async function requireSuperfightAdmin(request, response) {

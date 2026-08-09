@@ -69,6 +69,7 @@ create table public.superfight_event_weight_options (
 
 create table public.superfight_admin_users (
   user_id uuid primary key references auth.users(id) on delete cascade,
+  promoter_id uuid not null unique references public.promoters(id) on delete restrict,
   created_by uuid references auth.users(id) on delete set null,
   created_at timestamptz not null default now()
 );
@@ -451,7 +452,10 @@ as $$
   select exists (
     select 1
     from public.superfight_admin_users admin_user
+    join public.promoters promoter
+      on promoter.id = admin_user.promoter_id
     where admin_user.user_id = check_user_id
+      and promoter.status = 'active'
   );
 $$;
 
@@ -533,7 +537,7 @@ comment on column public.superfight_match_confirmations.token is
   'Non-guessable fighter-specific confirmation token. Public table access remains disabled.';
 
 comment on function public.is_superfight_admin(uuid) is
-  'Checks whether an existing Supabase Auth user is authorized for Superfight promoter tools.';
+  'Checks whether an existing Supabase Auth user is linked to an active promoter.';
 
 comment on function public.submit_superfight_confirmation(uuid, text, text, boolean) is
   'Atomically records a confirmation response and the only fighter-editable field: gym.';
