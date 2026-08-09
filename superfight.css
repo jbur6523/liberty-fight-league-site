@@ -522,6 +522,8 @@ a {
   border-color: transparent;
   background: linear-gradient(135deg, #833ab4 0%, #c13584 30%, #e1306c 52%, #fd1d1d 72%, #fcb045 100%);
   color: var(--white);
+  font-weight: 900;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
   box-shadow: 0 8px 24px rgba(225, 48, 108, 0.2);
 }
 
