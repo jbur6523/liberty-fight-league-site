@@ -9,7 +9,7 @@ import {
   sendJson,
 } from "../src/server/http.js";
 import { getServiceSupabase } from "../src/server/supabase.js";
-import { optionalText, uuid } from "../src/superfight/validation.js";
+import { uuid } from "../src/superfight/validation.js";
 
 async function confirmationDetails(service, token) {
   const { data: confirmation, error: confirmationError } = await service
@@ -112,7 +112,7 @@ function publicPayload(details) {
 
 export default async function handler(request, response) {
   return handleApi(request, response, async () => {
-    allowMethods(request, response, ["GET", "POST", "PATCH"]);
+    allowMethods(request, response, ["GET", "POST"]);
     const token = uuid(queryValue(request, "token"), "Confirmation link");
     const service = getServiceSupabase();
 
@@ -128,36 +128,27 @@ export default async function handler(request, response) {
       throw new HttpError(409, "This matchup is no longer active.", "match_inactive");
     }
 
-    const updatesGym = Object.hasOwn(body, "gym");
-    const gym = updatesGym ? optionalText(body.gym, "Gym / academy", 160) : undefined;
+    const selectedResponse = body.response;
+    if (!new Set(["accepted", "declined"]).has(selectedResponse)) {
+      throw new HttpError(400, "Choose Accept or Decline.", "invalid_confirmation");
+    }
 
-    if (request.method === "POST") {
-      const selectedResponse = body.response;
-      if (!new Set(["accepted", "declined"]).has(selectedResponse)) {
-        throw new HttpError(400, "Choose Accept or Decline.", "invalid_confirmation");
-      }
+    // A confirmation is final. Repeated or stale submissions return the
+    // response already on file without allowing it to be changed.
+    if (details.confirmation.response !== "awaiting") {
+      sendJson(response, 200, publicPayload(details));
+      return;
+    }
 
-      const { error: responseError } = await service.rpc("submit_superfight_confirmation", {
-        confirmation_token: token,
-        selected_response: selectedResponse,
-        updated_gym: gym,
-        should_update_gym: updatesGym,
-      });
+    const { error: responseError } = await service.rpc("submit_superfight_confirmation", {
+      confirmation_token: token,
+      selected_response: selectedResponse,
+      updated_gym: null,
+      should_update_gym: false,
+    });
 
-      if (responseError) {
-        throw databaseFailure(responseError, "confirmation response update failed");
-      }
-    } else if (updatesGym) {
-      const { error: gymError } = await service
-        .from("superfight_competitors")
-        .update({ gym })
-        .eq("id", details.fighter.id);
-
-      if (gymError) {
-        throw databaseFailure(gymError, "confirmation gym update failed");
-      }
-    } else {
-      throw new HttpError(400, "Gym / academy is required.", "invalid_confirmation");
+    if (responseError) {
+      throw databaseFailure(responseError, "confirmation response update failed");
     }
 
     sendJson(response, 200, publicPayload(await confirmationDetails(service, token)));

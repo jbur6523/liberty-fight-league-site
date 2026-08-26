@@ -27,6 +27,8 @@ const competitors = [
   { id: "00000000-0000-4000-8000-000000000204", name: "Avery Kim", age: 28, genderDivision: "womens", grapplingPreference: "no_gi", belt: "blue", weightLbs: 150, weightOptions: [previewEvent.weightOptions[0]], gym: "Golden Gate Jiu-Jitsu", phone: null, preferredContactMethod: "instagram", instagramHandle: "averykim", instagramUrl: "https://instagram.com/averykim", source: "admin_quick_add", createdAt: new Date().toISOString(), statusPath: "/status/kim" },
 ];
 
+const confirmationResponses = new Map();
+
 function json(response, statusCode, payload) {
   response.writeHead(statusCode, { "Content-Type": "application/json", "Cache-Control": "no-store" });
   response.end(JSON.stringify(payload));
@@ -64,8 +66,12 @@ async function mockApi(request, response, url) {
     });
   }
   if (url.pathname === "/api/superfight-confirm") {
-    const input = request.method === "GET" ? {} : await body(request);
-    return json(response, 200, confirmationPayload(input.response ?? "awaiting", input.gym ?? "North Bay Jiu-Jitsu"));
+    const confirmationToken = url.searchParams.get("token") ?? "preview";
+    if (request.method !== "GET" && !confirmationResponses.has(confirmationToken)) {
+      const input = await body(request);
+      confirmationResponses.set(confirmationToken, input.response ?? "awaiting");
+    }
+    return json(response, 200, confirmationPayload(confirmationResponses.get(confirmationToken) ?? "awaiting"));
   }
   if (url.pathname === "/api/superfight-admin-session") {
     return json(response, 200, { signedIn: request.method !== "DELETE", email: "promoter@example.com" });
@@ -92,6 +98,14 @@ async function mockApi(request, response, url) {
     });
   }
   if (url.pathname === "/api/superfight-admin-competitor") {
+    if (request.method === "POST") {
+      const input = await body(request);
+      if (input.action === "withdraw") {
+        const index = competitors.findIndex((competitor) => competitor.id === input.competitorId);
+        if (index >= 0) competitors.splice(index, 1);
+        return json(response, 200, { withdrawn: true });
+      }
+    }
     return json(response, 200, {
       competitor: {
         ...competitors[0],

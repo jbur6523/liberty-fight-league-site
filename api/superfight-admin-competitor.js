@@ -146,6 +146,48 @@ export default async function handler(request, response) {
 
     assertSameOrigin(request);
 
+    if (request.method === "POST" && body.action === "withdraw") {
+      const { data: competitor, error: competitorError } = await service
+        .from("superfight_competitors")
+        .select("id, record_state")
+        .eq("id", competitorId)
+        .maybeSingle();
+      if (competitorError) throw databaseFailure(competitorError, "admin competitor withdrawal lookup failed");
+      if (!competitor) {
+        throw new HttpError(404, "Competitor could not be found.", "competitor_not_found");
+      }
+      if (competitor.record_state !== "active") {
+        throw new HttpError(409, "Only an active competitor can be deleted.", "withdraw_conflict");
+      }
+
+      const { data: activeMatch, error: matchError } = await service
+        .from("superfight_matches")
+        .select("id")
+        .eq("state", "active")
+        .or(`fighter_a_id.eq.${competitorId},fighter_b_id.eq.${competitorId}`)
+        .limit(1)
+        .maybeSingle();
+      if (matchError) throw databaseFailure(matchError, "admin competitor withdrawal match lookup failed");
+      if (activeMatch) {
+        throw new HttpError(409, "Unmatch this competitor before deleting them.", "withdraw_conflict");
+      }
+
+      const { data: withdrawn, error } = await service
+        .from("superfight_competitors")
+        .update({ record_state: "withdrawn" })
+        .eq("id", competitorId)
+        .eq("record_state", "active")
+        .select("id")
+        .maybeSingle();
+      if (error) throw databaseFailure(error, "admin competitor withdrawal failed");
+      if (!withdrawn) {
+        throw new HttpError(409, "This competitor is no longer available to delete.", "withdraw_conflict");
+      }
+
+      sendJson(response, 200, { withdrawn: true });
+      return;
+    }
+
     if (request.method === "POST" && body.action === "merge") {
       const targetId = uuid(body.targetCompetitorId, "Target competitor");
       const { error } = await service.rpc("merge_superfight_competitors", {

@@ -2,7 +2,6 @@ const content = document.querySelector("#confirm-content");
 const loading = document.querySelector("#confirm-loading");
 const toast = document.querySelector("#confirm-toast");
 const token = window.location.pathname.split("/").filter(Boolean).at(-1);
-let currentPayload;
 
 function element(tagName, options = {}) {
   const node = document.createElement(tagName);
@@ -33,12 +32,6 @@ function boutTypeLabel(value) {
   return { gi: "Gi", no_gi: "No-Gi" }[value] ?? null;
 }
 
-function responseMessage(value) {
-  if (value === "accepted") return "You accepted this matchup.";
-  if (value === "declined") return "You declined this matchup.";
-  return "Review the details, then accept or decline.";
-}
-
 function formattedDateTime(value) {
   if (!value) return null;
   return new Intl.DateTimeFormat("en-US", {
@@ -53,12 +46,33 @@ function formattedDateTime(value) {
 }
 
 function render(payload) {
-  currentPayload = payload;
   content.replaceChildren();
+
+  const response = payload.confirmation.response;
+  const copy = {
+    accepted: {
+      title: "Match Confirmed",
+      lead: "Thank you for accepting your matchup. You're officially set for Roll With It 3.",
+      note: "Liberty Fight League will contact you if anything changes.",
+    },
+    declined: {
+      title: "Matchup Declined",
+      lead: "Your response has been recorded. You declined this matchup.",
+      note: "Liberty Fight League will contact you if a new matchup becomes available.",
+    },
+    awaiting: {
+      title: "Confirm your matchup.",
+      lead: "Review the agreed match details, then accept or decline.",
+    },
+  }[response] ?? {
+    title: "Confirmation unavailable",
+    lead: "We couldn't determine the status of this matchup.",
+  };
+
   content.append(
     element("p", { className: "sf-kicker", text: payload.event.name }),
-    element("h1", { text: "Confirm your matchup." }),
-    element("p", { className: "sf-lead", text: responseMessage(payload.confirmation.response) }),
+    element("h1", { text: copy.title }),
+    element("p", { className: "sf-lead", text: copy.lead }),
   );
 
   const details = element("dl", { className: "sf-status-grid" });
@@ -70,27 +84,17 @@ function render(payload) {
     fieldRow("Your belt", beltLabel(payload.fighter.belt)),
     fieldRow("Opponent belt", beltLabel(payload.opponent.belt)),
     fieldRow("Bout type", boutTypeLabel(payload.match.boutType)),
-    fieldRow(payload.match.weightOption ? "Final weight class" : "Agreed match weight", payload.match.weightOption?.label ?? (payload.match.weightLbs === null ? null : `${payload.match.weightLbs} lb`)),
+    fieldRow("Agreed match weight", payload.match.weightOption?.label ?? (payload.match.weightLbs === null ? null : `${payload.match.weightLbs} lb`)),
     fieldRow("Your gym", payload.fighter.gym || "Not listed"),
     fieldRow("Opponent gym", payload.opponent.gym || "Not listed"),
   ].filter(Boolean).forEach((row) => details.append(row));
   content.append(details);
 
-  const gymField = element("div", { className: "sf-field" });
-  const gymLabel = element("label", { text: "Update only your gym / academy" });
-  gymLabel.htmlFor = "confirmation-gym";
-  const gymInput = element("input", { className: "sf-input" });
-  gymInput.id = "confirmation-gym";
-  gymInput.value = payload.fighter.gym ?? "";
-  gymInput.maxLength = 160;
-  gymInput.autocomplete = "organization";
-  const saveGym = element("button", { className: "sf-button secondary", text: "Save academy" });
-  saveGym.type = "button";
-  saveGym.addEventListener("click", () => updateGym(gymInput.value, saveGym));
-  const gymActions = element("div", { className: "sf-actions" });
-  gymActions.append(saveGym);
-  gymField.append(gymLabel, gymInput, gymActions);
-  content.append(gymField);
+  if (copy.note) {
+    content.append(element("p", { className: "sf-response-note", text: copy.note }));
+  }
+
+  if (response !== "awaiting") return;
 
   if (!payload.match.active) {
     content.append(element("p", { className: "sf-error", text: "This matchup is no longer active." }));
@@ -98,11 +102,11 @@ function render(payload) {
   }
 
   const actions = element("div", { className: "sf-confirm-actions" });
-  const accept = element("button", { className: "sf-button", text: "Accept" });
-  const decline = element("button", { className: "sf-button danger", text: "Decline" });
+  const accept = element("button", { className: "sf-button", text: "ACCEPT" });
+  const decline = element("button", { className: "sf-button danger", text: "DECLINE" });
   accept.type = decline.type = "button";
-  accept.addEventListener("click", () => submitResponse("accepted", gymInput.value, accept, decline));
-  decline.addEventListener("click", () => submitResponse("declined", gymInput.value, accept, decline));
+  accept.addEventListener("click", () => submitResponse("accepted", accept, decline));
+  decline.addEventListener("click", () => submitResponse("declined", accept, decline));
   actions.append(accept, decline);
   content.append(actions);
 }
@@ -118,23 +122,10 @@ async function request(method, body) {
   return payload;
 }
 
-async function updateGym(gym, button) {
-  button.disabled = true;
-  try {
-    render(await request("PATCH", { gym }));
-    showToast("Academy updated");
-  } catch (error) {
-    showToast(error.message);
-  } finally {
-    button.disabled = false;
-  }
-}
-
-async function submitResponse(response, gym, ...buttons) {
+async function submitResponse(response, ...buttons) {
   buttons.forEach((button) => { button.disabled = true; });
   try {
-    render(await request("POST", { response, gym }));
-    showToast(response === "accepted" ? "Matchup accepted" : "Response recorded");
+    render(await request("POST", { response }));
   } catch (error) {
     showToast(error.message);
     buttons.forEach((button) => { button.disabled = false; });

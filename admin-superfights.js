@@ -171,6 +171,67 @@ function socialCell(competitor) {
   return `<div class="admin-social"><a href="${escapeHtml(competitor.instagramUrl)}" target="_blank" rel="noopener">@${escapeHtml(competitor.instagramHandle)}</a><button class="admin-button ghost" type="button" data-copy="${escapeHtml(competitor.instagramHandle)}" data-raw-copy aria-label="Copy Instagram">Copy</button></div>`;
 }
 
+function unmatchedTableName(competitor) {
+  const parts = competitor.name.trim().split(/\s+/);
+  const shortenedName = `${Array.from(parts[0])[0]}. ${parts.at(-1)}`;
+  return `${escapeHtml(shortenedName)}${competitor.genderDivision === "womens" ? " 💕" : ""} (${competitor.age ?? "—"})`;
+}
+
+function unmatchedBeltClass(belt) {
+  return new Set(["blue", "purple", "brown", "black"]).has(belt) ? ` belt-${belt}` : "";
+}
+
+async function deleteUnmatchedCompetitor(competitorId, button) {
+  const competitor = state.competitors.find((item) => item.id === competitorId);
+  if (!competitor) return;
+  const confirmed = window.confirm(
+    `Delete ${competitor.name} from matchmaking?\n\nThey will disappear from this event's fighter list.`,
+  );
+  if (!confirmed) return;
+
+  button.disabled = true;
+  try {
+    await api("/api/superfight-admin-competitor", {
+      method: "POST",
+      body: { action: "withdraw", competitorId },
+    });
+    if (state.selected?.id === competitorId) clearSelection();
+    showToast(`${competitor.name} deleted`);
+    await loadUnmatched();
+  } catch (error) {
+    button.disabled = false;
+    showToast(error.message);
+  }
+}
+
+function bindUnmatchedNameActions() {
+  elements.unmatched.querySelectorAll("[data-unmatched-name]").forEach((button) => {
+    let detailTimer;
+    let lastTouchAt = 0;
+
+    button.addEventListener("click", (event) => {
+      if (event.detail > 1) return;
+      detailTimer = window.setTimeout(() => openDetail(button.dataset.unmatchedName), 400);
+    });
+    button.addEventListener("dblclick", (event) => {
+      event.preventDefault();
+      window.clearTimeout(detailTimer);
+      selectCompetitor(button.dataset.unmatchedName);
+    });
+    button.addEventListener("touchend", (event) => {
+      const touchedAt = Date.now();
+      if (touchedAt - lastTouchAt < 350) {
+        event.preventDefault();
+        window.clearTimeout(detailTimer);
+        lastTouchAt = 0;
+        selectCompetitor(button.dataset.unmatchedName);
+        return;
+      }
+      lastTouchAt = touchedAt;
+    }, { passive: false });
+  });
+}
+
 function renderUnmatched() {
   document.querySelector("#unmatched-count").textContent = `(${state.competitors.length})`;
   if (!state.eventId) {
@@ -188,24 +249,24 @@ function renderUnmatched() {
   }
 
   elements.unmatched.innerHTML = `
-    <div class="admin-table-wrap"><table class="admin-table">
-      <thead><tr><th>Name</th><th>Gender</th><th>Age</th><th>Belt</th><th>Acceptable weights</th><th>Gi / No-Gi</th><th>Instagram</th><th>Match action</th></tr></thead>
+    <div class="admin-table-wrap"><table class="admin-table admin-unmatched-table">
+      <thead><tr><th>Name</th><th>Gi / No-Gi / Both</th><th>Weight</th><th>Instagram</th></tr></thead>
       <tbody>${state.competitors.map((competitor) => `
         <tr class="${state.selected?.id === competitor.id ? "is-selected" : ""}">
-          <td><button class="admin-name-button" type="button" data-detail="${competitor.id}">${escapeHtml(competitor.name)}</button><div class="admin-muted">${escapeHtml(competitor.gym || "No gym")}</div></td>
-          <td>${label(competitor.genderDivision)}</td>
-          <td>${competitor.age ?? "—"}</td>
-          <td>${label(competitor.belt)}</td>
-          <td>${weightSummary(competitor)}</td>
+          <td><div class="admin-name-actions"><button class="admin-name-button${unmatchedBeltClass(competitor.belt)}" type="button" data-unmatched-name="${competitor.id}" title="Open details; double-click or double-tap to select">${unmatchedTableName(competitor)}</button><button class="admin-overflow-button" type="button" data-delete-competitor="${competitor.id}" aria-label="Delete ${escapeHtml(competitor.name)}" title="Delete competitor">⋮</button></div><div class="admin-muted">${escapeHtml(competitor.gym || "No gym")}</div><button class="admin-button admin-inline-select ${state.selected?.id === competitor.id ? "secondary" : ""}" type="button" data-select="${competitor.id}" aria-pressed="${state.selected?.id === competitor.id}">${state.selected?.id === competitor.id ? "Selected" : state.selected ? "Match with" : "Select"}</button></td>
           <td>${label(competitor.grapplingPreference)}</td>
+          <td>${weightSummary(competitor)}</td>
           <td>${socialCell(competitor)}</td>
-          <td><button class="admin-button ${state.selected?.id === competitor.id ? "secondary" : ""}" type="button" data-select="${competitor.id}">${state.selected?.id === competitor.id ? "Selected" : state.selected ? "Match with" : "Select"}</button></td>
         </tr>`).join("")}</tbody>
     </table></div>`;
 
   bindTableActions(elements.unmatched);
+  bindUnmatchedNameActions();
   elements.unmatched.querySelectorAll("[data-select]").forEach((button) => {
     button.addEventListener("click", () => selectCompetitor(button.dataset.select));
+  });
+  elements.unmatched.querySelectorAll("[data-delete-competitor]").forEach((button) => {
+    button.addEventListener("click", () => deleteUnmatchedCompetitor(button.dataset.deleteCompetitor, button));
   });
 }
 

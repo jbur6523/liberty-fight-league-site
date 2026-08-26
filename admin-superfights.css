@@ -272,6 +272,21 @@ a { -webkit-tap-highlight-color: transparent; }
 .admin-table tbody tr:hover { background: #fafaf7; }
 .admin-table tr.is-selected { background: #ecece6; }
 
+.admin-unmatched-table {
+  min-width: 0;
+  table-layout: fixed;
+}
+
+.admin-unmatched-table th:nth-child(1) { width: 35%; }
+.admin-unmatched-table th:nth-child(2) { width: 16%; }
+.admin-unmatched-table th:nth-child(3) { width: 27%; }
+.admin-unmatched-table th:nth-child(4) { width: 22%; }
+
+.admin-unmatched-table tr.is-selected {
+  background: #e1f0e8;
+  box-shadow: inset 4px 0 var(--green);
+}
+
 .admin-name-button {
   padding: 0;
   border: 0;
@@ -283,6 +298,72 @@ a { -webkit-tap-highlight-color: transparent; }
   text-decoration: underline;
   text-decoration-color: #c4c4be;
   text-underline-offset: 3px;
+}
+
+.admin-name-button.belt-blue { color: #1d4ed8; }
+.admin-name-button.belt-purple { color: #7e22ce; }
+.admin-name-button.belt-brown { color: #7c3f16; }
+.admin-name-button.belt-black { color: #000; }
+
+.admin-name-actions {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.admin-overflow-button {
+  display: inline-grid;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  margin-top: -4px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+  font: 700 24px/1 Arial, sans-serif;
+  cursor: pointer;
+}
+
+.admin-overflow-button:hover,
+.admin-overflow-button:focus-visible {
+  background: #e5e5df;
+  color: var(--ink);
+}
+
+.admin-overflow-button:disabled { opacity: .4; cursor: wait; }
+
+.admin-inline-select {
+  margin-top: 7px;
+  padding: 4px 7px;
+  font-size: 12px;
+}
+
+.admin-unmatched-table th,
+.admin-unmatched-table td {
+  overflow-wrap: anywhere;
+}
+
+.admin-unmatched-table th:nth-child(2),
+.admin-unmatched-table td:nth-child(2) {
+  padding-inline: 5px;
+}
+
+.admin-unmatched-table td:nth-child(2) {
+  white-space: nowrap;
+}
+
+.admin-unmatched-table .admin-social {
+  min-width: 0;
+}
+
+.admin-unmatched-table .admin-social a {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .admin-muted { color: var(--muted); }
@@ -550,4 +631,10 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.58); }
   .admin-detail-grid,
   .admin-check-grid { grid-template-columns: 1fr; }
   .admin-matchbar { right: 14px; bottom: 14px; left: 14px; width: auto; }
+  .admin-unmatched-table th,
+  .admin-unmatched-table td { padding: 7px 5px; }
+  .admin-unmatched-table th { font-size: 10px; letter-spacing: .03em; }
+  .admin-unmatched-table .admin-social .admin-button { display: none; }
+  .admin-unmatched-table .admin-muted { font-size: 12px; line-height: 1.2; }
+  .admin-unmatched-table .admin-weight-summary { font-size: 13px; }
 }

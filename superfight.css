@@ -556,8 +556,8 @@ a {
 .sf-status-row {
   padding: 16px;
   display: grid;
-  grid-template-columns: minmax(7rem, 0.7fr) 1.3fr;
-  gap: 20px;
+  grid-template-columns: 1fr;
+  gap: 6px;
   background: var(--surface);
 }
 
@@ -578,6 +578,12 @@ a {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
+}
+
+.sf-response-note {
+  margin: 24px 0 0;
+  color: var(--muted);
+  line-height: 1.6;
 }
 
 .sf-toast {
@@ -643,6 +649,11 @@ a {
 
   .sf-choice-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .sf-status-row {
+    grid-template-columns: minmax(7rem, 0.7fr) 1.3fr;
+    gap: 20px;
   }
 }
 
