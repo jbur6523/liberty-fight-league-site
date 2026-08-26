@@ -11,7 +11,7 @@ test("unmatched competitors can be safely withdrawn from the three-dot action", 
 
   assert.match(script, /data-delete-competitor="\$\{competitor\.id\}"/);
   assert.match(script, /window\.confirm\([\s\S]*?Delete \$\{competitor\.name\} from matchmaking/);
-  assert.match(script, /body: \{ action: "withdraw", competitorId \}/);
+  assert.match(script, /body: JSON\.stringify\(\{ action: "withdraw", competitorId \}\)/);
   assert.match(styles, /\.admin-overflow-button\s*\{/);
 
   assert.match(api, /body\.action === "withdraw"/);

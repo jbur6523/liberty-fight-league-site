@@ -193,7 +193,7 @@ async function deleteUnmatchedCompetitor(competitorId, button) {
   try {
     await api("/api/superfight-admin-competitor", {
       method: "POST",
-      body: { action: "withdraw", competitorId },
+      body: JSON.stringify({ action: "withdraw", competitorId }),
     });
     if (state.selected?.id === competitorId) clearSelection();
     showToast(`${competitor.name} deleted`);
