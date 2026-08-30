@@ -18,6 +18,7 @@ test("public event pages present Roll With It 3 without previous-event promotion
   assert.doesNotMatch(combined, /June\s+6|The Revolution|Contra Costa|Antioch/i);
   assert.doesNotMatch(combined, /buytickets|tickettailor|dacast|docs\.google\.com\/forms/i);
   assert.doesNotMatch(combined, /poster\.jpg|ppv-splash/i);
+  assert.match(pages[0], /rwi3-flyer\.jpg/i);
 });
 
 test("public routes point competitors and retired promotions to current RWI 3 pages", async () => {
