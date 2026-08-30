@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Fighter Registration | Liberty Fight League</title>
+  <title>Roll With It 3 Competitor Registration | Liberty Fight League</title>
   <style>
     :root {
       --bg: #0b0b0d;
@@ -192,12 +192,38 @@
       box-shadow: var(--shadow);
     }
 
-    iframe {
-      display: block;
-      width: 100%;
-      min-height: 1400px;
-      border: 0;
-      background: white;
+    .registration-card {
+      padding: clamp(28px, 7vw, 64px) 22px;
+      text-align: center;
+    }
+
+    .registration-card h2 {
+      margin: 0 0 12px;
+      color: var(--gold);
+      font-size: clamp(1.8rem, 6vw, 3rem);
+      text-transform: uppercase;
+    }
+
+    .registration-card p {
+      max-width: 660px;
+      margin: 0 auto 24px;
+      color: var(--gray);
+      font-size: 1.08rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 52px;
+      padding: 14px 22px;
+      border-radius: 12px;
+      background: linear-gradient(180deg, #d8b45d 0%, #b5842a 100%);
+      color: #111;
+      font-weight: 900;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      box-shadow: var(--shadow);
     }
 
     .footer {
@@ -214,10 +240,6 @@
         width: 52px;
         height: 52px;
       }
-
-      iframe {
-        min-height: 1700px;
-      }
     }
   </style>
 </head>
@@ -228,15 +250,15 @@
         <img src="/rwi-logo.svg" alt="">
         <div class="brand-copy">
           <h2 class="brand-title">Liberty Fight League</h2>
-          <div class="brand-sub">American grit. Real competition.</div>
+          <div class="brand-sub">Roll With It 3 • October 3, 2026</div>
         </div>
       </div>
 
       <nav class="nav-links">
-        <a href="index.html">Home</a>
-        <a href="event.html">Event</a>
-        <a href="fighters.html" class="active">Fighters</a>
-        <a href="contact.html">Contact</a>
+        <a href="/">Home</a>
+        <a href="/event">Event</a>
+        <a href="/fighters" class="active">Competitors</a>
+        <a href="/contact">Contact</a>
       </nav>
     </div>
   </header>
@@ -244,11 +266,10 @@
   <main>
     <section class="hero">
       <div class="container">
-        <div class="eyebrow">Fighter Registration</div>
-        <h1>Apply to Fight</h1>
+        <div class="eyebrow">Competitor Registration</div>
+        <h1>Apply for Roll With It 3</h1>
         <p>
-          Liberty Fight League is looking for serious competitors ready to step in and perform.
-          Submit your information below and we’ll review you for upcoming cards.
+          Submit your information for a Jiu-Jitsu superfight at SOMArts in San Francisco on October 3, 2026.
         </p>
       </div>
     </section>
@@ -256,20 +277,17 @@
     <section class="section">
       <div class="container">
         <div class="intro-card">
-          <h2>Before You Submit</h2>
+          <h2>Official RWI 3 Application</h2>
           <p>
-            Make sure your contact information, gym affiliation, weight class, and fight experience are accurate.
-            Fighters who are responsive, reliable, and ready to help promote their bout are strongly preferred.
+            The current application collects your division, belt, weight, age, gym, and Gi or No-Gi preference so the
+            Liberty Fight League team can find an appropriate matchup.
           </p>
         </div>
 
-        <div class="form-wrap">
-          <iframe
-            src="https://docs.google.com/forms/d/e/1FAIpQLSdofj4YZgpilO-MzRAksCDSr2tyRbftWNQm1_qRwhvlCeCDZA/viewform?embedded=true"
-            marginheight="0"
-            marginwidth="0">
-            Loading…
-          </iframe>
+        <div class="form-wrap registration-card">
+          <h2>Ready to Compete?</h2>
+          <p>Use the official Roll With It 3 application to submit your competition profile and receive a private status link.</p>
+          <a class="btn" href="/superfight">Start Superfight Application</a>
         </div>
       </div>
     </section>

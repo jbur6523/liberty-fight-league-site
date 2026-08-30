@@ -1,193 +1,18 @@
 {
   "redirects": [
     {
-      "source": "/crispy",
-      "destination": "https://buytickets.at/jzpromotionsllc/2180527",
-      "permanent": false
-    },
-    {
-      "source": "/randy",
-      "destination": "https://buytickets.at/jzpromotionsllc/2180567",
-      "permanent": false
-    },
-    {
-      "source": "/nico",
-      "destination": "https://buytickets.at/jzpromotionsllc/2180611",
-      "permanent": false
-    },
-    {
-      "source": "/nate",
-      "destination": "https://buytickets.at/jzpromotionsllc/2180684",
-      "permanent": false
-    },
-    {
-      "source": "/sergio",
-      "destination": "https://buytickets.at/jzpromotionsllc/2182669",
-      "permanent": false
-    },
-    {
-      "source": "/fredy",
-      "destination": "https://buytickets.at/jzpromotionsllc/2182713",
-      "permanent": false
-    },
-    {
-      "source": "/miller",
-      "destination": "https://buytickets.at/jzpromotionsllc/2182735",
-      "permanent": false
-    },
-    {
-      "source": "/elham",
-      "destination": "https://buytickets.at/jzpromotionsllc/2184334",
-      "permanent": false
-    },
-    {
-      "source": "/samuel",
-      "destination": "https://buytickets.at/jzpromotionsllc/2192164",
-      "permanent": false
-    },
-    {
-      "source": "/andres",
-      "destination": "https://buytickets.at/jzpromotionsllc/2192165",
-      "permanent": false
-    },
-    {
-      "source": "/richard",
-      "destination": "https://buytickets.at/jzpromotionsllc/2192166",
-      "permanent": false
-    },
-    {
-      "source": "/willy",
-      "destination": "https://buytickets.at/jzpromotionsllc/2192167",
-      "permanent": false
-    },
-    {
-      "source": "/olivas",
-      "destination": "https://buytickets.at/jzpromotionsllc/2201058",
-      "permanent": false
-    },
-    {
-      "source": "/ingles",
-      "destination": "https://buytickets.at/jzpromotionsllc/2201060",
-      "permanent": false
-    },
-    {
-      "source": "/alexis",
-      "destination": "https://buytickets.at/jzpromotionsllc/2217185",
-      "permanent": false
-    },
-    {
-      "source": "/sanchez",
-      "destination": "https://buytickets.at/jzpromotionsllc/2217175",
-      "permanent": false
-    },
-    {
-      "source": "/jonathan",
-      "destination": "https://buytickets.at/jzpromotionsllc/2217190",
-      "permanent": false
-    },
-    {
-      "source": "/kurtis",
-      "destination": "https://buytickets.at/jzpromotionsllc/2217191",
-      "permanent": false
-    },
-    {
-      "source": "/savage",
-      "destination": "https://buytickets.at/jzpromotionsllc/2217206",
-      "permanent": false
-    },
-    {
-      "source": "/branden",
-      "destination": "https://buytickets.at/jzpromotionsllc/2217247",
-      "permanent": false
-    },
-    {
-      "source": "/michael",
-      "destination": "https://buytickets.at/jzpromotionsllc/2224891",
-      "permanent": false
-    },
-    {
-      "source": "/nick",
-      "destination": "https://buytickets.at/jzpromotionsllc/2224892",
-      "permanent": false
-    },
-    {
-      "source": "/bradley",
-      "destination": "https://buytickets.at/jzpromotionsllc/2228959",
-      "permanent": false
-    },
-    {
-      "source": "/richie",
-      "destination": "https://buytickets.at/jzpromotionsllc/2228960",
-      "permanent": false
-    },
-    {
-      "source": "/nico",
-      "destination": "https://buytickets.at/jzpromotionsllc/2228962",
-      "permanent": false
-    },
-    {
-      "source": "/kelly",
-      "destination": "https://buytickets.at/jzpromotionsllc/2228963",
-      "permanent": false
-    },
-    {
-      "source": "/benny",
-      "destination": "https://buytickets.at/jzpromotionsllc/2228964",
-      "permanent": false
-    },
-    {
-      "source": "/matias",
-      "destination": "https://buytickets.at/jzpromotionsllc/2228965",
-      "permanent": false
-    },
-    {
       "source": "/tickets",
-      "destination": "https://www.tickettailor.com/events/jzpromotionsllc/2203447",
+      "destination": "/event",
       "permanent": false
     },
     {
       "source": "/BJJ",
-      "destination": "https://forms.gle/pSshsEHwChvJZjbj9",
-      "permanent": false
-    },
-    {
-      "source": "/ricky",
-      "destination": "https://buytickets.at/jzpromotionsllc/2228966",
-      "permanent": false
-    },
-    {
-      "source": "/jaleel",
-      "destination": "https://buytickets.at/jzpromotionsllc/2228968",
-      "permanent": false
-    },
-    {
-      "source": "/james",
-      "destination": "https://buytickets.at/jzpromotionsllc/2228970",
+      "destination": "/superfight",
       "permanent": false
     },
     {
       "source": "/bjj",
-      "destination": "https://forms.gle/pSshsEHwChvJZjbj9",
-      "permanent": false
-    },
-    {
-      "source": "/ryan",
-      "destination": "https://buytickets.at/jzpromotionsllc/2238138",
-      "permanent": false
-    },
-    {
-      "source": "/dylan",
-      "destination": "https://buytickets.at/jzpromotionsllc/2238139",
-      "permanent": false
-    },
-    {
-      "source": "/chris",
-      "destination": "https://buytickets.at/jzpromotionsllc/2238140",
-      "permanent": false
-    },
-    {
-      "source": "/vasja",
-      "destination": "https://buytickets.at/jzpromotionsllc/2238141",
+      "destination": "/superfight",
       "permanent": false
     },
     {
@@ -199,44 +24,21 @@
       "source": "/PPV",
       "destination": "/ppv.html",
       "permanent": false
-    },
-    {
-      "source": "/brady",
-      "destination": "https://buytickets.at/jzpromotionsllc/2241367",
-      "permanent": false
-    },
-    {
-      "source": "/shawn",
-      "destination": "https://buytickets.at/jzpromotionsllc/2241369",
-      "permanent": false
-    },
-    {
-      "source": "/mario",
-      "destination": "https://buytickets.at/jzpromotionsllc/2241371",
-      "permanent": false
-    },
-    {
-      "source": "/phillip",
-      "destination": "https://buytickets.at/jzpromotionsllc/2247171",
-      "permanent": false
-    },
-    {
-      "source": "/fight34",
-      "destination": "https://placeholder.com/fighter13",
-      "permanent": false
-    },
-    {
-      "source": "/fight324",
-      "destination": "https://placeholder.com/fighter154",
-      "permanent": false
-    },
-    {
-      "source": "/fight3234",
-      "destination": "https://placeholder.com/fighter14564",
-      "permanent": false
     }
   ],
   "rewrites": [
+    {
+      "source": "/event",
+      "destination": "/event.html"
+    },
+    {
+      "source": "/fighters",
+      "destination": "/fighters.html"
+    },
+    {
+      "source": "/contact",
+      "destination": "/contact.html"
+    },
     {
       "source": "/superfight",
       "destination": "/superfight.html"

@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Liberty Fight League</title>
+  <title>Liberty Fight League | Roll With It 3</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -311,8 +311,34 @@
     .poster-card img {
       width: 100%;
       height: auto;
-      object-fit: cover;
-      background: #000;
+      max-height: 360px;
+      object-fit: contain;
+      background: #f5f5f2;
+      padding: 28px;
+    }
+
+    .poster-copy {
+      padding: 22px 18px 12px;
+      text-align: center;
+    }
+
+    .poster-copy strong {
+      display: block;
+      color: var(--gold);
+      font-family: var(--title-font);
+      font-size: clamp(1.9rem, 5vw, 3rem);
+      line-height: 1;
+      text-transform: uppercase;
+    }
+
+    .poster-copy span {
+      display: block;
+      margin-top: 10px;
+      color: var(--white);
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
     }
 
     .section {
@@ -469,16 +495,15 @@
         <img src="/rwi-logo.svg" alt="">
         <div class="brand-text">
           <h2 class="brand-title">Liberty Fight League</h2>
-          <div class="brand-sub">June 6th • 4 PM • Contra Costa County Fair Grounds</div>
+          <div class="brand-sub">October 3, 2026 • SOMArts • San Francisco</div>
         </div>
       </div>
 
       <nav class="nav-links">
-        <a href="index.html">Home</a>
-        <a href="event.html">Event</a>
-        <a href="fighters.html">Fighters</a>
-        <a href="ppv.html">PPV</a>
-        <a href="contact.html">Contact</a>
+        <a href="/">Home</a>
+        <a href="/event">Event</a>
+        <a href="/fighters">Competitors</a>
+        <a href="/contact">Contact</a>
       </nav>
     </div>
   </header>
@@ -488,27 +513,30 @@
       <div class="container hero-wrap">
         <div>
           <h1>
-            <span class="top-line">Liberty</span>
-            <span class="gold">Fight</span>
-            <span class="gold">League</span>
+            <span class="top-line">Roll With</span>
+            <span class="gold">It 3</span>
           </h1>
 
           <div class="hero-copy">
             <p>
-              June 6th at 4 PM<br>
-              Contra Costa County Fair Grounds
+              October 3, 2026 • SOMArts, San Francisco<br>
+              Doors 4 PM • Event 5 PM
             </p>
 
             <div class="hero-buttons">
-              <a class="btn btn-primary" href="https://iframe.dacast.com/live/c0bdae95-6cd1-fb07-ca93-8cfe2d2e387f/1990a908-a2b3-40b8-9948-8d24d0cfa227">Buy PPV</a>
-              <a class="btn btn-secondary" href="https://buytickets.at/jzpromotionsllc/2203447">Buy Tickets</a>
+              <a class="btn btn-primary" href="/superfight">Apply to Compete</a>
+              <a class="btn btn-secondary" href="/event">Event Details</a>
             </div>
           </div>
         </div>
 
         <div class="poster-card">
           <div class="poster-frame">
-            <img src="poster.jpg" alt="Liberty Fight League event poster">
+            <img src="/rwi-logo.svg" alt="Roll With It logo">
+          </div>
+          <div class="poster-copy">
+            <strong>Roll With It 3</strong>
+            <span>Jiu-Jitsu • Submission Grappling</span>
           </div>
         </div>
       </div>
@@ -518,24 +546,26 @@
       <div class="container">
         <h2 class="section-title">The Next Event</h2>
         <p class="section-lead">
-          June 6th at 4 PM at the Contra Costa County Fair Grounds.
+          October 3, 2026 at SOMArts in San Francisco. Doors open at 4 PM and the event starts at 5 PM.
         </p>
 
         <div class="card event-box">
-          <h3>Liberty Fight League: The Revolution</h3>
-          <div class="event-meta">June 6th • 4 PM • Contra Costa County Fair Grounds</div>
+          <h3>Roll With It 3</h3>
+          <div class="event-meta">October 3, 2026 • SOMArts • 934 Brannan Street, San Francisco</div>
 
           <div class="event-badges">
-            <div class="badge">Amateur MMA</div>
+            <div class="badge">Jiu-Jitsu</div>
+            <div class="badge">Submission Grappling</div>
+            <div class="badge">Fight Card Coming Soon</div>
           </div>
 
           <p>
-            Rising talent. Hard matchups. A rough-and-rugged American fight-night built for real local fight fans.
+            Live Jiu-Jitsu superfights and submission grappling in the heart of San Francisco.
           </p>
 
           <div class="hero-buttons" style="margin-top: 6px;">
-            <a class="btn btn-primary" href="event.html">View Event</a>
-            <a class="btn btn-secondary" href="contact.html">Sponsor Info</a>
+            <a class="btn btn-primary" href="/event">View Event</a>
+            <a class="btn btn-secondary" href="/contact">Sponsor Info</a>
           </div>
         </div>
       </div>
@@ -543,18 +573,17 @@
 
     <section class="section" style="padding-top: 0;">
       <div class="container">
-        <h2 class="section-title">Built for Fighters, Fans, and Sponsors</h2>
+        <h2 class="section-title">Built for Competitors, Fans, and Sponsors</h2>
 
         <div class="home-grid">
           <div class="card feature-card">
             <div class="card-content">
-              <h3>Fighters</h3>
+              <h3>Competitors</h3>
               <p>
-                Ready to compete? Submit your application and get on the radar for upcoming Liberty Fight League
-                matchups.
+                Ready to compete at Roll With It 3? Apply for a Jiu-Jitsu superfight through the official application.
               </p>
             </div>
-            <a class="btn btn-secondary card-btn" href="fighters.html">Apply Now</a>
+            <a class="btn btn-secondary card-btn" href="/superfight">Apply Now</a>
           </div>
 
           <div class="card feature-card">
@@ -565,17 +594,17 @@
                 closer.
               </p>
             </div>
-            <a class="btn btn-secondary card-btn" href="event.html">View Event</a>
+            <a class="btn btn-secondary card-btn" href="/event">View Event</a>
           </div>
 
           <div class="card feature-card">
             <div class="card-content">
               <h3>Sponsors</h3>
               <p>
-                Partner with Liberty Fight League and put your business in front of a live local MMA audience.
+                Partner with Liberty Fight League and put your business in front of a live local combat sports audience.
               </p>
             </div>
-            <a class="btn btn-secondary card-btn" href="contact.html">Sponsorship Info</a>
+            <a class="btn btn-secondary card-btn" href="/contact">Sponsorship Info</a>
           </div>
         </div>
       </div>

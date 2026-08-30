@@ -123,6 +123,13 @@ async function mockApi(request, response, url) {
 }
 
 const rewrites = new Map([
+  ["/event", "/event.html"],
+  ["/fighters", "/fighters.html"],
+  ["/contact", "/contact.html"],
+  ["/tickets", "/event.html"],
+  ["/BJJ", "/superfight.html"],
+  ["/bjj", "/superfight.html"],
+  ["/ppv", "/ppv.html"],
   ["/superfight", "/superfight.html"],
   ["/admin/superfights", "/admin-superfights.html"],
 ]);
