@@ -10,6 +10,7 @@ import {
   sendJson,
 } from "../src/server/http.js";
 import { getServiceSupabase } from "../src/server/supabase.js";
+import { moveCompetitorPool } from "../src/server/matchmaking-pools.js";
 import {
   loadCompetitorWeightOptions,
   setCompetitorWeightPreferences,
@@ -145,6 +146,12 @@ export default async function handler(request, response) {
     }
 
     assertSameOrigin(request);
+
+    if (request.method === "POST" && body.action === "move_pool") {
+      const competitor = await moveCompetitorPool(service, competitorId, body.pool);
+      sendJson(response, 200, { competitor });
+      return;
+    }
 
     if (request.method === "POST" && body.action === "withdraw") {
       const { data: competitor, error: competitorError } = await service

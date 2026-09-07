@@ -31,6 +31,7 @@ import {
 function adminCompetitorPayload(competitor) {
   return {
     id: competitor.id,
+    matchmakingPool: competitor.matchmaking_pool ?? "standard",
     name: competitor.full_name,
     age: competitor.age,
     genderDivision: competitor.gender_division,
@@ -124,7 +125,7 @@ export default async function handler(request, response) {
     const sort = queryValue(request, "sort") ?? "suggested";
     const { data: competitors, error: competitorError } = await service
       .from("superfight_competitors")
-      .select("id, full_name, age, gender_division, grappling_preference, belt, competition_weight_lbs, gym, phone, preferred_contact_method, instagram_handle, instagram_url, source, created_at, status_slug")
+      .select("id, matchmaking_pool, full_name, age, gender_division, grappling_preference, belt, competition_weight_lbs, gym, phone, preferred_contact_method, instagram_handle, instagram_url, source, created_at, status_slug")
       .eq("event_id", eventId)
       .eq("record_state", "active");
 
@@ -154,10 +155,12 @@ export default async function handler(request, response) {
     const matchedIds = new Set(matches.flatMap((match) => [match.fighter_a_id, match.fighter_b_id]));
     let ordered;
     try {
-      ordered = sortCompetitors(
-        competitorsWithWeights.filter((competitor) => !matchedIds.has(competitor.id)),
+      // Suggest opponents within each pool, so hidden competitors do not affect ordering.
+      ordered = ["standard", "john_wick", "gauntlet"].flatMap((pool) => sortCompetitors(
+        competitorsWithWeights.filter((competitor) => !matchedIds.has(competitor.id)
+          && (competitor.matchmaking_pool ?? "standard") === pool),
         sort,
-      );
+      ));
     } catch (error) {
       throw new HttpError(400, error.message, "invalid_sort");
     }

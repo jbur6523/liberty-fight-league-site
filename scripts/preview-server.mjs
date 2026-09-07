@@ -100,6 +100,14 @@ async function mockApi(request, response, url) {
   if (url.pathname === "/api/superfight-admin-competitor") {
     if (request.method === "POST") {
       const input = await body(request);
+      if (input.action === "move_pool") {
+        const competitor = competitors.find((item) => item.id === input.competitorId);
+        if (!competitor || !["standard", "john_wick", "gauntlet"].includes(input.pool)) {
+          return json(response, 400, { message: "Invalid pool move." });
+        }
+        competitor.matchmakingPool = input.pool;
+        return json(response, 200, { competitor });
+      }
       if (input.action === "withdraw") {
         const index = competitors.findIndex((competitor) => competitor.id === input.competitorId);
         if (index >= 0) competitors.splice(index, 1);

@@ -232,8 +232,47 @@ function bindUnmatchedNameActions() {
   });
 }
 
+const poolLabels = { standard: "Unmatched", john_wick: "John Wick", gauntlet: "Gauntlet" };
+
+function competitorActions(competitor) {
+  const pool = competitor.matchmakingPool ?? "standard";
+  return `<button class="admin-overflow-button" type="button" popovertarget="actions-${competitor.id}" aria-label="Actions for ${escapeHtml(competitor.name)}" title="Competitor actions">⋮</button>
+    <div class="admin-competitor-menu" id="actions-${competitor.id}" popover>
+      <strong>Move to…</strong>
+      ${Object.entries(poolLabels).filter(([key]) => key !== pool).map(([key, name]) => `<button class="admin-button ghost" type="button" data-move-competitor="${competitor.id}" data-pool="${key}">${name}</button>`).join("")}
+      <hr>
+      <button class="admin-button danger" type="button" data-delete-competitor="${competitor.id}">Delete competitor</button>
+    </div>`;
+}
+
+async function moveCompetitor(competitorId, pool, button) {
+  const competitor = state.competitors.find((item) => item.id === competitorId);
+  if (!competitor) return;
+  const menu = button.closest("[popover]");
+  menu.querySelectorAll("button").forEach((item) => { item.disabled = true; });
+  try {
+    await api("/api/superfight-admin-competitor", {
+      method: "POST",
+      body: JSON.stringify({ action: "move_pool", competitorId, pool }),
+    });
+    competitor.matchmakingPool = pool;
+    menu.hidePopover();
+    clearSelection();
+    showToast(`${competitor.name} moved to ${poolLabels[pool]}`);
+    await loadActiveView();
+  } catch (error) {
+    menu.querySelectorAll("button").forEach((item) => { item.disabled = false; });
+    showToast(error.message);
+  }
+}
+
 function renderUnmatched() {
-  document.querySelector("#unmatched-count").textContent = `(${state.competitors.length})`;
+  for (const pool of Object.keys(poolLabels)) {
+    const count = state.competitors.filter((item) => (item.matchmakingPool ?? "standard") === pool).length;
+    document.querySelector(`#${pool === "standard" ? "unmatched" : pool}-count`).textContent = `(${count})`;
+  }
+  const pool = state.tab === "john_wick" || state.tab === "gauntlet" ? state.tab : "standard";
+  const competitors = state.competitors.filter((item) => (item.matchmakingPool ?? "standard") === pool);
   if (!state.eventId) {
     elements.unmatched.innerHTML = emptyState(
       "Create the first event",
@@ -243,17 +282,19 @@ function renderUnmatched() {
     elements.unmatched.querySelector("[data-open-event]")?.addEventListener("click", () => openEventDialog(true));
     return;
   }
-  if (state.competitors.length === 0) {
-    elements.unmatched.innerHTML = emptyState("No unmatched competitors", "Quick-add a competitor or share the public application link.");
+  if (competitors.length === 0) {
+    elements.unmatched.innerHTML = pool === "standard"
+      ? emptyState("No unmatched competitors", "Quick-add a competitor or share the public application link.")
+      : emptyState(`No competitors in ${poolLabels[pool]}`, "Use a competitor’s three-dot menu to move them into this pool.");
     return;
   }
 
   elements.unmatched.innerHTML = `
     <div class="admin-table-wrap"><table class="admin-table admin-unmatched-table">
       <thead><tr><th>Name</th><th>Gi / No-Gi / Both</th><th>Weight</th><th>Instagram</th></tr></thead>
-      <tbody>${state.competitors.map((competitor) => `
+      <tbody>${competitors.map((competitor) => `
         <tr class="${state.selected?.id === competitor.id ? "is-selected" : ""}">
-          <td><div class="admin-name-actions"><button class="admin-name-button${unmatchedBeltClass(competitor.belt)}" type="button" data-unmatched-name="${competitor.id}" title="Open details; double-click or double-tap to select">${unmatchedTableName(competitor)}</button><button class="admin-overflow-button" type="button" data-delete-competitor="${competitor.id}" aria-label="Delete ${escapeHtml(competitor.name)}" title="Delete competitor">⋮</button></div><div class="admin-muted">${escapeHtml(competitor.gym || "No gym")}</div><button class="admin-button admin-inline-select ${state.selected?.id === competitor.id ? "secondary" : ""}" type="button" data-select="${competitor.id}" aria-pressed="${state.selected?.id === competitor.id}">${state.selected?.id === competitor.id ? "Selected" : state.selected ? "Match with" : "Select"}</button></td>
+          <td><div class="admin-name-actions"><button class="admin-name-button${unmatchedBeltClass(competitor.belt)}" type="button" data-unmatched-name="${competitor.id}" title="Open details; double-click or double-tap to select">${unmatchedTableName(competitor)}</button>${competitorActions(competitor)}</div><div class="admin-muted">${escapeHtml(competitor.gym || "No gym")}</div><button class="admin-button admin-inline-select ${state.selected?.id === competitor.id ? "secondary" : ""}" type="button" data-select="${competitor.id}" aria-pressed="${state.selected?.id === competitor.id}">${state.selected?.id === competitor.id ? "Selected" : state.selected ? "Match with" : "Select"}</button></td>
           <td>${label(competitor.grapplingPreference)}</td>
           <td>${weightSummary(competitor)}</td>
           <td>${socialCell(competitor)}</td>
@@ -262,6 +303,9 @@ function renderUnmatched() {
 
   bindTableActions(elements.unmatched);
   bindUnmatchedNameActions();
+  elements.unmatched.querySelectorAll("[data-move-competitor]").forEach((button) => {
+    button.addEventListener("click", () => moveCompetitor(button.dataset.moveCompetitor, button.dataset.pool, button));
+  });
   elements.unmatched.querySelectorAll("[data-select]").forEach((button) => {
     button.addEventListener("click", () => selectCompetitor(button.dataset.select));
   });
@@ -320,8 +364,8 @@ function renderMatched() {
           method: "POST",
           body: JSON.stringify({ action: "unmatch", matchId: button.dataset.unmatch }),
         });
-        showToast("Competitors returned to unmatched");
-        await loadMatches();
+        showToast("Competitors returned to their matchmaking pools");
+        await loadActiveView();
       } catch (error) {
         showToast(error.message);
         button.disabled = false;
@@ -346,30 +390,33 @@ function bindTableActions(container) {
 }
 
 async function loadUnmatched() {
+  const requestId = loadUnmatched.requestId = (loadUnmatched.requestId ?? 0) + 1;
   if (!state.eventId) {
     state.competitors = [];
     renderUnmatched();
     return;
   }
   const payload = await api(`/api/superfight-admin-competitors?eventId=${state.eventId}&sort=${state.sort}`);
+  if (requestId !== loadUnmatched.requestId) return;
   state.competitors = payload.competitors;
   renderUnmatched();
 }
 
 async function loadMatches() {
+  const requestId = loadMatches.requestId = (loadMatches.requestId ?? 0) + 1;
   if (!state.eventId) {
     state.matches = [];
     renderMatched();
     return;
   }
   const payload = await api(`/api/superfight-admin-matches?eventId=${state.eventId}`);
+  if (requestId !== loadMatches.requestId) return;
   state.matches = payload.matches;
   renderMatched();
 }
 
 async function loadActiveView() {
-  if (state.tab === "matched") await loadMatches();
-  else await loadUnmatched();
+  await Promise.all([loadUnmatched(), loadMatches()]);
 }
 
 function clearSelection() {
@@ -583,13 +630,9 @@ elements.eventSelect.addEventListener("change", async () => {
 document.querySelectorAll("[data-tab]").forEach((tab) => {
   tab.addEventListener("click", async () => {
     state.tab = tab.dataset.tab;
-    if (state.tab === "matched") {
-      state.selected = null;
-      state.pairing = null;
-      elements.matchbar.hidden = true;
-    }
+    clearSelection();
     document.querySelectorAll("[data-tab]").forEach((item) => item.classList.toggle("is-active", item === tab));
-    document.querySelector("#unmatched-panel").hidden = state.tab !== "unmatched";
+    document.querySelector("#unmatched-panel").hidden = state.tab === "matched";
     document.querySelector("#matched-panel").hidden = state.tab !== "matched";
     await loadActiveView();
   });
@@ -669,7 +712,7 @@ document.querySelector("#match-form").addEventListener("submit", async (event) =
     document.querySelector("#match-dialog").close();
     showToast("Match created");
     clearSelection();
-    await loadUnmatched();
+    await loadActiveView();
   } catch (error) {
     document.querySelector("#match-error").textContent = error.message;
   } finally { button.disabled = false; }
