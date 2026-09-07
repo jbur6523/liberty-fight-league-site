@@ -94,6 +94,9 @@ export default async function handler(request, response) {
       .single();
 
     if (insertError) {
+      if (insertError.code === "23505" && /instagram/i.test(insertError.message)) {
+        throw new HttpError(409, "An event registration already exists for this Instagram. Use Available Matches to offer a match, or contact the promoter to update your registration.", "existing_registration");
+      }
       throw databaseFailure(insertError, "application insert failed");
     }
 

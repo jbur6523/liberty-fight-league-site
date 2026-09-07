@@ -70,7 +70,7 @@ test("admin UI exposes informational overrides without changing suggestion scori
   assert.match(script, /selected different format preferences/);
   assert.match(script, /weightReady && boutTypeReady && formatConfirmed/);
   assert.match(api, /body\.formatOverrideConfirmed !== true/);
-  assert.match(api, /match_weight_lbs: matchWeightLbs/);
+  assert.match(api, /agreed_weight: matchWeightLbs/);
   assert.doesNotMatch(migration, /fighter_[ab]_record\.grappling_preference/);
   assert.doesNotMatch(migration, /superfight_competitor_weight_preferences/);
   assert.match(migration, /new\.weight_option_id is not null[\s\S]*?new\.match_weight_lbs := weight_option_record\.value_lbs/);

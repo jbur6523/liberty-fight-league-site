@@ -28,6 +28,22 @@ const competitors = [
 ];
 
 const confirmationResponses = new Map();
+const previewOffers = [];
+const previewMatches = [];
+
+function previewAvailable() {
+  const matched = new Set(previewMatches.flatMap((match) => [match.fighterA.id, match.fighterB.id]));
+  return competitors.filter((fighter) => !matched.has(fighter.id));
+}
+
+function previewPublic(fighter, detail = false) {
+  return {
+    id: fighter.id, firstName: fighter.name.split(/\s+/)[0], belt: fighter.belt,
+    weightOptions: fighter.weightOptions.map(({ label, valueLbs }) => ({ label, valueLbs })),
+    grapplingPreference: fighter.grapplingPreference,
+    ...(detail ? { instagramHandle: fighter.instagramHandle, gym: fighter.gym } : {}),
+  };
+}
 
 function json(response, statusCode, payload) {
   response.writeHead(statusCode, { "Content-Type": "application/json", "Cache-Control": "no-store" });
@@ -51,6 +67,38 @@ function confirmationPayload(response = "awaiting", gym = "North Bay Jiu-Jitsu")
 }
 
 async function mockApi(request, response, url) {
+  if (url.pathname === "/api/superfight-offers") {
+    if (request.method === "GET") {
+      const available = previewAvailable().filter((fighter) => !fighter.matchmakingPool || fighter.matchmakingPool === "standard");
+      const id = url.searchParams.get("id");
+      if (id) {
+        const fighter = available.find((item) => item.id === id);
+        return json(response, fighter ? 200 : 404, fighter ? { competitor: previewPublic(fighter, true) } : { message: "This match is no longer available." });
+      }
+      return json(response, 200, { competitors: available.map((fighter) => previewPublic(fighter)) });
+    }
+    const input = await body(request);
+    const handle = input.instagram.toLowerCase().replace(/^@/, "");
+    let fighter = competitors.find((item) => item.instagramHandle === handle);
+    if (input.action === "lookup") return json(response, 200, { existing: Boolean(fighter), instagramHandle: handle, profile: fighter ? previewPublic(fighter, true) : null });
+    if (!fighter) {
+      fighter = { id: crypto.randomUUID(), name: input.firstName, belt: input.belt, gym: input.gym, instagramHandle: handle, instagramUrl: `https://instagram.com/${handle}`, weightLbs: Number(input.currentWeight), weightOptions: [], grapplingPreference: input.boutType, matchmakingPool: "standard" };
+      competitors.push(fighter);
+    }
+    if (!previewOffers.some((offer) => offer.offering.id === fighter.id && offer.target.id === input.targetId)) {
+      previewOffers.push({ id: crypto.randomUUID(), target: competitors.find((item) => item.id === input.targetId), offering: fighter, boutType: input.boutType, weightLbs: Number(input.currentWeight) || fighter.weightLbs, canMatch: true, notificationState: "sent" });
+    }
+    return json(response, 201, { received: true });
+  }
+  if (url.pathname === "/api/superfight-admin-offers") {
+    if (request.method === "POST") {
+      const input = await body(request);
+      const index = previewOffers.findIndex((offer) => offer.id === input.offerId);
+      if (input.action === "deny" && index >= 0) previewOffers.splice(index, 1);
+      return json(response, 200, { denied: true });
+    }
+    return json(response, 200, { offers: previewOffers });
+  }
   if (url.pathname === "/api/superfight-event") return json(response, 200, { event: previewEvent });
   if (url.pathname === "/api/superfight-apply") {
     await body(request);
@@ -81,12 +129,25 @@ async function mockApi(request, response, url) {
   }
   if (url.pathname === "/api/superfight-admin-competitors") {
     if (request.method === "POST") return json(response, 201, { competitor: competitors[0] });
-    return json(response, 200, { competitors, sort: url.searchParams.get("sort") ?? "suggested" });
+    return json(response, 200, { competitors: previewAvailable(), sort: url.searchParams.get("sort") ?? "suggested" });
   }
   if (url.pathname === "/api/superfight-admin-matches") {
-    if (request.method === "POST") return json(response, 200, { match: { id: "preview-match" } });
+    if (request.method === "POST") {
+      const input = await body(request);
+      if (input.action === "match") {
+        const match = { id: crypto.randomUUID(), fighterA: competitors.find((fighter) => fighter.id === input.fighterAId), fighterB: competitors.find((fighter) => fighter.id === input.fighterBId), boutType: input.boutType, weightLbs: Number(input.agreedWeightLbs) || 155, confirmation: { summary: "awaiting_confirmation" } };
+        previewMatches.push(match);
+        for (let i = previewOffers.length - 1; i >= 0; i--) {
+          if ([match.fighterA.id, match.fighterB.id].some((id) => [previewOffers[i].target.id, previewOffers[i].offering.id].includes(id))) previewOffers.splice(i, 1);
+        }
+        return json(response, 201, { match: { id: match.id } });
+      }
+      const index = previewMatches.findIndex((match) => match.id === input.matchId);
+      if (index >= 0) previewMatches.splice(index, 1);
+      return json(response, 200, { unmatched: true });
+    }
     return json(response, 200, {
-      matches: [{
+      matches: [...previewMatches, {
         id: "00000000-0000-4000-8000-000000000301",
         weightLbs: 155,
         weightOption: previewEvent.weightOptions[1],
@@ -131,6 +192,7 @@ async function mockApi(request, response, url) {
 }
 
 const rewrites = new Map([
+  ["/offers", "/offers.html"],
   ["/event", "/event.html"],
   ["/fighters", "/fighters.html"],
   ["/contact", "/contact.html"],

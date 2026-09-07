@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080808">
+  <meta name="description" content="Browse available Liberty Fight League superfights and offer a match for promoter review.">
+  <title>Available Matches | Liberty Fight League</title>
+  <link rel="stylesheet" href="/admin-superfights.css">
+  <link rel="stylesheet" href="/offers.css">
+  <script type="module" src="/offers.js"></script>
+</head>
+<body>
+  <header class="admin-header"><a class="admin-brand offers-brand" href="/"><img src="/rwi-logo.svg" alt=""><div><strong>Liberty Fight League</strong><span>Jiu-Jitsu Superfights</span></div></a><a class="admin-button ghost" href="/superfight">Apply</a></header>
+  <main class="admin-main">
+    <div class="admin-toolbar"><div><h1>Available Matches</h1><p class="admin-muted">Find a matchup. Offer a match. The promoter makes the final call.</p></div></div>
+    <p id="offers-error" class="admin-error" role="alert"></p>
+    <div id="available-list" class="offers-grid" aria-live="polite">Loading available matches…</div>
+  </main>
+  <dialog id="public-profile">
+    <div class="admin-dialog-header"><h2>View Match</h2><button class="admin-button ghost" type="button" data-close>Close</button></div>
+    <div class="admin-dialog-body"><div id="profile-content"></div><p id="profile-error" class="admin-error" role="alert"></p><button id="offer-match" class="admin-button" type="button">Offer Match</button></div>
+  </dialog>
+  <dialog id="offer-dialog">
+    <div class="admin-dialog-header"><h2>Offer a Match</h2><button class="admin-button ghost" type="button" data-close>Close</button></div>
+    <div class="admin-dialog-body">
+      <p id="offer-target" class="admin-muted"></p>
+      <form id="instagram-form">
+        <div class="admin-field"><label for="offer-instagram">Your Instagram</label><input id="offer-instagram" class="admin-input" autocomplete="off" autocapitalize="none" spellcheck="false" required maxlength="300" placeholder="@yourhandle"></div>
+        <p class="admin-muted">We’ll check for an existing registration so you only need to enter your details once.</p>
+        <button class="admin-button" type="submit">Continue</button>
+      </form>
+      <form id="offer-form" hidden>
+        <p id="existing-message" class="admin-muted"></p>
+        <div class="admin-form-grid">
+          <div class="admin-field"><label for="offer-first-name">First name</label><input id="offer-first-name" class="admin-input" required maxlength="80" autocomplete="given-name"></div>
+          <div class="admin-field"><label for="offer-belt">Belt / experience level</label><select id="offer-belt" class="admin-select" required><option value="">Select</option><option value="white">White belt</option><option value="blue">Blue belt</option><option value="purple">Purple belt</option><option value="brown">Brown belt</option><option value="black">Black belt</option><option value="unranked">Unranked / other experience</option></select></div>
+          <div class="admin-field"><label for="offer-weight">Current weight (lbs)</label><input id="offer-weight" class="admin-input" type="number" min="1" max="9999" step="0.01" required inputmode="decimal"></div>
+          <div class="admin-field"><label for="offer-gym">Gym</label><input id="offer-gym" class="admin-input" required maxlength="160"></div>
+          <div class="admin-field full"><label for="offer-bout">Match type</label><select id="offer-bout" class="admin-select" required><option value="">Select</option><option value="gi">Gi</option><option value="no_gi">No-Gi</option></select></div>
+        </div>
+        <p id="existing-weights" class="admin-muted"></p>
+        <input id="offer-website" class="offers-honeypot" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <p class="admin-muted">Submitting expresses your interest in competing. The promoter will review the offer and contact you on Instagram. Your first name, belt, gym, Instagram, and match preferences may appear in Available Matches.</p>
+        <div class="admin-dialog-actions"><button class="admin-button ghost" id="change-instagram" type="button">Change Instagram</button><button class="admin-button" type="submit">Submit Offer</button></div>
+      </form>
+      <p id="offer-error" class="admin-error" role="alert"></p>
+      <p id="offer-success" role="status" hidden>Offer received. The promoter will review it. This competitor stays available until a match is confirmed.</p>
+    </div>
+  </dialog>
+</body>
+</html>

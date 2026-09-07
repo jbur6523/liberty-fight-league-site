@@ -100,6 +100,9 @@ export default async function handler(request, response) {
         .single();
 
       if (error) {
+        if (error.code === "23505" && /instagram/i.test(error.message)) {
+          throw new HttpError(409, "A competitor with this Instagram already exists for this event. Edit the existing registration.", "existing_registration");
+        }
         throw databaseFailure(error, "admin quick add failed");
       }
 

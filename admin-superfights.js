@@ -3,6 +3,8 @@ const state = {
   eventId: null,
   competitors: [],
   matches: [],
+  offers: [],
+  offerId: null,
   sort: "suggested",
   tab: "unmatched",
   selected: null,
@@ -416,10 +418,56 @@ async function loadMatches() {
 }
 
 async function loadActiveView() {
-  await Promise.all([loadUnmatched(), loadMatches()]);
+  await Promise.all([loadUnmatched(), loadMatches(), loadOffers()]);
+}
+
+async function loadOffers() {
+  const requestId = loadOffers.requestId = (loadOffers.requestId ?? 0) + 1;
+  const payload = state.eventId ? await api(`/api/superfight-admin-offers?eventId=${state.eventId}`) : { offers: [] };
+  if (requestId !== loadOffers.requestId) return;
+  state.offers = payload.offers;
+  document.querySelector("#offers-count").textContent = `(${state.offers.length})`;
+  const container = document.querySelector("#offers-content");
+  if (!state.offers.length) {
+    container.innerHTML = emptyState("No pending offers", "New offers from Available Matches will appear here.");
+    return;
+  }
+  const targets = [...new Set(state.offers.map((offer) => offer.target.id))];
+  container.innerHTML = targets.map((targetId) => {
+    const offers = state.offers.filter((offer) => offer.target.id === targetId);
+    const target = offers[0].target;
+    return `<section class="admin-offer-group"><h2>Offers for <button class="admin-name-button${unmatchedBeltClass(target.belt)}" type="button" data-detail="${target.id}">${escapeHtml(target.name)}</button></h2>
+      <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Offering competitor</th><th>Belt / weight / gym</th><th>Match type</th><th>Actions</th></tr></thead><tbody>
+      ${offers.map((offer) => `<tr><td><button class="admin-name-button${unmatchedBeltClass(offer.offering.belt)}" type="button" data-detail="${offer.offering.id}">${escapeHtml(offer.offering.name)}</button><div class="admin-muted">@${escapeHtml(offer.offering.instagramHandle || "Not entered")}</div></td>
+        <td>${escapeHtml(label(offer.offering.belt))} · ${escapeHtml(offer.weightLbs ?? offer.offering.weightLbs ?? "—")} lb<div class="admin-muted">${escapeHtml(offer.offering.gym || "No gym")}</div></td>
+        <td>${label(offer.boutType)}${!offer.canMatch ? '<div class="admin-muted">Competitor no longer available</div>' : ""}</td>
+        <td><button class="admin-overflow-button" type="button" popovertarget="offer-${offer.id}" aria-label="Offer actions for ${escapeHtml(offer.offering.name)}">⋮</button>
+          <div class="admin-competitor-menu" id="offer-${offer.id}" popover><button class="admin-button" type="button" data-make-offer="${offer.id}"${offer.canMatch ? "" : " disabled"}>Make Match</button><hr><button class="admin-button danger" type="button" data-deny-offer="${offer.id}">Deny Offer</button></div>
+          ${offer.notificationState !== "sent" ? `<div><button class="admin-button ghost" type="button" data-retry-offer="${offer.id}">Retry email notification</button></div>` : ""}</td></tr>`).join("")}
+      </tbody></table></div></section>`;
+  }).join("");
+  bindTableActions(container);
+  container.querySelectorAll("[data-make-offer]").forEach((button) => button.addEventListener("click", () => {
+    const offer = state.offers.find((item) => item.id === button.dataset.makeOffer);
+    button.closest("[popover]").hidePopover();
+    openMatchDialog(offer.target, offer.offering, offer.id);
+    document.querySelector("#match-bout-type").value = offer.boutType;
+    updateMatchSubmitAvailability();
+  }));
+  for (const [attribute, action] of [["data-deny-offer", "deny"], ["data-retry-offer", "retry_notification"]]) {
+    container.querySelectorAll(`[${attribute}]`).forEach((button) => button.addEventListener("click", async () => {
+      button.disabled = true;
+      try {
+        await api("/api/superfight-admin-offers", { method: "POST", body: JSON.stringify({ action, offerId: button.getAttribute(attribute) }) });
+        showToast(action === "deny" ? "Offer denied. Competitor registrations are preserved." : "Email notification sent");
+        await loadActiveView();
+      } catch (error) { button.disabled = false; showToast(error.message); }
+    }));
+  }
 }
 
 function clearSelection() {
+  state.offerId = null;
   state.selected = null;
   state.pairing = null;
   state.matchAgreement = null;
@@ -441,7 +489,12 @@ function selectCompetitor(competitorId) {
     return;
   }
 
-  state.pairing = [state.selected, competitor];
+  openMatchDialog(state.selected, competitor);
+}
+
+function openMatchDialog(first, second, offerId = null) {
+  state.offerId = offerId;
+  state.pairing = [first, second];
   document.querySelector("#match-pair").innerHTML = state.pairing.map((fighter, index) => `
     <div class="admin-detail"><strong>Fighter ${index === 0 ? "A" : "B"}</strong>${escapeHtml(fighter.name)}<br><span class="admin-muted">${label(fighter.genderDivision)} · ${fighter.age ?? "No age"} · ${label(fighter.grapplingPreference)} · ${label(fighter.belt)}</span><br>${weightSummary(fighter)}</div>
   `).join("");
@@ -632,8 +685,9 @@ document.querySelectorAll("[data-tab]").forEach((tab) => {
     state.tab = tab.dataset.tab;
     clearSelection();
     document.querySelectorAll("[data-tab]").forEach((item) => item.classList.toggle("is-active", item === tab));
-    document.querySelector("#unmatched-panel").hidden = state.tab === "matched";
+    document.querySelector("#unmatched-panel").hidden = ["matched", "offers"].includes(state.tab);
     document.querySelector("#matched-panel").hidden = state.tab !== "matched";
+    document.querySelector("#offers-panel").hidden = state.tab !== "offers";
     await loadActiveView();
   });
 });
@@ -700,6 +754,7 @@ document.querySelector("#match-form").addEventListener("submit", async (event) =
       method: "POST",
       body: JSON.stringify({
         action: "match",
+        offerId: state.offerId,
         eventId: state.eventId,
         fighterAId: state.pairing[0].id,
         fighterBId: state.pairing[1].id,

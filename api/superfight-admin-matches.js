@@ -179,27 +179,20 @@ export default async function handler(request, response) {
       agreedWeightLbs: body.agreedWeightLbs,
     });
 
-    const { data, error } = await service
-      .from("superfight_matches")
-      .insert({
-        event_id: eventId,
-        fighter_a_id: fighterAId,
-        fighter_b_id: fighterBId,
-        weight_option_id: weightOptionId,
-        match_weight_lbs: matchWeightLbs,
-        bout_type: finalBoutType,
-        created_by: admin.id,
-      })
-      .select("id")
-      .single();
+    const { data, error } = await service.rpc("create_superfight_match_with_offer", {
+      event_id_input: eventId, fighter_a: fighterAId, fighter_b: fighterBId,
+      weight_option: weightOptionId, agreed_weight: matchWeightLbs,
+      selected_bout: finalBoutType, admin_id: admin.id,
+      offer_id: body.offerId ? uuid(body.offerId, "Offer") : null,
+    });
 
     if (error) {
-      if (/already belongs to an active match|Only active competitors|same gender division|final bout type|weight class|agreed match weight/i.test(error.message)) {
+      if (/already belongs to an active match|Only active competitors|same gender division|final bout type|weight class|agreed match weight|no longer/i.test(error.message)) {
         throw new HttpError(409, error.message, "match_conflict");
       }
       throw databaseFailure(error, "admin match create failed");
     }
 
-    sendJson(response, 201, { match: { id: data.id } });
+    sendJson(response, 201, { match: { id: data } });
   });
 }

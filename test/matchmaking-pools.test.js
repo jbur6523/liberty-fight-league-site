@@ -36,7 +36,7 @@ test("all migrations validate in PostgreSQL; pool assignments default safely and
       create function auth.uid() returns uuid language sql as $$ select null::uuid $$;`);
     const directory = new URL("../supabase/migrations/", import.meta.url);
     const migrations = (await readdir(directory)).filter((name) => name.endsWith(".sql")).sort();
-    for (const name of migrations.filter((name) => !name.includes("matchmaking_pools"))) {
+    for (const name of migrations.filter((name) => name < migrations.find((entry) => entry.includes("matchmaking_pools")))) {
       const sql = (await readFile(new URL(name, directory), "utf8"))
         .replace(/create extension if not exists pgcrypto;/gi, "");
       await db.exec(sql);

@@ -349,6 +349,7 @@ a { -webkit-tap-highlight-color: transparent; }
 }
 .admin-competitor-menu:popover-open { display: grid; gap: 8px; }
 .admin-competitor-menu hr { width: 100%; border: 0; border-top: 1px solid var(--line); }
+.admin-offer-group { margin-bottom: 28px; }
 
 .admin-inline-select {
   margin-top: 7px;

@@ -26,7 +26,12 @@
       "permanent": false
     }
   ],
+  "crons": [{ "path": "/api/superfight-offer-notifications", "schedule": "*/5 * * * *" }],
   "rewrites": [
+    {
+      "source": "/offers",
+      "destination": "/offers.html"
+    },
     {
       "source": "/event",
       "destination": "/event.html"
