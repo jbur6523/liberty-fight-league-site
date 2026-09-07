@@ -35,7 +35,7 @@
         <div class="admin-form-grid">
           <div class="admin-field"><label for="offer-first-name">First name</label><input id="offer-first-name" class="admin-input" required maxlength="80" autocomplete="given-name"></div>
           <div class="admin-field"><label for="offer-belt">Belt / experience level</label><select id="offer-belt" class="admin-select" required><option value="">Select</option><option value="white">White belt</option><option value="blue">Blue belt</option><option value="purple">Purple belt</option><option value="brown">Brown belt</option><option value="black">Black belt</option><option value="unranked">Unranked / other experience</option></select></div>
-          <div class="admin-field"><label for="offer-weight">Current weight (lbs)</label><input id="offer-weight" class="admin-input" type="number" min="1" max="9999" step="0.01" required inputmode="decimal"></div>
+          <fieldset class="admin-field full offers-weight-field"><legend>Select all acceptable weight classes</legend><div id="offer-weight-options" class="offers-weight-options"></div><p class="admin-muted">You can choose one or more. The promoter will select the final class when creating a matchup.</p></fieldset>
           <div class="admin-field"><label for="offer-gym">Gym</label><input id="offer-gym" class="admin-input" required maxlength="160"></div>
           <div class="admin-field full"><label for="offer-bout">Match type</label><select id="offer-bout" class="admin-select" required><option value="">Select</option><option value="gi">Gi</option><option value="no_gi">No-Gi</option></select></div>
         </div>

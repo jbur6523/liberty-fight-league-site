@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFile, readdir } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import { PGlite } from "@electric-sql/pglite";
-import { publicCompetitor, offerInstagram } from "../src/server/offers.js";
+import { publicCompetitor, offerInstagram, compareAvailableCompetitors } from "../src/server/offers.js";
 import { offerEmail, notifyOffer } from "../src/server/offer-notifications.js";
 
 test("public cards and lookup profiles expose only their allowlisted fields", () => {
@@ -101,5 +101,41 @@ test("offer transactions reuse Instagram records, preserve availability, deny sa
     assert.deepEqual(grants.rows[0], { read: false, execute: false });
     assert.equal((await db.query("select consume_superfight_offer_limit('test-bucket',1) as allowed")).rows[0].allowed, true);
     assert.equal((await db.query("select consume_superfight_offer_limit('test-bucket',1) as allowed")).rows[0].allowed, false);
+  } finally { await db.close(); }
+});
+
+test("available matches sort by belt then lightest class, with open weight last", () => {
+  const fighter = (firstName, belt, values) => ({firstName,belt,weightOptions:values.map(valueLbs => ({valueLbs,label:valueLbs === 999 ? "Open Weight" : "Class"}))});
+  const fighters = [fighter("Black","black",[130]),fighter("PurpleHeavy","purple",[182]),fighter("BlueOpen","blue",[999]),fighter("BlueHeavy","blue",[154]),fighter("BlueLight","blue",[141,130]),fighter("PurpleLight","purple",[168]),fighter("Brown","brown",[130])];
+  assert.deepEqual(fighters.sort(compareAvailableCompetitors).map(f => f.firstName), ["BlueLight","BlueHeavy","BlueOpen","PurpleLight","PurpleHeavy","Brown","Black"]);
+});
+
+test("offer class selections persist atomically and reuse existing registrations", async () => {
+  const db = new PGlite();
+  try {
+    await db.exec(`create role anon; create role authenticated; create role service_role;
+      create schema auth; create table auth.users(id uuid primary key);
+      create function auth.uid() returns uuid language sql as $$select null::uuid$$;`);
+    const directory = new URL("../supabase/migrations/", import.meta.url);
+    for (const name of (await readdir(directory)).filter(name => name.endsWith(".sql")).sort()) {
+      await db.exec((await readFile(new URL(name, directory), "utf8")).replace(/create extension if not exists pgcrypto;/gi, ""));
+    }
+    const event = (await db.query("insert into superfight_events(public_slug,name,applications_open) values('classes','Classes',true) returning id")).rows[0].id;
+    const target = (await db.query("insert into superfight_competitors(event_id,source,full_name,instagram_handle,belt) values($1,'admin_quick_add','Target','target','blue') returning id",[event])).rows[0].id;
+    const classes = (await db.query("insert into superfight_event_weight_options(event_id,label,value_lbs,sort_order) values($1,'Feather',154,1),($1,'Light',168,2),($1,'Open Weight',999,3) returning id",[event])).rows.map(r=>r.id);
+    const submit = async (handle, weights, key=randomUUID()) => (await db.query("select submit_superfight_offer_classes($1,$2,'gi',$3,'New','blue',$4,'Gym') as offer",[target,handle,key,weights])).rows[0].offer;
+    await assert.rejects(submit('empty',[]), /Select available/);
+    await assert.rejects(submit('invalid',[randomUUID()]), /Select available/);
+    assert.equal((await db.query("select count(*)::int n from superfight_competitors")).rows[0].n,1);
+    const key=randomUUID(); const first=await submit('New_Fighter',classes.slice(0,2),key);
+    assert.equal((await submit('new_fighter',classes.slice(0,2),key)).id,first.id);
+    const fighter=(await db.query("select * from superfight_competitors where instagram_handle='new_fighter'")).rows[0];
+    assert.equal(Number(fighter.competition_weight_lbs),154);
+    assert.equal((await db.query("select count(*)::int n from superfight_competitor_weight_preferences where competitor_id=$1",[fighter.id])).rows[0].n,2);
+    await submit('new_fighter',[classes[2]]);
+    assert.deepEqual((await db.query("select * from superfight_competitors where id=$1",[fighter.id])).rows[0],fighter);
+    assert.equal((await db.query("select count(*)::int n from superfight_competitor_weight_preferences where competitor_id=$1",[fighter.id])).rows[0].n,3);
+    assert.equal((await db.query("select count(*)::int n from superfight_competitors")).rows[0].n,2);
+    assert.equal((await db.query("select has_function_privilege('anon','submit_superfight_offer_classes(uuid,text,superfight_bout_type,uuid,text,text,uuid[],text)','EXECUTE') allowed")).rows[0].allowed,false);
   } finally { await db.close(); }
 });

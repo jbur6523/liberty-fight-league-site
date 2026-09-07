@@ -84,3 +84,11 @@ export async function adminOffers(service, eventId) {
     canMatch: map.get(offer.target_competitor_id)?.available && map.get(offer.target_competitor_id)?.matchmakingPool === "standard" && map.get(offer.offering_competitor_id)?.available,
   }));
 }
+
+export function compareAvailableCompetitors(left, right) {
+  const ranks = { blue: 0, purple: 1, brown: 2, black: 3, white: 4, unranked: 5 };
+  const lightest = (fighter) => Math.min(...fighter.weightOptions.map((option) =>
+    /open weight/i.test(option.label) || !Number(option.valueLbs) ? Infinity : Number(option.valueLbs)));
+  return (ranks[left.belt] ?? 6) - (ranks[right.belt] ?? 6)
+    || (lightest(left) - lightest(right)) || left.firstName.localeCompare(right.firstName);
+}

@@ -7,3 +7,10 @@
 .offers-card p { margin: 8px 0; }
 .offers-honeypot { position: absolute; left: -10000px; }
 .admin-offer-group { margin-bottom: 28px; }
+
+.offers-weight-field { border: 0; padding: 0; margin: 0; min-width: 0; }
+.offers-weight-field legend { margin-bottom: 12px; font-weight: 700; text-transform: uppercase; }
+.offers-weight-options { display: grid; gap: 10px; }
+.offers-weight-choice { display: flex; align-items: center; gap: 12px; border: 1px solid var(--line); padding: 16px; cursor: pointer; }
+.offers-weight-choice input { width: 20px; height: 20px; flex-shrink: 0; accent-color: #080808; }
+.offers-weight-choice:has(input:checked) { background: #eee; border-color: #080808; }

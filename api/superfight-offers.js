@@ -1,8 +1,8 @@
 import { allowMethods, assertSameOrigin, databaseFailure, handleApi, HttpError, queryValue, readJsonBody, sendJson } from "../src/server/http.js";
 import { getServiceSupabase } from "../src/server/supabase.js";
-import { availableCompetitors, offerInstagram, offerRateLimit, publicCompetitor } from "../src/server/offers.js";
+import { availableCompetitors, offerInstagram, offerRateLimit, publicCompetitor, compareAvailableCompetitors } from "../src/server/offers.js";
 import { loadCompetitorWeightOptions } from "../src/server/weight-preferences.js";
-import { boutType, optionalText, uuid } from "../src/superfight/validation.js";
+import { boutType, optionalText, uuid, uuidList } from "../src/superfight/validation.js";
 import { notifyOffer } from "../src/server/offer-notifications.js";
 
 export default async function handler(request, response) {
@@ -15,7 +15,7 @@ export default async function handler(request, response) {
       if (id && !records.length) throw new HttpError(404, "This match is no longer available.", "unavailable");
       const weights = await loadCompetitorWeightOptions(service, records.map((record) => record.id));
       const competitors = records.map((record) => publicCompetitor(record, weights.get(record.id), { detail: Boolean(id) }));
-      sendJson(response, 200, id ? { competitor: competitors[0] } : { competitors });
+      sendJson(response, 200, id ? { competitor: competitors[0] } : { competitors: competitors.sort(compareAvailableCompetitors) });
       return;
     }
     assertSameOrigin(request);
@@ -38,16 +38,21 @@ export default async function handler(request, response) {
       const weights = existing ? await loadCompetitorWeightOptions(service, [existing.id]) : new Map();
       const profile = existing ? publicCompetitor(existing, weights.get(existing.id), { detail: true }) : null;
       if (profile) delete profile.id;
-      sendJson(response, 200, { existing: Boolean(existing), instagramHandle: handle, profile });
+      const { data: classes, error: classError } = await service.from("superfight_event_weight_options")
+        .select("id,label,value_lbs").eq("event_id", target.event_id).eq("is_active", true).order("sort_order", { ascending: true });
+      if (classError) throw databaseFailure(classError, "offer weight classes failed");
+      sendJson(response, 200, { existing: Boolean(existing), instagramHandle: handle, profile,
+        selectedWeightOptionIds: (weights.get(existing?.id) ?? []).map((option) => option.id),
+        weightOptions: classes.map((option) => ({ id: option.id, label: option.label, valueLbs: Number(option.value_lbs) })) });
       return;
     }
     if (body.action !== "submit") throw new HttpError(400, "Choose a valid offer action.", "invalid_offer");
-    const currentWeight = body.currentWeight === "" || body.currentWeight == null ? null : Number(body.currentWeight);
-    if (currentWeight !== null && (!Number.isFinite(currentWeight) || currentWeight <= 0 || currentWeight > 9999)) throw new HttpError(400, "Enter a valid current weight in pounds.", "invalid_weight");
-    const { data, error } = await service.rpc("submit_superfight_offer", {
+    const weightOptionIds = uuidList(body.weightOptionIds, "Acceptable weight classes");
+    if (!weightOptionIds.length) throw new HttpError(400, "Select at least one acceptable weight class.", "invalid_weight");
+    const { data, error } = await service.rpc("submit_superfight_offer_classes", {
       target_id: targetId, handle, selected_bout: boutType(body.boutType), submission_key: uuid(body.requestKey, "Submission"),
       first_name: optionalText(body.firstName, "First name", 80), submitted_belt: optionalText(body.belt, "Belt", 30),
-      current_weight: currentWeight, submitted_gym: optionalText(body.gym, "Gym", 160),
+      selected_weights: weightOptionIds, submitted_gym: optionalText(body.gym, "Gym", 160),
     });
     if (error) {
       if (error.code === "P0001") throw new HttpError(409, error.message, "offer_conflict");

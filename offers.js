@@ -79,8 +79,9 @@ $("#instagram-form").addEventListener("submit", async (event) => {
       $(id).disabled = result.existing;
     }
     $("#offer-bout").value = ["gi", "no_gi"].includes(result.profile?.grapplingPreference) ? result.profile.grapplingPreference : "";
-    $("#offer-weight").required = !result.existing;
-    $("#existing-message").textContent = result.existing ? `Found your registration for @${instagram}. Your existing profile is preserved. Choose a match type; current weight is optional.` : `New competitor: @${instagram}. Tell us about yourself.`;
+    const selected = new Set(result.selectedWeightOptionIds);
+    $("#offer-weight-options").innerHTML = result.weightOptions.map((option) => `<label class="offers-weight-choice"><input type="checkbox" name="weightOptionIds" value="${escapeHtml(option.id)}" ${selected.has(option.id) ? "checked" : ""}><span>${escapeHtml(option.label)}</span></label>`).join("");
+    $("#existing-message").textContent = result.existing ? `Found your registration for @${instagram}. Your existing profile is preserved. Choose your acceptable weight classes and match type.` : `New competitor: @${instagram}. Tell us about yourself.`;
     $("#existing-weights").textContent = result.profile?.weightOptions.length ? `Registered weight classes: ${weights(result.profile)}` : "";
     $("#instagram-form").hidden = true; $("#offer-form").hidden = false;
   } catch (error) { $("#offer-error").textContent = error.message; }
@@ -92,10 +93,12 @@ $("#offer-form").addEventListener("submit", async (event) => {
   const button = event.submitter; button.disabled = true;
   $("#offer-error").textContent = "";
   try {
+    const weightOptionIds = [...document.querySelectorAll('[name="weightOptionIds"]:checked')].map((input) => input.value);
+    if (!weightOptionIds.length) throw new Error("Select at least one acceptable weight class.");
     await api("/api/superfight-offers", { method: "POST", body: JSON.stringify({
       action: "submit", targetId: target.id, instagram, requestKey,
       firstName: $("#offer-first-name").value, belt: $("#offer-belt").value,
-      currentWeight: $("#offer-weight").value, gym: $("#offer-gym").value,
+      weightOptionIds, gym: $("#offer-gym").value,
       boutType: $("#offer-bout").value, website: $("#offer-website").value,
     }) });
     $("#offer-form").hidden = true; $("#offer-success").hidden = false;
