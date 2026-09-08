@@ -2,16 +2,42 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile, readdir } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
+import { runInNewContext } from "node:vm";
 import { PGlite } from "@electric-sql/pglite";
 import { publicCompetitor, offerInstagram, compareAvailableCompetitors } from "../src/server/offers.js";
 import { offerEmail, notifyOffer } from "../src/server/offer-notifications.js";
 
+test("available card names include usable application ages and omit missing or invalid ages", async () => {
+  const ages = [34, 1, 120, null, undefined, "", "unknown", 0, -1, 121, 34.5, true];
+  const competitors = ages.map((age, index) => publicCompetitor({
+    id: `fighter-${index}`, full_name: "Jack PrivateLastname", age, belt: "blue", grappling_preference: "gi",
+  }));
+  assert.deepEqual(competitors.map(fighter => fighter.age), [34, 1, 120, ...Array(9).fill(null)]);
+  const elements = new Map();
+  const document = {
+    querySelector(selector) {
+      if (!elements.has(selector)) elements.set(selector, { innerHTML: "", textContent: "", addEventListener() {} });
+      return elements.get(selector);
+    },
+    querySelectorAll() { return []; },
+  };
+  runInNewContext(await readFile(new URL("../offers.js", import.meta.url), "utf8"), {
+    document, fetch: async () => ({ ok: true, json: async () => ({ competitors }) }),
+  });
+  await new Promise(resolve => setImmediate(resolve));
+  const html = elements.get("#available-list").innerHTML;
+  const headings = [...html.matchAll(/<h2 class="admin-name-button belt-blue">(.*?)<\/h2>/g)].map(match => match[1]);
+  assert.deepEqual(headings, ["Jack — Age 34", "Jack — Age 1", "Jack — Age 120", ...Array(9).fill("Jack")]);
+  assert.equal((html.match(/>View Match<\/button>/g) ?? []).length, ages.length);
+  assert.equal(elements.get("#offers-error").textContent, "");
+});
+
 test("public cards and lookup profiles expose only their allowlisted fields", () => {
   const privateRecord = { id: "fighter", full_name: "First PrivateLastname", belt: "blue", experience_level: null, grappling_preference: "both", gym: "Test Gym", instagram_handle: "test_fighter", phone: "PRIVATE", email: "PRIVATE", age: 35, notes: "PRIVATE", status_slug: "PRIVATE", status_token: "PRIVATE", competition_weight_lbs: 149 };
   const options = [{ id: "private-id", label: "Feather — 154 lbs & under", valueLbs: 154, sortOrder: 3 }];
-  assert.deepEqual(publicCompetitor(privateRecord, options), { id: "fighter", firstName: "First", belt: "blue", grapplingPreference: "both", weightOptions: [{ label: "Feather — 154 lbs & under", valueLbs: 154 }] });
+  assert.deepEqual(publicCompetitor(privateRecord, options), { id: "fighter", firstName: "First", age: 35, belt: "blue", grapplingPreference: "both", weightOptions: [{ label: "Feather — 154 lbs & under", valueLbs: 154 }] });
   const profile = publicCompetitor(privateRecord, options, { detail: true });
-  assert.deepEqual(Object.keys(profile).sort(), ["id", "firstName", "belt", "grapplingPreference", "weightOptions", "instagramHandle", "gym"].sort());
+  assert.deepEqual(Object.keys(profile).sort(), ["id", "firstName", "age", "belt", "grapplingPreference", "weightOptions", "instagramHandle", "gym"].sort());
   assert.doesNotMatch(JSON.stringify(profile), /PRIVATE|PrivateLastname|149/);
   for (const value of ["@Test_Fighter", "test_fighter", "https://www.instagram.com/Test_Fighter/"]) assert.equal(offerInstagram(value), "test_fighter");
   for (const invalid of ["", "https://evil.com/test", "a%", "x".repeat(31)]) assert.throws(() => offerInstagram(invalid), /valid Instagram/);

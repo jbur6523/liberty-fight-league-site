@@ -1,7 +1,7 @@
 .offers-brand { text-decoration: none; color: inherit; }
 .offers-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 18px; }
 .offers-card { padding: 24px; border: 1px solid var(--line); background: var(--white); }
-.offers-card h2 { margin: 0 0 16px; }
+.offers-card h2 { margin: 0 0 16px; white-space: nowrap; }
 .offers-card h2, #profile-content h2 { cursor: default; }
 .offers-card .admin-button { margin-top: 18px; }
 .offers-card p { margin: 8px 0; }

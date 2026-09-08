@@ -15,6 +15,7 @@ export function publicCompetitor(record, weights = [], { detail = false } = {}) 
   const result = {
     id: record.id,
     firstName: record.full_name.trim().split(/\s+/)[0],
+    age: Number.isInteger(record.age) && record.age >= 1 && record.age <= 120 ? record.age : null,
     belt: record.belt ?? record.experience_level ?? null,
     grapplingPreference: record.grappling_preference,
     weightOptions: weights.map(({ label, valueLbs }) => ({ label, valueLbs })),
@@ -28,7 +29,7 @@ export function publicCompetitor(record, weights = [], { detail = false } = {}) 
 
 export async function availableCompetitors(service, { eventId, competitorId } = {}) {
   let query = service.from("superfight_competitors")
-    .select("id,event_id,full_name,belt,experience_level,grappling_preference,instagram_handle,gym")
+    .select("id,event_id,full_name,age,belt,experience_level,grappling_preference,instagram_handle,gym")
     .eq("record_state", "active").eq("matchmaking_pool", "standard");
   if (eventId) query = query.eq("event_id", eventId);
   if (competitorId) query = query.eq("id", competitorId);

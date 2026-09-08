@@ -38,7 +38,7 @@ function previewAvailable() {
 
 function previewPublic(fighter, detail = false) {
   return {
-    id: fighter.id, firstName: fighter.name.split(/\s+/)[0], belt: fighter.belt,
+    id: fighter.id, firstName: fighter.name.split(/\s+/)[0], age: fighter.age ?? null, belt: fighter.belt,
     weightOptions: fighter.weightOptions.map(({ label, valueLbs }) => ({ label, valueLbs })),
     grapplingPreference: fighter.grapplingPreference,
     ...(detail ? { instagramHandle: fighter.instagramHandle, gym: fighter.gym } : {}),

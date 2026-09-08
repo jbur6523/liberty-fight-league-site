@@ -20,7 +20,7 @@ async function loadAvailable() {
   try {
     const { competitors } = await api("/api/superfight-offers");
     $("#available-list").innerHTML = competitors.length ? competitors.map((fighter) => `<article class="offers-card">
-      <h2 class="admin-name-button${beltClass(fighter.belt)}">${escapeHtml(fighter.firstName)}</h2>
+      <h2 class="admin-name-button${beltClass(fighter.belt)}">${escapeHtml(fighter.firstName)}${Number.isInteger(fighter.age) && fighter.age >= 1 && fighter.age <= 120 ? ` — Age ${fighter.age}` : ""}</h2>
       <p>${escapeHtml(beltLabel(fighter.belt))}</p><p>${escapeHtml(weights(fighter))}</p><p>${preference(fighter.grapplingPreference)}</p>
       <button class="admin-button" type="button" data-view="${fighter.id}">View Match</button></article>`).join("")
       : '<div class="admin-empty"><h2>No available matches right now</h2><p>Check back soon or apply to compete.</p><a class="admin-button" href="/superfight">Apply for a Superfight</a></div>';
