@@ -27,7 +27,7 @@ async function confirmationDetails(service, token) {
 
   const { data: match, error: matchError } = await service
     .from("superfight_matches")
-    .select("id, event_id, fighter_a_id, fighter_b_id, weight_option_id, match_weight_lbs, bout_type, state")
+    .select("id, event_id, fighter_a_id, fighter_b_id, fighter_c_id, fighter_d_id, weight_option_id, match_weight_lbs, bout_type, state")
     .eq("id", confirmation.match_id)
     .single();
 
@@ -35,10 +35,8 @@ async function confirmationDetails(service, token) {
     throw databaseFailure(matchError, "confirmation match lookup failed");
   }
 
-  const opponentId = match.fighter_a_id === confirmation.competitor_id
-    ? match.fighter_b_id
-    : match.fighter_a_id;
-  const [{ data: fighter, error: fighterError }, { data: opponent, error: opponentError }, { data: event, error: eventError }] = await Promise.all([
+  const opponentIds = [match.fighter_a_id, match.fighter_b_id, match.fighter_c_id, match.fighter_d_id].filter(id => id && id !== confirmation.competitor_id);
+  const [{ data: fighter, error: fighterError }, { data: opponents, error: opponentError }, { data: event, error: eventError }] = await Promise.all([
     service
       .from("superfight_competitors")
       .select("id, full_name, belt, gym")
@@ -47,8 +45,7 @@ async function confirmationDetails(service, token) {
     service
       .from("superfight_competitors")
       .select("id, full_name, belt, gym")
-      .eq("id", opponentId)
-      .single(),
+      .in("id", opponentIds),
     service
       .from("superfight_events")
       .select("name, starts_at, venue")
@@ -71,7 +68,7 @@ async function confirmationDetails(service, token) {
     weightOption = data;
   }
 
-  return { confirmation, match, fighter, opponent, event, weightOption };
+  return { confirmation, match, fighter, opponent: opponents[0], opponents, event, weightOption };
 }
 
 function publicPayload(details) {
@@ -91,6 +88,7 @@ function publicPayload(details) {
       belt: details.opponent.belt,
       gym: details.opponent.gym,
     },
+    opponents: details.opponents.map(opponent => ({ name: opponent.full_name, belt: opponent.belt, gym: opponent.gym })),
     match: {
       weightLbs: details.match.match_weight_lbs === null
         ? null

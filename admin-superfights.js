@@ -40,6 +40,7 @@ function label(value) {
     womens: "Women's",
     gi: "Gi",
     no_gi: "No-Gi",
+    john_wick: "John Wick",
   };
   if (labels[value]) return labels[value];
   return `${value[0].toUpperCase()}${value.slice(1).replaceAll("_", " ")}`;
@@ -322,6 +323,8 @@ function confirmationBadge(summary) {
     fighter_a_accepted: ["Fighter A accepted", "good"],
     fighter_b_accepted: ["Fighter B accepted", "good"],
     both_accepted: ["Both accepted", "good"],
+    all_accepted: ["All accepted", "good"],
+    partially_accepted: ["Partially accepted", "good"],
     declined: ["Declined", "bad"],
   }[summary] ?? ["Awaiting confirmation", ""];
   return `<span class="admin-badge ${details[1]}">${details[0]}</span>`;
@@ -344,11 +347,11 @@ function renderMatched() {
 
   elements.matched.innerHTML = `
     <div class="admin-table-wrap"><table class="admin-table">
-      <thead><tr><th>Fighter A</th><th>Fighter B</th><th>Bout type</th><th>Match weight</th><th>Confirmation</th><th>Quick actions</th></tr></thead>
+      <thead><tr><th>Fighter A</th><th>Other competitors</th><th>Bout type</th><th>Match weight</th><th>Confirmation</th><th>Quick actions</th></tr></thead>
       <tbody>${state.matches.map((match) => `
         <tr>
           <td>${matchFighterCell(match.fighterA)}${matchLinks(match.fighterA)}</td>
-          <td>${matchFighterCell(match.fighterB)}${matchLinks(match.fighterB)}</td>
+          <td>${[match.fighterB, ...(match.extraFighters ?? [])].map(fighter => `<div class="admin-match-participant">${matchFighterCell(fighter)}${matchLinks(fighter)}</div>`).join("")}</td>
           <td>${label(match.boutType)}</td>
           <td>${escapeHtml(match.weightOption?.label ?? (match.weightLbs === null ? "—" : `${match.weightLbs} lb`))}</td>
           <td>${confirmationBadge(match.confirmation.summary)}</td>
@@ -495,21 +498,22 @@ function selectCompetitor(competitorId) {
 function openMatchDialog(first, second, offerId = null) {
   state.offerId = offerId;
   state.pairing = [first, second];
+  document.querySelector("#match-bout-type").value = "";
+  document.querySelector("#gauntlet-fields").hidden = true;
+  for (const id of ["#match-fighter-c", "#match-fighter-d"]) document.querySelector(id).value = "";
+  refreshMatchAgreement();
+  document.querySelector("#match-dialog").showModal();
+}
+
+function refreshMatchAgreement() {
   document.querySelector("#match-pair").innerHTML = state.pairing.map((fighter, index) => `
-    <div class="admin-detail"><strong>Fighter ${index === 0 ? "A" : "B"}</strong>${escapeHtml(fighter.name)}<br><span class="admin-muted">${label(fighter.genderDivision)} · ${fighter.age ?? "No age"} · ${label(fighter.grapplingPreference)} · ${label(fighter.belt)}</span><br>${weightSummary(fighter)}</div>
+    <div class="admin-detail"><strong>Fighter ${["A", "B", "C", "D"][index]}</strong>${escapeHtml(fighter.name)}<br><span class="admin-muted">${label(fighter.genderDivision)} · ${fighter.age ?? "No age"} · ${label(fighter.grapplingPreference)} · ${label(fighter.belt)}</span><br>${weightSummary(fighter)}</div>
   `).join("");
-  const secondWeightIds = new Set((state.pairing[1].weightOptions ?? []).map((option) => option.id));
-  const sharedWeightIds = new Set(
-    (state.pairing[0].weightOptions ?? [])
-      .filter((option) => secondWeightIds.has(option.id))
-      .map((option) => option.id),
-  );
-  const sharedWeights = activeWeightOptions().filter((option) => sharedWeightIds.has(option.id));
+  const sharedWeights = activeWeightOptions().filter(option => state.pairing.every(fighter =>
+    (fighter.weightOptions ?? []).some(weight => weight.id === option.id)));
   const hasSharedWeight = sharedWeights.length > 0;
-  const formatConflict = formatPreferencesConflict(
-    state.pairing[0].grapplingPreference,
-    state.pairing[1].grapplingPreference,
-  );
+  const formatConflict = state.pairing.some(left => state.pairing.some(right =>
+    formatPreferencesConflict(left.grapplingPreference, right.grapplingPreference)));
   state.matchAgreement = { hasSharedWeight, formatConflict };
   document.querySelector("#match-weight-option").innerHTML = [
     '<option value="">Choose a shared weight class</option>',
@@ -520,7 +524,6 @@ function openMatchDialog(first, second, offerId = null) {
   document.querySelector("#match-manual-weight-field").hidden = hasSharedWeight;
   document.querySelector("#match-agreed-weight").required = !hasSharedWeight;
   document.querySelector("#match-agreed-weight").value = "";
-  document.querySelector("#match-bout-type").value = "";
   document.querySelector("#match-format-confirmation").hidden = !formatConflict;
   document.querySelector("#match-format-confirmed").checked = false;
   const warnings = [];
@@ -535,7 +538,6 @@ function openMatchDialog(first, second, offerId = null) {
   warning.innerHTML = warnings.map((message) => `<p>${escapeHtml(message)}</p>`).join("");
   document.querySelector("#match-error").textContent = "";
   updateMatchSubmitAvailability();
-  document.querySelector("#match-dialog").showModal();
 }
 
 async function openDetail(competitorId) {
@@ -558,7 +560,7 @@ async function openDetail(competitorId) {
         <div class="admin-detail"><strong>Event</strong>${escapeHtml(currentEvent()?.name || "—")}</div>
         <div class="admin-detail"><strong>Source</strong>${label(competitor.source)}</div>
         <div class="admin-detail"><strong>Application date</strong>${competitor.applicationSubmittedAt ? new Date(competitor.applicationSubmittedAt).toLocaleString() : "Quick add"}</div>
-        <div class="admin-detail"><strong>Match status</strong>${competitor.match ? `Matched with ${escapeHtml(competitor.match.opponent.full_name)}` : "Unmatched"}</div>
+        <div class="admin-detail"><strong>Match status</strong>${competitor.match ? `Matched with ${escapeHtml((competitor.match.opponents ?? [competitor.match.opponent]).map(opponent => opponent.full_name).join(", "))}` : "Unmatched"}</div>
         ${competitor.match ? `<div class="admin-detail"><strong>Final bout type</strong>${label(competitor.match.boutType)}</div>` : ""}
         ${competitor.match ? `<div class="admin-detail"><strong>Final match weight</strong>${escapeHtml(competitor.match.weightOption?.label ?? (competitor.match.weightLbs === null ? "—" : `${competitor.match.weightLbs} lb`))}</div>` : ""}
         ${competitor.match ? `<div class="admin-detail"><strong>Fighter confirmation</strong>${label(fighterResponse || "awaiting")}</div><div class="admin-detail"><strong>Opponent confirmation</strong>${label(opponentResponse || "awaiting")}</div>` : ""}
@@ -758,6 +760,7 @@ document.querySelector("#match-form").addEventListener("submit", async (event) =
         eventId: state.eventId,
         fighterAId: state.pairing[0].id,
         fighterBId: state.pairing[1].id,
+        extraCompetitorIds: state.pairing.slice(2).map(fighter => fighter.id),
         weightOptionId: document.querySelector("#match-weight-option").value,
         agreedWeightLbs: document.querySelector("#match-agreed-weight").value,
         boutType: document.querySelector("#match-bout-type").value,
@@ -845,3 +848,42 @@ async function initialize() {
 }
 
 initialize();
+
+let gauntletCandidates = [];
+let gauntletLoadVersion = 0;
+function updateGauntletSelection() {
+  const third = document.querySelector("#match-fighter-c");
+  const fourth = document.querySelector("#match-fighter-d");
+  if (!third.value || fourth.value === third.value) fourth.value = "";
+  fourth.disabled = !third.value;
+  for (const option of fourth.options) option.disabled = Boolean(option.value && option.value === third.value);
+  state.pairing = state.pairing.slice(0, 2).concat([third.value, fourth.value].filter(Boolean)
+    .map(id => gauntletCandidates.find(fighter => fighter.id === id)).filter(Boolean));
+  refreshMatchAgreement();
+}
+for (const id of ["#match-fighter-c", "#match-fighter-d"]) {
+  document.querySelector(id).addEventListener("change", updateGauntletSelection);
+}
+document.querySelector("#match-bout-type").addEventListener("change", async () => {
+  const version = ++gauntletLoadVersion;
+  const isGauntlet = document.querySelector("#match-bout-type").value === "gauntlet";
+  document.querySelector("#gauntlet-fields").hidden = !isGauntlet;
+  for (const id of ["#match-fighter-c", "#match-fighter-d"]) {
+    document.querySelector(id).innerHTML = '<option value="">None</option>';
+    document.querySelector(id).disabled = true;
+  }
+  state.pairing = state.pairing.slice(0, 2);
+  refreshMatchAgreement();
+  if (!isGauntlet) return;
+  const pairing = state.pairing;
+  try {
+    const payload = await api(`/api/superfight-admin-competitors?eventId=${state.eventId}&sort=weight`);
+    if (version !== gauntletLoadVersion || state.pairing !== pairing) return;
+    gauntletCandidates = payload.competitors.filter(fighter => !pairing.some(selected => selected.id === fighter.id));
+    const options = '<option value="">None</option>' + gauntletCandidates.map(fighter =>
+      `<option value="${fighter.id}">${escapeHtml(fighter.name)} &#183; ${label(fighter.belt)} &#183; ${escapeHtml((fighter.weightOptions ?? []).map(shortWeightLabel).join(", "))}</option>`).join("");
+    document.querySelector("#match-fighter-c").innerHTML = options;
+    document.querySelector("#match-fighter-d").innerHTML = options;
+    document.querySelector("#match-fighter-c").disabled = false;
+  } catch (error) { document.querySelector("#match-error").textContent = error.message; }
+});

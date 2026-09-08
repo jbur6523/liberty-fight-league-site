@@ -54,10 +54,10 @@ export default async function handler(request, response) {
 
     const { data: matches, error: matchError } = await service
       .from("superfight_matches")
-      .select("id, fighter_a_id, fighter_b_id, weight_option_id, match_weight_lbs, bout_type")
+      .select("id, fighter_a_id, fighter_b_id, fighter_c_id, fighter_d_id, weight_option_id, match_weight_lbs, bout_type")
       .eq("event_id", fighter.event_id)
       .eq("state", "active")
-      .or(`fighter_a_id.eq.${fighter.id},fighter_b_id.eq.${fighter.id}`)
+      .or(`fighter_a_id.eq.${fighter.id},fighter_b_id.eq.${fighter.id},fighter_c_id.eq.${fighter.id},fighter_d_id.eq.${fighter.id}`)
       .limit(1);
 
     if (matchError) {
@@ -74,7 +74,7 @@ export default async function handler(request, response) {
       return;
     }
 
-    const opponentId = match.fighter_a_id === fighter.id ? match.fighter_b_id : match.fighter_a_id;
+    const opponentIds = [match.fighter_a_id, match.fighter_b_id, match.fighter_c_id, match.fighter_d_id].filter(id => id && id !== fighter.id);
     const optionLookup = match.weight_option_id
       ? service
         .from("superfight_event_weight_options")
@@ -83,15 +83,14 @@ export default async function handler(request, response) {
         .single()
       : Promise.resolve({ data: null, error: null });
     const [
-      { data: opponent, error: opponentError },
+      { data: opponents, error: opponentError },
       { data: confirmations, error: confirmationError },
       { data: weightOption, error: weightOptionError },
     ] = await Promise.all([
       service
         .from("superfight_competitors")
         .select("full_name, belt, gym, instagram_handle, instagram_url")
-        .eq("id", opponentId)
-        .single(),
+        .in("id", opponentIds),
       service
         .from("superfight_match_confirmations")
         .select("competitor_id, response")
@@ -110,12 +109,13 @@ export default async function handler(request, response) {
         gym: fighter.gym,
       },
       opponent: {
-        name: opponent.full_name,
-        belt: opponent.belt,
-        gym: opponent.gym,
-        instagramHandle: opponent.instagram_handle,
-        instagramUrl: opponent.instagram_url,
+        name: opponents[0].full_name,
+        belt: opponents[0].belt,
+        gym: opponents[0].gym,
+        instagramHandle: opponents[0].instagram_handle,
+        instagramUrl: opponents[0].instagram_url,
       },
+      opponents: opponents.map(opponent => ({ name: opponent.full_name, belt: opponent.belt, gym: opponent.gym, instagramHandle: opponent.instagram_handle, instagramUrl: opponent.instagram_url })),
       event: { name: event.name, startsAt: event.starts_at, venue: event.venue },
       match: {
         weightLbs: match.match_weight_lbs === null ? null : Number(match.match_weight_lbs),
@@ -125,7 +125,7 @@ export default async function handler(request, response) {
           valueLbs: Number(weightOption.value_lbs),
         } : null,
         boutType: match.bout_type,
-        confirmation: confirmationState(confirmations, match.fighter_a_id, match.fighter_b_id),
+        confirmation: confirmationState(confirmations, match.fighter_a_id, match.fighter_b_id, [match.fighter_c_id, match.fighter_d_id].filter(Boolean)),
       },
       status: "matched",
     });

@@ -1,4 +1,4 @@
-export function confirmationState(confirmations, fighterAId, fighterBId) {
+export function confirmationState(confirmations, fighterAId, fighterBId, extraIds = []) {
   const responses = new Map(confirmations.map((item) => [item.competitor_id, item.response]));
   const fighterA = responses.get(fighterAId) ?? "awaiting";
   const fighterB = responses.get(fighterBId) ?? "awaiting";
@@ -14,5 +14,10 @@ export function confirmationState(confirmations, fighterAId, fighterBId) {
     summary = "fighter_b_accepted";
   }
 
+  if (extraIds.length) {
+    const all = [fighterA, fighterB, ...extraIds.map(id => responses.get(id) ?? "awaiting")];
+    summary = all.includes("declined") ? "declined" : all.every(response => response === "accepted")
+      ? "all_accepted" : all.includes("accepted") ? "partially_accepted" : "awaiting_confirmation";
+  }
   return { fighterA, fighterB, summary };
 }

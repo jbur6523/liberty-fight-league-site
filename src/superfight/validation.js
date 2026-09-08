@@ -138,8 +138,8 @@ export function grapplingPreference(value, options) {
   return structuredChoice(value, "Gi / No-Gi preference", GRAPPLING_PREFERENCES, options);
 }
 
-export function boutType(value) {
-  return structuredChoice(value, "Bout type", BOUT_TYPES);
+export function boutType(value, { special = false } = {}) {
+  return structuredChoice(value, "Bout type", special ? [...BOUT_TYPES, "john_wick", "gauntlet"] : BOUT_TYPES);
 }
 
 export function preferredContactMethod(value, options) {

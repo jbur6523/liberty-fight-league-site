@@ -47,10 +47,10 @@ async function competitorDetail(service, competitorId) {
 
   const { data: matches, error: matchError } = await service
     .from("superfight_matches")
-    .select("id, fighter_a_id, fighter_b_id, weight_option_id, match_weight_lbs, bout_type, state")
+    .select("id, fighter_a_id, fighter_b_id, fighter_c_id, fighter_d_id, weight_option_id, match_weight_lbs, bout_type, state")
     .eq("event_id", competitor.event_id)
     .eq("state", "active")
-    .or(`fighter_a_id.eq.${competitor.id},fighter_b_id.eq.${competitor.id}`)
+    .or(`fighter_a_id.eq.${competitor.id},fighter_b_id.eq.${competitor.id},fighter_c_id.eq.${competitor.id},fighter_d_id.eq.${competitor.id}`)
     .limit(1);
 
   if (matchError) {
@@ -60,7 +60,7 @@ async function competitorDetail(service, competitorId) {
   let match = null;
   if (matches?.[0]) {
     const record = matches[0];
-    const opponentId = record.fighter_a_id === competitor.id ? record.fighter_b_id : record.fighter_a_id;
+    const opponentIds = [record.fighter_a_id, record.fighter_b_id, record.fighter_c_id, record.fighter_d_id].filter(id => id && id !== competitor.id);
     const optionLookup = record.weight_option_id
       ? service
         .from("superfight_event_weight_options")
@@ -69,15 +69,14 @@ async function competitorDetail(service, competitorId) {
         .single()
       : Promise.resolve({ data: null, error: null });
     const [
-      { data: opponent, error: opponentError },
+      { data: opponents, error: opponentError },
       { data: confirmations, error: confirmationError },
       { data: weightOption, error: weightOptionError },
     ] = await Promise.all([
       service
         .from("superfight_competitors")
         .select("id, full_name, age, gender_division, grappling_preference, belt, competition_weight_lbs, gym, instagram_handle, instagram_url")
-        .eq("id", opponentId)
-        .single(),
+        .in("id", opponentIds),
       service
         .from("superfight_match_confirmations")
         .select("competitor_id, response, responded_at")
@@ -97,7 +96,8 @@ async function competitorDetail(service, competitorId) {
         valueLbs: Number(weightOption.value_lbs),
       } : null,
       boutType: record.bout_type,
-      opponent,
+      opponent: opponents[0],
+      opponents,
       confirmations,
     };
   }
@@ -171,7 +171,7 @@ export default async function handler(request, response) {
         .from("superfight_matches")
         .select("id")
         .eq("state", "active")
-        .or(`fighter_a_id.eq.${competitorId},fighter_b_id.eq.${competitorId}`)
+        .or(`fighter_a_id.eq.${competitorId},fighter_b_id.eq.${competitorId},fighter_c_id.eq.${competitorId},fighter_d_id.eq.${competitorId}`)
         .limit(1)
         .maybeSingle();
       if (matchError) throw databaseFailure(matchError, "admin competitor withdrawal match lookup failed");

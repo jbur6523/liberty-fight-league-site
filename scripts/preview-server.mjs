@@ -32,7 +32,7 @@ const previewOffers = [];
 const previewMatches = [];
 
 function previewAvailable() {
-  const matched = new Set(previewMatches.flatMap((match) => [match.fighterA.id, match.fighterB.id]));
+  const matched = new Set(previewMatches.flatMap((match) => [match.fighterA.id, match.fighterB.id, ...(match.extraFighters ?? []).map(fighter => fighter.id)]));
   return competitors.filter((fighter) => !matched.has(fighter.id));
 }
 
@@ -86,7 +86,7 @@ async function mockApi(request, response, url) {
       competitors.push(fighter);
     }
     if (!previewOffers.some((offer) => offer.offering.id === fighter.id && offer.target.id === input.targetId)) {
-      previewOffers.push({ id: crypto.randomUUID(), target: competitors.find((item) => item.id === input.targetId), offering: fighter, boutType: input.boutType, weightLbs: Number(input.currentWeight) || fighter.weightLbs, canMatch: true, notificationState: "sent" });
+      previewOffers.push({ id: crypto.randomUUID(), target: competitors.find((item) => item.id === input.targetId), offering: fighter, extraFighters: (input.extraCompetitorIds ?? []).map(id => competitors.find(fighter => fighter.id === id)), boutType: input.boutType, weightLbs: Number(input.currentWeight) || fighter.weightLbs, canMatch: true, notificationState: "sent" });
     }
     return json(response, 201, { received: true });
   }
@@ -135,10 +135,10 @@ async function mockApi(request, response, url) {
     if (request.method === "POST") {
       const input = await body(request);
       if (input.action === "match") {
-        const match = { id: crypto.randomUUID(), fighterA: competitors.find((fighter) => fighter.id === input.fighterAId), fighterB: competitors.find((fighter) => fighter.id === input.fighterBId), boutType: input.boutType, weightLbs: Number(input.agreedWeightLbs) || 155, confirmation: { summary: "awaiting_confirmation" } };
+        const match = { id: crypto.randomUUID(), fighterA: competitors.find((fighter) => fighter.id === input.fighterAId), fighterB: competitors.find((fighter) => fighter.id === input.fighterBId), extraFighters: (input.extraCompetitorIds ?? []).map(id => competitors.find(fighter => fighter.id === id)), boutType: input.boutType, weightLbs: Number(input.agreedWeightLbs) || 155, confirmation: { summary: "awaiting_confirmation" } };
         previewMatches.push(match);
         for (let i = previewOffers.length - 1; i >= 0; i--) {
-          if ([match.fighterA.id, match.fighterB.id].some((id) => [previewOffers[i].target.id, previewOffers[i].offering.id].includes(id))) previewOffers.splice(i, 1);
+          if ([match.fighterA.id, match.fighterB.id, ...(match.extraFighters ?? []).map(fighter => fighter.id)].some((id) => [previewOffers[i].target.id, previewOffers[i].offering.id].includes(id))) previewOffers.splice(i, 1);
         }
         return json(response, 201, { match: { id: match.id } });
       }

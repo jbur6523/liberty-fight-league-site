@@ -147,7 +147,7 @@ export default async function handler(request, response) {
 
     const { data: matches, error: matchError } = await service
       .from("superfight_matches")
-      .select("fighter_a_id, fighter_b_id")
+      .select("fighter_a_id, fighter_b_id, fighter_c_id, fighter_d_id")
       .eq("event_id", eventId)
       .eq("state", "active");
 
@@ -155,7 +155,7 @@ export default async function handler(request, response) {
       throw databaseFailure(matchError, "admin active match lookup failed");
     }
 
-    const matchedIds = new Set(matches.flatMap((match) => [match.fighter_a_id, match.fighter_b_id]));
+    const matchedIds = new Set(matches.flatMap((match) => [match.fighter_a_id, match.fighter_b_id, match.fighter_c_id, match.fighter_d_id].filter(Boolean)));
     let ordered;
     try {
       // Suggest opponents within each pool, so hidden competitors do not affect ordering.

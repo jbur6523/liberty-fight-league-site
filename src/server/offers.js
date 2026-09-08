@@ -38,11 +38,11 @@ export async function availableCompetitors(service, { eventId, competitorId } = 
   const eventIds = [...new Set(records.map((record) => record.event_id))];
   const [{ data: events, error: eventError }, { data: matches, error: matchError }] = await Promise.all([
     service.from("superfight_events").select("id").in("id", eventIds).eq("applications_open", true),
-    service.from("superfight_matches").select("fighter_a_id,fighter_b_id").in("event_id", eventIds).eq("state", "active"),
+    service.from("superfight_matches").select("fighter_a_id,fighter_b_id,fighter_c_id,fighter_d_id").in("event_id", eventIds).eq("state", "active"),
   ]);
   if (eventError || matchError) throw databaseFailure(eventError || matchError, "public availability failed");
   const open = new Set(events.map((event) => event.id));
-  const matched = new Set(matches.flatMap((match) => [match.fighter_a_id, match.fighter_b_id]));
+  const matched = new Set(matches.flatMap((match) => [match.fighter_a_id, match.fighter_b_id, match.fighter_c_id, match.fighter_d_id].filter(Boolean)));
   return records.filter((record) => open.has(record.event_id) && !matched.has(record.id));
 }
 
@@ -66,10 +66,10 @@ export async function adminOffers(service, eventId) {
   const [{ data: competitors, error: fighterError }, weights, { data: matches, error: matchError }] = await Promise.all([
     service.from("superfight_competitors").select("id,full_name,belt,experience_level,competition_weight_lbs,gym,instagram_handle,grappling_preference,gender_division,age,record_state,matchmaking_pool").in("id", ids),
     loadCompetitorWeightOptions(service, ids),
-    service.from("superfight_matches").select("fighter_a_id,fighter_b_id").eq("event_id", eventId).eq("state", "active"),
+    service.from("superfight_matches").select("fighter_a_id,fighter_b_id,fighter_c_id,fighter_d_id").eq("event_id", eventId).eq("state", "active"),
   ]);
   if (fighterError || matchError) throw databaseFailure(fighterError || matchError, "admin offer competitors failed");
-  const matched = new Set(matches.flatMap((match) => [match.fighter_a_id, match.fighter_b_id]));
+  const matched = new Set(matches.flatMap((match) => [match.fighter_a_id, match.fighter_b_id, match.fighter_c_id, match.fighter_d_id].filter(Boolean)));
   const map = new Map(competitors.map((record) => [record.id, {
     id: record.id, name: record.full_name, belt: record.belt ?? record.experience_level,
     weightLbs: record.competition_weight_lbs, gym: record.gym, instagramHandle: record.instagram_handle,

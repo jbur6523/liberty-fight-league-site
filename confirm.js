@@ -29,7 +29,7 @@ function beltLabel(value) {
 }
 
 function boutTypeLabel(value) {
-  return { gi: "Gi", no_gi: "No-Gi" }[value] ?? null;
+  return { gi: "Gi", no_gi: "No-Gi", john_wick: "John Wick", gauntlet: "Gauntlet" }[value] ?? null;
 }
 
 function formattedDateTime(value) {
@@ -80,13 +80,11 @@ function render(payload) {
     fieldRow("Date & time", formattedDateTime(payload.event.startsAt)),
     fieldRow("Venue", payload.event.venue),
     fieldRow("Fighter", payload.fighter.name),
-    fieldRow("Opponent", payload.opponent.name),
+    ...((payload.opponents ?? [payload.opponent]).flatMap(opponent => [fieldRow("Opponent", opponent.name), fieldRow("Opponent belt", beltLabel(opponent.belt)), fieldRow("Opponent gym", opponent.gym)])),
     fieldRow("Your belt", beltLabel(payload.fighter.belt)),
-    fieldRow("Opponent belt", beltLabel(payload.opponent.belt)),
     fieldRow("Bout type", boutTypeLabel(payload.match.boutType)),
     fieldRow("Agreed match weight", payload.match.weightOption?.label ?? (payload.match.weightLbs === null ? null : `${payload.match.weightLbs} lb`)),
     fieldRow("Your gym", payload.fighter.gym || "Not listed"),
-    fieldRow("Opponent gym", payload.opponent.gym || "Not listed"),
   ].filter(Boolean).forEach((row) => details.append(row));
   content.append(details);
 

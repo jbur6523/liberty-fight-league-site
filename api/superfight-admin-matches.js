@@ -13,12 +13,12 @@ import { getServiceSupabase } from "../src/server/supabase.js";
 import { loadCompetitorWeightOptions } from "../src/server/weight-preferences.js";
 import { confirmationState } from "../src/superfight/contracts.js";
 import { formatPreferencesConflict, resolveMatchWeight } from "../src/superfight/match-agreement.js";
-import { boutType, uuid } from "../src/superfight/validation.js";
+import { boutType, uuid, uuidList } from "../src/superfight/validation.js";
 
 async function listMatches(service, eventId) {
   const { data: matches, error: matchError } = await service
     .from("superfight_matches")
-    .select("id, fighter_a_id, fighter_b_id, weight_option_id, match_weight_lbs, bout_type, state, created_at")
+    .select("id, fighter_a_id, fighter_b_id, fighter_c_id, fighter_d_id, weight_option_id, match_weight_lbs, bout_type, state, created_at")
     .eq("event_id", eventId)
     .eq("state", "active")
     .order("created_at", { ascending: false });
@@ -30,7 +30,7 @@ async function listMatches(service, eventId) {
     return [];
   }
 
-  const competitorIds = [...new Set(matches.flatMap((match) => [match.fighter_a_id, match.fighter_b_id]))];
+  const competitorIds = [...new Set(matches.flatMap((match) => [match.fighter_a_id, match.fighter_b_id, match.fighter_c_id, match.fighter_d_id].filter(Boolean)))];
   const matchIds = matches.map((match) => match.id);
   const weightOptionIds = [...new Set(matches.map((match) => match.weight_option_id).filter(Boolean))];
   const optionLookup = weightOptionIds.length > 0
@@ -90,9 +90,10 @@ async function listMatches(service, eventId) {
       boutType: match.bout_type,
       state: match.state,
       createdAt: match.created_at,
-      confirmation: confirmationState(matchConfirmations, match.fighter_a_id, match.fighter_b_id),
+      confirmation: confirmationState(matchConfirmations, match.fighter_a_id, match.fighter_b_id, [match.fighter_c_id, match.fighter_d_id].filter(Boolean)),
       fighterA: fighterPayload(match.fighter_a_id),
       fighterB: fighterPayload(match.fighter_b_id),
+      extraFighters: [match.fighter_c_id, match.fighter_d_id].filter(Boolean).map(fighterPayload),
     };
   });
 }
@@ -141,26 +142,29 @@ export default async function handler(request, response) {
     const eventId = uuid(body.eventId, "Event");
     const fighterAId = uuid(body.fighterAId, "Fighter A");
     const fighterBId = uuid(body.fighterBId, "Fighter B");
-    const finalBoutType = boutType(body.boutType);
+    const finalBoutType = boutType(body.boutType, { special: true });
+    const extraIds = uuidList(body.extraCompetitorIds, "Additional competitors", { optional: true, maximum: 2 });
+    const participantIds = [fighterAId, fighterBId, ...extraIds];
+    if ((body.extraCompetitorIds?.length ?? 0) !== extraIds.length || new Set(participantIds).size !== participantIds.length || (extraIds.length && finalBoutType !== "gauntlet")) {
+      throw new HttpError(400, "Choose up to four different competitors for Gauntlet; other bouts use two.", "invalid_match");
+    }
     if (fighterAId === fighterBId) {
       throw new HttpError(400, "Choose two different competitors.", "invalid_match");
     }
 
     const [preferences, { data: competitors, error: competitorError }] = await Promise.all([
-      loadCompetitorWeightOptions(service, [fighterAId, fighterBId]),
+      loadCompetitorWeightOptions(service, participantIds),
       service
         .from("superfight_competitors")
         .select("id, event_id, grappling_preference")
-        .in("id", [fighterAId, fighterBId]),
+        .in("id", participantIds),
     ]);
     if (competitorError) throw databaseFailure(competitorError, "match competitor lookup failed");
-    if (competitors.length !== 2 || competitors.some((competitor) => competitor.event_id !== eventId)) {
-      throw new HttpError(400, "Choose two competitors from this event.", "invalid_match");
+    if (competitors.length !== participantIds.length || competitors.some((competitor) => competitor.event_id !== eventId)) {
+      throw new HttpError(400, "Choose competitors from this event.", "invalid_match");
     }
 
-    const fighterA = competitors.find((competitor) => competitor.id === fighterAId);
-    const fighterB = competitors.find((competitor) => competitor.id === fighterBId);
-    if (formatPreferencesConflict(fighterA.grappling_preference, fighterB.grappling_preference)
+    if (competitors.some((left) => competitors.some((right) => formatPreferencesConflict(left.grappling_preference, right.grappling_preference)))
       && body.formatOverrideConfirmed !== true) {
       throw new HttpError(
         409,
@@ -172,22 +176,23 @@ export default async function handler(request, response) {
     const fighterAWeights = new Set((preferences.get(fighterAId) ?? []).map((option) => option.id));
     const sharedWeightOptionIds = (preferences.get(fighterBId) ?? [])
       .map((option) => option.id)
-      .filter((optionId) => fighterAWeights.has(optionId));
+      .filter((optionId) => fighterAWeights.has(optionId) && extraIds.every((id) => (preferences.get(id) ?? []).some((option) => option.id === optionId)));
     const { weightOptionId, matchWeightLbs } = resolveMatchWeight({
       sharedWeightOptionIds,
       weightOptionId: body.weightOptionId,
       agreedWeightLbs: body.agreedWeightLbs,
     });
 
-    const { data, error } = await service.rpc("create_superfight_match_with_offer", {
+    const { data, error } = await service.rpc("create_superfight_group_match", {
       event_id_input: eventId, fighter_a: fighterAId, fighter_b: fighterBId,
+      fighter_c: extraIds[0] ?? null, fighter_d: extraIds[1] ?? null,
       weight_option: weightOptionId, agreed_weight: matchWeightLbs,
       selected_bout: finalBoutType, admin_id: admin.id,
       offer_id: body.offerId ? uuid(body.offerId, "Offer") : null,
     });
 
     if (error) {
-      if (/already belongs to an active match|Only active competitors|same gender division|final bout type|weight class|agreed match weight|no longer/i.test(error.message)) {
+      if (error.code === "P0001" || /already belongs to an active match|Only active competitors|same gender division|final bout type|weight class|agreed match weight|no longer/i.test(error.message)) {
         throw new HttpError(409, error.message, "match_conflict");
       }
       throw databaseFailure(error, "admin match create failed");

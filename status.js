@@ -41,6 +41,8 @@ function confirmationLabel(value) {
     fighter_a_accepted: "One fighter accepted",
     fighter_b_accepted: "One fighter accepted",
     both_accepted: "Both fighters accepted",
+    all_accepted: "All competitors accepted",
+    partially_accepted: "Some competitors accepted",
     declined: "Declined",
   }[value] ?? "Awaiting confirmation";
 }
@@ -76,12 +78,12 @@ function renderMatched(payload) {
     textElement("h1", "", "You’ve been matched."),
     textElement("p", "sf-lead", `${payload.fighter.name}, here are your current matchup details.`),
     definitionList([
-      ["Opponent", payload.opponent.name],
-      ["Opponent belt", payload.opponent.belt ? `${payload.opponent.belt[0].toUpperCase()}${payload.opponent.belt.slice(1)}` : null],
-      ["Opponent gym", payload.opponent.gym],
-      ["Opponent Instagram", payload.opponent.instagramHandle ? `@${payload.opponent.instagramHandle}` : null, payload.opponent.instagramUrl],
+      ...(payload.opponents ?? [payload.opponent]).flatMap(opponent => [
+        ["Opponent", opponent.name], ["Opponent belt", opponent.belt], ["Opponent gym", opponent.gym],
+        ["Opponent Instagram", opponent.instagramHandle ? `@${opponent.instagramHandle}` : null, opponent.instagramUrl],
+      ]),
       [payload.match.weightOption ? "Final weight class" : "Agreed match weight", payload.match.weightOption?.label ?? (payload.match.weightLbs === null ? null : `${payload.match.weightLbs} lb`)],
-      ["Bout type", { gi: "Gi", no_gi: "No-Gi" }[payload.match.boutType] ?? null],
+      ["Bout type", { gi: "Gi", no_gi: "No-Gi", john_wick: "John Wick", gauntlet: "Gauntlet" }[payload.match.boutType] ?? null],
       ["Event date", formattedDateTime(payload.event.startsAt)],
       ["Venue", payload.event.venue],
       ["Match status", confirmationLabel(payload.match.confirmation.summary)],
