@@ -101,12 +101,14 @@ function shortWeightLabel(option) {
   return String(option.label).split(" — ")[0];
 }
 
-function weightSummary(competitor) {
+function weightSummary(competitor, showLimits = false) {
   const options = competitor.weightOptions ?? [];
   if (options.length === 0) return '<span class="admin-muted">—</span>';
-  const short = options.map(shortWeightLabel).join(", ");
+  const display = options.map((option) => showLimits
+    ? String(option.label).replace(/^(.+?) — (.+)$/, "$1 ($2)")
+    : shortWeightLabel(option)).join(", ");
   const full = options.map((option) => option.label).join("; ");
-  return `<span class="admin-weight-summary" title="${escapeHtml(full)}">${escapeHtml(short)}</span>`;
+  return `<span class="admin-weight-summary" title="${escapeHtml(full)}">${escapeHtml(display)}</span>`;
 }
 
 function weightChecklist(options, selectedIds = [], name = "weightOptionIds") {
@@ -299,7 +301,7 @@ function renderUnmatched() {
         <tr class="${state.selected?.id === competitor.id ? "is-selected" : ""}">
           <td><div class="admin-name-actions"><button class="admin-name-button${unmatchedBeltClass(competitor.belt)}" type="button" data-unmatched-name="${competitor.id}" title="Open details; double-click or double-tap to select">${unmatchedTableName(competitor)}</button>${competitorActions(competitor)}</div><div class="admin-muted">${escapeHtml(competitor.gym || "No gym")}</div><button class="admin-button admin-inline-select ${state.selected?.id === competitor.id ? "secondary" : ""}" type="button" data-select="${competitor.id}" aria-pressed="${state.selected?.id === competitor.id}">${state.selected?.id === competitor.id ? "Selected" : state.selected ? "Match with" : "Select"}</button></td>
           <td>${label(competitor.grapplingPreference)}</td>
-          <td>${weightSummary(competitor)}</td>
+          <td>${weightSummary(competitor, true)}</td>
           <td>${socialCell(competitor)}</td>
         </tr>`).join("")}</tbody>
     </table></div>`;

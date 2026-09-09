@@ -17,7 +17,7 @@ test("admin unmatched table uses the requested display-only columns and names", 
   assert.match(unmatchedRenderer, /const shortenedName = `\$\{Array\.from\(parts\[0\]\)\[0\]\}\. \$\{parts\.at\(-1\)\}`/);
   assert.match(unmatchedRenderer, /competitor\.genderDivision === "womens" \? " 💕" : ""/);
   assert.match(unmatchedRenderer, /\(\$\{competitor\.age \?\? "—"\}\)/);
-  assert.match(unmatchedRenderer, /weightSummary\(competitor\)/);
+  assert.match(unmatchedRenderer, /weightSummary\(competitor, true\)/);
   assert.match(unmatchedRenderer, /label\(competitor\.grapplingPreference\)/);
   assert.match(unmatchedRenderer, /new Set\(\["blue", "purple", "brown", "black"\]\)/);
   assert.match(unmatchedRenderer, /addEventListener\("dblclick"[\s\S]*?selectCompetitor\(button\.dataset\.unmatchedName\)/);
