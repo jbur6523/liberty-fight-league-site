@@ -2,7 +2,7 @@
   "redirects": [
     {
       "source": "/tickets",
-      "destination": "/event",
+      "destination": "https://cornerpass.com/rwi3",
       "permanent": false
     },
     {

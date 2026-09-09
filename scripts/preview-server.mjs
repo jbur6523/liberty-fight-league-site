@@ -196,7 +196,6 @@ const rewrites = new Map([
   ["/event", "/event.html"],
   ["/fighters", "/fighters.html"],
   ["/contact", "/contact.html"],
-  ["/tickets", "/event.html"],
   ["/BJJ", "/superfight.html"],
   ["/bjj", "/superfight.html"],
   ["/ppv", "/ppv.html"],
@@ -206,6 +205,10 @@ const rewrites = new Map([
 
 const server = http.createServer(async (request, response) => {
   const url = new URL(request.url, `http://${request.headers.host}`);
+  if (url.pathname === "/tickets") {
+    response.writeHead(307, { Location: "https://cornerpass.com/rwi3" }).end();
+    return;
+  }
   if (url.pathname.startsWith("/api/")) return mockApi(request, response, url);
 
   let pathname = rewrites.get(url.pathname) ?? url.pathname;

@@ -29,7 +29,7 @@ test("public routes point competitors and retired promotions to current RWI 3 pa
   assert.equal(rewriteMap.get("/event"), "/event.html");
   assert.equal(rewriteMap.get("/fighters"), "/fighters.html");
   assert.equal(rewriteMap.get("/contact"), "/contact.html");
-  assert.equal(redirectMap.get("/tickets"), "/event");
+  assert.equal(redirectMap.get("/tickets"), "https://cornerpass.com/rwi3");
   assert.equal(redirectMap.get("/BJJ"), "/superfight");
   assert.equal(redirectMap.get("/bjj"), "/superfight");
   assert.equal([...redirectMap.values()].some((destination) => /buytickets|tickettailor|docs\.google\.com/i.test(destination)), false);
