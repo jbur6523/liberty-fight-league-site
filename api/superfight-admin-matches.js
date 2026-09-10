@@ -46,7 +46,7 @@ async function listMatches(service, eventId) {
   ] = await Promise.all([
     service
       .from("superfight_competitors")
-      .select("id, full_name, belt, gym, instagram_handle, instagram_url")
+      .select("id, full_name, belt, gym, city, state, distance_from_sf_miles, instagram_handle, instagram_url")
       .in("id", competitorIds),
     service
       .from("superfight_match_confirmations")
@@ -71,6 +71,9 @@ async function listMatches(service, eventId) {
         name: competitor.full_name,
         belt: competitor.belt,
         gym: competitor.gym,
+        city: competitor.city,
+        state: competitor.state,
+        distanceFromSfMiles: competitor.distance_from_sf_miles,
         instagramHandle: competitor.instagram_handle,
         instagramUrl: competitor.instagram_url,
         confirmationPath: confirmation ? `/confirm/${confirmation.token}` : null,

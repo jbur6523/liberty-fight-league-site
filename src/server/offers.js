@@ -65,7 +65,7 @@ export async function adminOffers(service, eventId) {
   if (!offers.length) return [];
   const ids = [...new Set(offers.flatMap((offer) => [offer.target_competitor_id, offer.offering_competitor_id]))];
   const [{ data: competitors, error: fighterError }, weights, { data: matches, error: matchError }] = await Promise.all([
-    service.from("superfight_competitors").select("id,full_name,belt,experience_level,competition_weight_lbs,gym,instagram_handle,grappling_preference,gender_division,age,record_state,matchmaking_pool").in("id", ids),
+    service.from("superfight_competitors").select("id,full_name,belt,experience_level,competition_weight_lbs,gym,city,state,distance_from_sf_miles,instagram_handle,grappling_preference,gender_division,age,record_state,matchmaking_pool").in("id", ids),
     loadCompetitorWeightOptions(service, ids),
     service.from("superfight_matches").select("fighter_a_id,fighter_b_id,fighter_c_id,fighter_d_id").eq("event_id", eventId).eq("state", "active"),
   ]);
@@ -74,6 +74,7 @@ export async function adminOffers(service, eventId) {
   const map = new Map(competitors.map((record) => [record.id, {
     id: record.id, name: record.full_name, belt: record.belt ?? record.experience_level,
     weightLbs: record.competition_weight_lbs, gym: record.gym, instagramHandle: record.instagram_handle,
+    city: record.city, state: record.state, distanceFromSfMiles: record.distance_from_sf_miles,
     grapplingPreference: record.grappling_preference, genderDivision: record.gender_division, age: record.age,
     weightOptions: weights.get(record.id) ?? [], matchmakingPool: record.matchmaking_pool,
     available: record.record_state === "active" && !matched.has(record.id),

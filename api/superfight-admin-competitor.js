@@ -10,6 +10,7 @@ import {
   sendJson,
 } from "../src/server/http.js";
 import { getServiceSupabase } from "../src/server/supabase.js";
+import { competitorLocation } from "../src/server/city-distance.js";
 import { moveCompetitorPool } from "../src/server/matchmaking-pools.js";
 import {
   loadCompetitorWeightOptions,
@@ -32,7 +33,7 @@ import {
 async function competitorDetail(service, competitorId) {
   const { data: competitor, error } = await service
     .from("superfight_competitors")
-    .select("id, event_id, full_name, phone, email, preferred_contact_method, age, gender_division, grappling_preference, belt, competition_weight_lbs, gym, instagram_handle, instagram_url, notes, source, record_state, merged_into_competitor_id, application_submitted_at, created_at, status_slug")
+    .select("id, event_id, full_name, phone, email, preferred_contact_method, age, gender_division, grappling_preference, belt, competition_weight_lbs, gym, city, state, distance_from_sf_miles, instagram_handle, instagram_url, notes, source, record_state, merged_into_competitor_id, application_submitted_at, created_at, status_slug")
     .eq("id", competitorId)
     .maybeSingle();
 
@@ -116,6 +117,9 @@ async function competitorDetail(service, competitorId) {
     weightLbs: competitor.competition_weight_lbs === null ? null : Number(competitor.competition_weight_lbs),
     weightOptions,
     gym: competitor.gym,
+    city: competitor.city,
+    state: competitor.state,
+    distanceFromSfMiles: competitor.distance_from_sf_miles,
     instagramHandle: competitor.instagram_handle,
     instagramUrl: competitor.instagram_url,
     notes: competitor.notes,
@@ -217,13 +221,19 @@ export default async function handler(request, response) {
 
     const { data: current, error: currentError } = await service
       .from("superfight_competitors")
-      .select("event_id, phone, preferred_contact_method, instagram_handle, instagram_url")
+      .select("event_id, phone, preferred_contact_method, instagram_handle, instagram_url, city, state")
       .eq("id", competitorId)
       .maybeSingle();
     if (currentError) throw databaseFailure(currentError, "admin competitor lookup failed");
     if (!current) throw new HttpError(404, "Competitor could not be found.", "competitor_not_found");
 
     const updates = {};
+    if (Object.hasOwn(body, "city") || Object.hasOwn(body, "state")) {
+      Object.assign(updates, competitorLocation({
+        city: Object.hasOwn(body, "city") ? body.city : current.city,
+        state: Object.hasOwn(body, "state") ? body.state : current.state,
+      }, { optional: true }));
+    }
     if (Object.hasOwn(body, "fullName")) updates.full_name = requiredText(body.fullName, "Full name", 160);
     if (Object.hasOwn(body, "phone")) updates.phone = optionalText(body.phone, "Cell Phone", 50);
     if (Object.hasOwn(body, "email")) updates.email = email(body.email, { optional: true });

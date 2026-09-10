@@ -4,6 +4,7 @@ import http from "node:http";
 import path from "node:path";
 import { randomBytes } from "node:crypto";
 import { profileSnapshot } from "../src/superfight/share-profile.js";
+import { competitorLocation } from "../src/server/city-distance.js";
 
 const port = Number(process.env.PORT || 4173);
 const root = path.resolve(".");
@@ -116,7 +117,18 @@ async function mockApi(request, response, url) {
   }
   if (url.pathname === "/api/superfight-event") return json(response, 200, { event: previewEvent });
   if (url.pathname === "/api/superfight-apply") {
-    await body(request);
+    const input = await body(request);
+    let location;
+    try { location = competitorLocation(input); }
+    catch (error) { return json(response, error.statusCode ?? 400, { message: error.message }); }
+    competitors.push({ id: crypto.randomUUID(), name: input.fullName, age: Number(input.age),
+      belt: input.belt, gym: input.gym, city: location.city, state: location.state,
+      distanceFromSfMiles: location.distance_from_sf_miles,
+      genderDivision: input.genderDivision, grapplingPreference: input.grapplingPreference,
+      weightOptions: previewEvent.weightOptions.filter(option => input.weightOptionIds.includes(option.id)),
+      instagramHandle: input.instagram?.replace(/^@/, ""), instagramUrl: `https://instagram.com/${input.instagram?.replace(/^@/, "")}`,
+      statusPath: "/status/lee", source: "public_application", createdAt: new Date().toISOString(),
+    });
     return json(response, 201, { received: true, statusPath: "/status/lee" });
   }
   if (url.pathname === "/api/superfight-status") {

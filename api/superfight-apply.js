@@ -9,6 +9,7 @@ import {
   sendJson,
 } from "../src/server/http.js";
 import { getServiceSupabase } from "../src/server/supabase.js";
+import { competitorLocation } from "../src/server/city-distance.js";
 import { setCompetitorWeightPreferences } from "../src/server/weight-preferences.js";
 import {
   belt,
@@ -42,6 +43,7 @@ export default async function handler(request, response) {
     const preference = grapplingPreference(body.grapplingPreference);
     const applicantBelt = belt(body.belt);
     const gym = requiredText(body.gym, "Gym / academy", 160);
+    const location = competitorLocation(body);
     const instagramInput = optionalText(body.instagram, "Instagram", 300);
     let instagram;
 
@@ -86,6 +88,7 @@ export default async function handler(request, response) {
         grappling_preference: preference,
         belt: applicantBelt,
         gym,
+        ...location,
         instagram_handle: instagram.handle,
         instagram_url: instagram.url,
         application_submitted_at: new Date().toISOString(),

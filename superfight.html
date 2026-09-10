@@ -163,6 +163,18 @@
               <input class="sf-input" id="gym" name="gym" autocomplete="organization" placeholder="Your academy" maxlength="160">
               <p class="sf-error" data-error="gym"></p>
             </div>
+            <div class="sf-location-grid">
+              <div class="sf-field">
+                <label for="city">City</label>
+                <input class="sf-input" id="city" name="city" autocomplete="address-level2" placeholder="Your city" maxlength="100">
+                <p class="sf-error" data-error="city"></p>
+              </div>
+              <div class="sf-field">
+                <label for="state">State</label>
+                <select class="sf-input" id="state" name="state" autocomplete="address-level1"><option value="">Select state</option></select>
+                <p class="sf-error" data-error="state"></p>
+              </div>
+            </div>
             <div class="sf-actions">
               <button class="sf-button secondary sf-back" type="button" data-back aria-label="Back"><svg class="sf-back-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M14.5 5 7.5 12l7 7"/></svg></button>
               <button class="sf-button" type="submit" id="submit-button">Send application</button>

@@ -10,6 +10,7 @@ import {
   sendJson,
 } from "../src/server/http.js";
 import { getServiceSupabase } from "../src/server/supabase.js";
+import { competitorLocation } from "../src/server/city-distance.js";
 import {
   loadCompetitorWeightOptions,
   setCompetitorWeightPreferences,
@@ -42,6 +43,9 @@ function adminCompetitorPayload(competitor) {
       : Number(competitor.competition_weight_lbs),
     weightOptions: competitor.weightOptions ?? [],
     gym: competitor.gym,
+    city: competitor.city,
+    state: competitor.state,
+    distanceFromSfMiles: competitor.distance_from_sf_miles,
     instagramHandle: competitor.instagram_handle,
     instagramUrl: competitor.instagram_url,
     phone: competitor.phone,
@@ -62,6 +66,7 @@ export default async function handler(request, response) {
       assertSameOrigin(request);
       const body = await readJsonBody(request);
       const eventId = uuid(body.eventId, "Event");
+      const location = competitorLocation(body, { optional: true });
       const weightOptionIds = uuidList(body.weightOptionIds, "Acceptable weight classes", { optional: true });
       let instagram;
       try {
@@ -88,6 +93,7 @@ export default async function handler(request, response) {
           grappling_preference: grapplingPreference(body.grapplingPreference, { optional: true }),
           belt: belt(body.belt, { optional: true }),
           gym: optionalText(body.gym, "Gym / academy", 160),
+          ...location,
           instagram_handle: instagram.handle,
           instagram_url: instagram.url,
           phone,
@@ -128,7 +134,7 @@ export default async function handler(request, response) {
     const sort = queryValue(request, "sort") ?? "suggested";
     const { data: competitors, error: competitorError } = await service
       .from("superfight_competitors")
-      .select("id, matchmaking_pool, full_name, age, gender_division, grappling_preference, belt, competition_weight_lbs, gym, phone, preferred_contact_method, instagram_handle, instagram_url, source, created_at, status_slug")
+      .select("id, matchmaking_pool, full_name, age, gender_division, grappling_preference, belt, competition_weight_lbs, gym, city, state, distance_from_sf_miles, phone, preferred_contact_method, instagram_handle, instagram_url, source, created_at, status_slug")
       .eq("event_id", eventId)
       .eq("record_state", "active");
 

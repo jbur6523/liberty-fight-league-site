@@ -1,3 +1,9 @@
+import { US_STATES } from "/src/superfight/us-states.js";
+
+for (const [code, name] of Object.entries(US_STATES)) {
+  document.querySelector("#add-state").add(new Option(name, code));
+}
+
 const state = {
   events: [],
   eventId: null,
@@ -301,7 +307,7 @@ function renderUnmatched() {
       <thead><tr><th>Name</th><th>Gi / No-Gi / Both</th><th>Weight</th><th>Instagram</th></tr></thead>
       <tbody>${competitors.map((competitor) => `
         <tr class="${state.selected?.id === competitor.id ? "is-selected" : ""}">
-          <td><div class="admin-name-actions"><button class="admin-name-button${unmatchedBeltClass(competitor.belt)}" type="button" data-unmatched-name="${competitor.id}" title="Open details; double-click or double-tap to select">${unmatchedTableName(competitor)}</button>${competitorActions(competitor)}</div><div class="admin-muted">${escapeHtml(competitor.gym || "No gym")}</div><button class="admin-button admin-inline-select ${state.selected?.id === competitor.id ? "secondary" : ""}" type="button" data-select="${competitor.id}" aria-pressed="${state.selected?.id === competitor.id}">${state.selected?.id === competitor.id ? "Selected" : state.selected ? "Match with" : "Select"}</button></td>
+          <td><div class="admin-name-actions"><button class="admin-name-button${unmatchedBeltClass(competitor.belt)}" type="button" data-unmatched-name="${competitor.id}" title="Open details; double-click or double-tap to select">${unmatchedTableName(competitor)}</button>${competitorActions(competitor)}</div><div class="admin-muted">${gymWithDistance(competitor)}</div><button class="admin-button admin-inline-select ${state.selected?.id === competitor.id ? "secondary" : ""}" type="button" data-select="${competitor.id}" aria-pressed="${state.selected?.id === competitor.id}">${state.selected?.id === competitor.id ? "Selected" : state.selected ? "Match with" : "Select"}</button></td>
           <td>${label(competitor.grapplingPreference)}</td>
           <td>${weightSummary(competitor, true)}</td>
           <td>${socialCell(competitor)}</td>
@@ -354,6 +360,13 @@ function renderUnmatched() {
   });
 }
 
+function gymWithDistance(competitor) {
+  const gym = escapeHtml(competitor.gym || "No gym");
+  if (!Number.isFinite(competitor.distanceFromSfMiles)) return gym;
+  const location = [competitor.city, competitor.state].filter(Boolean).join(", ");
+  return `${gym} - <span title="${escapeHtml(`Approximate straight-line distance from ${location || "submitted city"} to San Francisco`)}">${Math.round(competitor.distanceFromSfMiles)}mi</span>`;
+}
+
 document.querySelector("#share-profile-copy").addEventListener("click", async () => {
   const linkInput = document.querySelector("#share-profile-link");
   const message = document.querySelector("#share-profile-message");
@@ -382,7 +395,7 @@ function confirmationBadge(summary) {
 }
 
 function matchFighterCell(fighter) {
-  return `<button class="admin-name-button" type="button" data-detail="${fighter.id}">${escapeHtml(fighter.name)}</button><div class="admin-muted">${label(fighter.belt)} · ${escapeHtml(fighter.gym || "No gym")}</div>`;
+  return `<button class="admin-name-button" type="button" data-detail="${fighter.id}">${escapeHtml(fighter.name)}</button><div class="admin-muted">${label(fighter.belt)} · ${gymWithDistance(fighter)}</div>`;
 }
 
 function matchLinks(fighter) {
@@ -493,7 +506,7 @@ async function loadOffers() {
     return `<section class="admin-offer-group"><h2>Offers for <button class="admin-name-button${unmatchedBeltClass(target.belt)}" type="button" data-detail="${target.id}">${escapeHtml(target.name)}</button></h2>
       <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Offering competitor</th><th>Belt / weight / gym</th><th>Match type</th><th>Actions</th></tr></thead><tbody>
       ${offers.map((offer) => `<tr><td><button class="admin-name-button${unmatchedBeltClass(offer.offering.belt)}" type="button" data-detail="${offer.offering.id}">${escapeHtml(offer.offering.name)}</button><div class="admin-muted">@${escapeHtml(offer.offering.instagramHandle || "Not entered")}</div></td>
-        <td>${escapeHtml(label(offer.offering.belt))} · ${escapeHtml(offer.weightLbs ?? offer.offering.weightLbs ?? "—")} lb<div class="admin-muted">${escapeHtml(offer.offering.gym || "No gym")}</div></td>
+        <td>${escapeHtml(label(offer.offering.belt))} · ${escapeHtml(offer.weightLbs ?? offer.offering.weightLbs ?? "—")} lb<div class="admin-muted">${gymWithDistance(offer.offering)}</div></td>
         <td>${label(offer.boutType)}${!offer.canMatch ? '<div class="admin-muted">Competitor no longer available</div>' : ""}</td>
         <td><button class="admin-overflow-button" type="button" popovertarget="offer-${offer.id}" aria-label="Offer actions for ${escapeHtml(offer.offering.name)}">⋮</button>
           <div class="admin-competitor-menu" id="offer-${offer.id}" popover><button class="admin-button" type="button" data-make-offer="${offer.id}"${offer.canMatch ? "" : " disabled"}>Make Match</button><hr><button class="admin-button danger" type="button" data-deny-offer="${offer.id}">Deny Offer</button></div>
@@ -628,6 +641,8 @@ async function openDetail(competitorId) {
           <div class="admin-field"><label>Belt</label><select class="admin-select" name="belt"><option value="">Not entered</option>${["blue","purple","brown","black"].map((beltValue) => `<option value="${beltValue}"${competitor.belt === beltValue ? " selected" : ""}>${label(beltValue)}</option>`).join("")}</select></div>
           <div class="admin-field full"><span class="admin-field-label">Acceptable weight classes</span><div class="admin-check-grid">${weightChecklist(activeWeightOptions(), competitor.weightOptions?.map((option) => option.id))}</div></div>
           <div class="admin-field"><label>Gym</label><input class="admin-input" name="gym" value="${escapeHtml(competitor.gym)}"></div>
+          <div class="admin-field"><label for="detail-city">City</label><input class="admin-input" id="detail-city" name="city" maxlength="100" value="${escapeHtml(competitor.city)}"></div>
+          <div class="admin-field"><label for="detail-state">State</label><select class="admin-select" id="detail-state" name="state"><option value="">Not entered</option>${Object.entries(US_STATES).map(([code, name]) => `<option value="${code}"${competitor.state === code ? " selected" : ""}>${name}</option>`).join("")}</select></div>
           <div class="admin-field"><label>Instagram</label><input class="admin-input" name="instagram" value="${escapeHtml(competitor.instagramHandle ? `@${competitor.instagramHandle}` : "")}"></div>
           <div class="admin-field full"><label>Admin notes</label><textarea class="admin-textarea" name="notes">${escapeHtml(competitor.notes)}</textarea></div>
         </div>
@@ -782,6 +797,8 @@ document.querySelector("#quick-add-form").addEventListener("submit", async (even
         belt: document.querySelector("#add-belt").value,
         weightOptionIds: [...form.querySelectorAll('[name="weightOptionIds"]:checked')].map((input) => input.value),
         gym: document.querySelector("#add-gym").value,
+        city: document.querySelector("#add-city").value,
+        state: document.querySelector("#add-state").value,
         instagram: document.querySelector("#add-instagram").value,
         phone: document.querySelector("#add-phone").value,
         preferredContactMethod: document.querySelector("#add-preferred-contact").value,

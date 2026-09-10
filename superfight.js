@@ -1,3 +1,5 @@
+import { US_STATES, normalizeState } from "/src/superfight/us-states.js";
+
 const screens = [...document.querySelectorAll(".sf-screen")];
 const questionScreens = ["name", "contact", "age", "division", "grappling", "belt", "weight", "gym"];
 const fieldsByScreen = {
@@ -8,7 +10,7 @@ const fieldsByScreen = {
   grappling: ["grapplingPreference"],
   belt: ["belt"],
   weight: ["weightOptionIds"],
-  gym: ["gym"],
+  gym: ["gym", "city", "state"],
 };
 
 let currentScreen = "intro";
@@ -18,6 +20,9 @@ let moving = false;
 const application = document.querySelector("#application");
 const loading = document.querySelector("#loading");
 const form = document.querySelector("#superfight-form");
+for (const [code, name] of Object.entries(US_STATES)) {
+  document.querySelector("#state").add(new Option(name, code));
+}
 const progressWrap = document.querySelector("#progress-wrap");
 const progressBar = document.querySelector("#progress-bar");
 const progressLabel = document.querySelector("#progress-label");
@@ -191,6 +196,10 @@ function validateScreen(screenName) {
   }
   if (screenName === "gym" && !String(data.get("gym") ?? "").trim()) {
     errors.gym = "Enter your gym or academy.";
+  }
+  if (screenName === "gym") {
+    if (!String(data.get("city") ?? "").trim()) errors.city = "Enter your city.";
+    if (!normalizeState(data.get("state"))) errors.state = "Select your state.";
   }
 
   for (const [field, message] of Object.entries(errors)) {
