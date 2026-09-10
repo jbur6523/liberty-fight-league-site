@@ -166,5 +166,19 @@
   </dialog>
 
   <div class="admin-toast" id="admin-toast" role="status"></div>
+  <dialog class="admin-dialog" id="share-profile-dialog" aria-labelledby="share-profile-title">
+    <div class="admin-dialog-body">
+      <h2 id="share-profile-title">Share Profile</h2>
+      <p id="share-profile-message" role="status"></p>
+      <div class="admin-field">
+        <label for="share-profile-link">Profile link</label>
+        <input class="admin-input" id="share-profile-link" readonly>
+      </div>
+      <div class="admin-dialog-actions">
+        <a class="admin-button secondary" id="share-profile-preview" target="_blank" rel="noopener">View profile</a>
+        <form method="dialog"><button class="admin-button" type="submit">Done</button></form>
+      </div>
+    </div>
+  </dialog>
 </body>
 </html>

@@ -33,6 +33,7 @@ for (const file of files) {
 }
 
 const syntaxOnlyFiles = [
+  "fighter-profile.js",
   "offers.js",
   "admin-superfights.js",
   "confirm.js",

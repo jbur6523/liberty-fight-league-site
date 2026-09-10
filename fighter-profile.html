@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
+  <title>Fighter Profile | Liberty Fight League</title>
+  <link rel="stylesheet" href="/superfight.css">
+  <link rel="stylesheet" href="/fighter-profile.css">
+  <script type="module" src="/fighter-profile.js"></script>
+</head>
+<body>
+  <div class="sf-page">
+    <header class="sf-header">
+      <a class="sf-brand" href="/" aria-label="Liberty Fight League home">
+        <img src="/rwi-logo.svg" alt="">
+        <span>Liberty Fight League</span>
+      </a>
+    </header>
+    <main class="sf-main">
+      <article class="sf-status-card profile-card" id="profile" hidden>
+        <p class="profile-eyebrow">Fighter profile</p>
+        <h1 id="profile-name"></h1>
+        <dl id="profile-details"></dl>
+        <p class="profile-note">Details as shared by the matchmaker.</p>
+      </article>
+      <section class="sf-status-card" id="profile-error" hidden>
+        <h1>Profile unavailable</h1>
+        <p>This link is incomplete or invalid. Ask the matchmaker for a new profile link.</p>
+      </section>
+      <noscript>Enable JavaScript to view this fighter profile.</noscript>
+    </main>
+  </div>
+</body>
+</html>

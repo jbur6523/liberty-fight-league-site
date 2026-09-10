@@ -1,3 +1,5 @@
+import { profileShareUrl } from "/src/superfight/share-profile.js";
+
 const state = {
   events: [],
   eventId: null,
@@ -243,6 +245,8 @@ function competitorActions(competitor) {
   const pool = competitor.matchmakingPool ?? "standard";
   return `<button class="admin-overflow-button" type="button" popovertarget="actions-${competitor.id}" aria-label="Actions for ${escapeHtml(competitor.name)}" title="Competitor actions">⋮</button>
     <div class="admin-competitor-menu" id="actions-${competitor.id}" popover>
+      <button class="admin-button ghost" type="button" data-share-profile="${competitor.id}">Share Profile</button>
+      <hr>
       <strong>Move to…</strong>
       ${Object.entries(poolLabels).filter(([key]) => key !== pool).map(([key, name]) => `<button class="admin-button ghost" type="button" data-move-competitor="${competitor.id}" data-pool="${key}">${name}</button>`).join("")}
       <hr>
@@ -308,6 +312,27 @@ function renderUnmatched() {
 
   bindTableActions(elements.unmatched);
   bindUnmatchedNameActions();
+  elements.unmatched.querySelectorAll("[data-share-profile]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const competitor = state.competitors.find(item => item.id === button.dataset.shareProfile);
+      if (!competitor) return;
+      const url = profileShareUrl(competitor, window.location.origin);
+      button.closest("[popover]").hidePopover();
+      const linkInput = document.querySelector("#share-profile-link");
+      linkInput.value = url;
+      document.querySelector("#share-profile-preview").href = url;
+      const message = document.querySelector("#share-profile-message");
+      message.textContent = "Copy this link to share the fighter’s current profile.";
+      document.querySelector("#share-profile-dialog").showModal();
+      linkInput.select();
+      try {
+        await copyText(url, "Profile link copied");
+        message.textContent = "Link copied. It’s ready to paste and share.";
+      } catch {
+        message.textContent = "Select and copy the link below to share this profile.";
+      }
+    });
+  });
   elements.unmatched.querySelectorAll("[data-move-competitor]").forEach((button) => {
     button.addEventListener("click", () => moveCompetitor(button.dataset.moveCompetitor, button.dataset.pool, button));
   });

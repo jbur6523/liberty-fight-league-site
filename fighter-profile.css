@@ -1,0 +1,9 @@
+.profile-card { max-width: 680px; margin: 0 auto; }
+.profile-eyebrow { color: #aaa; text-transform: uppercase; letter-spacing: .16em; font-size: .75rem; }
+.profile-card h1 { font-size: clamp(2rem, 7vw, 3.5rem); line-height: 1.1; overflow-wrap: anywhere; }
+.profile-card dl { display: grid; grid-template-columns: minmax(100px, 1fr) minmax(0, 2fr); gap: 0 24px; margin-top: 32px; }
+.profile-card dt, .profile-card dd { margin: 0; padding: 18px 0; border-bottom: 1px solid #333; }
+.profile-card dt { color: #aaa; }
+.profile-card dd { font-weight: 600; overflow-wrap: anywhere; }
+.profile-card a { color: inherit; text-underline-offset: 4px; }
+.profile-note { margin-top: 28px; color: #aaa; font-size: .8rem; }
