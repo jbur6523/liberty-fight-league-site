@@ -37,7 +37,7 @@ const previewProfileShares = new Map();
 
 function previewAvailable() {
   const matched = new Set(previewMatches.flatMap((match) => [match.fighterA.id, match.fighterB.id, ...(match.extraFighters ?? []).map(fighter => fighter.id)]));
-  return competitors.filter((fighter) => !matched.has(fighter.id));
+  return competitors.filter((fighter) => !matched.has(fighter.id) && fighter.recordState !== "withdrawn");
 }
 
 function previewPublic(fighter, detail = false) {
@@ -156,6 +156,7 @@ async function mockApi(request, response, url) {
   }
   if (url.pathname === "/api/superfight-admin-competitors") {
     if (request.method === "POST") return json(response, 201, { competitor: competitors[0] });
+    if (url.searchParams.get("view") === "archived") return json(response, 200, { competitors: competitors.filter(fighter => fighter.recordState === "withdrawn") });
     return json(response, 200, { competitors: previewAvailable(), sort: url.searchParams.get("sort") ?? "suggested" });
   }
   if (url.pathname === "/api/superfight-admin-matches") {
@@ -197,19 +198,26 @@ async function mockApi(request, response, url) {
         return json(response, 200, { competitor });
       }
       if (input.action === "withdraw") {
-        const index = competitors.findIndex((competitor) => competitor.id === input.competitorId);
-        if (index >= 0) competitors.splice(index, 1);
+        const competitor = competitors.find((competitor) => competitor.id === input.competitorId);
+        if (competitor) competitor.recordState = "withdrawn";
         return json(response, 200, { withdrawn: true });
+      }
+      if (input.action === "restore") {
+        const competitor = competitors.find(item => item.id === input.competitorId && item.recordState === "withdrawn");
+        if (!competitor) return json(response, 409, { message: "Competitor is no longer archived." });
+        competitor.recordState = "active";
+        competitor.matchmakingPool = "standard";
+        return json(response, 200, { restored: true, competitorId: competitor.id });
       }
     }
     return json(response, 200, {
       competitor: {
-        ...competitors[0],
+        ...(competitors.find(item => item.id === url.searchParams.get("id")) ?? competitors[0]),
         eventId: previewEvent.id,
         phone: "(555) 010-2026",
         email: "jordan@example.com",
         notes: "Preview notes",
-        recordState: "active",
+        recordState: competitors.find(item => item.id === url.searchParams.get("id"))?.recordState ?? "active",
         applicationSubmittedAt: new Date().toISOString(),
         match: null,
       },

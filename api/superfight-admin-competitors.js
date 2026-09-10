@@ -132,11 +132,13 @@ export default async function handler(request, response) {
 
     const eventId = uuid(queryValue(request, "eventId"), "Event");
     const sort = queryValue(request, "sort") ?? "suggested";
+    const view = queryValue(request, "view") ?? "active";
+    if (!["active", "archived"].includes(view)) throw new HttpError(400, "Choose a valid competitor view.", "invalid_view");
     const { data: competitors, error: competitorError } = await service
       .from("superfight_competitors")
       .select("id, matchmaking_pool, full_name, age, gender_division, grappling_preference, belt, competition_weight_lbs, gym, city, state, distance_from_sf_miles, phone, preferred_contact_method, instagram_handle, instagram_url, source, created_at, status_slug")
       .eq("event_id", eventId)
-      .eq("record_state", "active");
+      .eq("record_state", view === "archived" ? "withdrawn" : "active");
 
     if (competitorError) {
       throw databaseFailure(competitorError, "admin competitor pool lookup failed");
@@ -150,6 +152,13 @@ export default async function handler(request, response) {
       ...competitor,
       weightOptions: weightOptionsByCompetitor.get(competitor.id) ?? [],
     }));
+
+    if (view === "archived") {
+      sendJson(response, 200, {
+        competitors: competitorsWithWeights.sort((a, b) => a.full_name.localeCompare(b.full_name)).map(adminCompetitorPayload),
+      });
+      return;
+    }
 
     const { data: matches, error: matchError } = await service
       .from("superfight_matches")

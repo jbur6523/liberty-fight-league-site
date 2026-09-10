@@ -56,6 +56,7 @@
           <button class="admin-tab" type="button" data-tab="john_wick">John Wick <span id="john_wick-count"></span></button>
           <button class="admin-tab" type="button" data-tab="gauntlet">Gauntlet <span id="gauntlet-count"></span></button>
           <button class="admin-tab" type="button" data-tab="offers">Offers <span id="offers-count"></span></button>
+          <button class="admin-tab" type="button" data-tab="archived">Deleted / Archived <span id="archived-count"></span></button>
         </nav>
 
         <section id="unmatched-panel">
@@ -78,6 +79,10 @@
         <section id="offers-panel" hidden>
           <div class="admin-workbar"><span class="admin-muted">Public offers await promoter review. Confirm the Instagram identity and match details.</span><a class="admin-button ghost" href="/offers" target="_blank" rel="noopener">Available Matches ↗</a></div>
           <div id="offers-content"></div>
+        </section>
+        <section id="archived-panel" hidden>
+          <div class="admin-workbar"><span class="admin-muted">Deleted competitors are saved here with their information. Restore them to return to Unmatched.</span></div>
+          <div id="archived-content"></div>
         </section>
       </section>
     </main>
@@ -168,6 +173,17 @@
   </dialog>
 
   <div class="admin-toast" id="admin-toast" role="status"></div>
+  <dialog class="admin-dialog" id="archive-confirm-dialog" aria-labelledby="archive-confirm-title">
+    <div class="admin-dialog-body">
+      <h2 id="archive-confirm-title">Move to Deleted / Archived?</h2>
+      <p id="archive-confirm-name"></p>
+      <p>Their information will be saved. You can restore them to Unmatched at any time.</p>
+      <form method="dialog" class="admin-dialog-actions">
+        <button class="admin-button secondary" value="cancel">Cancel</button>
+        <button class="admin-button danger" value="archive">Archive competitor</button>
+      </form>
+    </div>
+  </dialog>
   <dialog class="admin-dialog" id="share-profile-dialog" aria-labelledby="share-profile-title">
     <div class="admin-dialog-body">
       <h2 id="share-profile-title">Share Profile</h2>

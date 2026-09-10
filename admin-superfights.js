@@ -8,6 +8,7 @@ const state = {
   events: [],
   eventId: null,
   competitors: [],
+  archived: [],
   matches: [],
   offers: [],
   offerId: null,
@@ -195,9 +196,13 @@ function unmatchedBeltClass(belt) {
 async function deleteUnmatchedCompetitor(competitorId, button) {
   const competitor = state.competitors.find((item) => item.id === competitorId);
   if (!competitor) return;
-  const confirmed = window.confirm(
-    `Delete ${competitor.name} from matchmaking?\n\nThey will disappear from this event's fighter list.`,
-  );
+  const dialog = document.querySelector("#archive-confirm-dialog");
+  document.querySelector("#archive-confirm-name").textContent = competitor.name;
+  dialog.returnValue = "";
+  const decision = new Promise(resolve => dialog.addEventListener("close", () => resolve(dialog.returnValue === "archive"), { once: true }));
+  button.closest("[popover]")?.hidePopover();
+  dialog.showModal();
+  const confirmed = await decision;
   if (!confirmed) return;
 
   button.disabled = true;
@@ -207,8 +212,8 @@ async function deleteUnmatchedCompetitor(competitorId, button) {
       body: JSON.stringify({ action: "withdraw", competitorId }),
     });
     if (state.selected?.id === competitorId) clearSelection();
-    showToast(`${competitor.name} deleted`);
-    await loadUnmatched();
+    showToast(`${competitor.name} moved to Deleted / Archived`);
+    await loadActiveView();
   } catch (error) {
     button.disabled = false;
     showToast(error.message);
@@ -485,7 +490,46 @@ async function loadMatches() {
 }
 
 async function loadActiveView() {
-  await Promise.all([loadUnmatched(), loadMatches(), loadOffers()]);
+  await Promise.all([loadUnmatched(), loadMatches(), loadOffers(), loadArchived()]);
+}
+
+async function loadArchived() {
+  const requestId = loadArchived.requestId = (loadArchived.requestId ?? 0) + 1;
+  const payload = state.eventId
+    ? await api(`/api/superfight-admin-competitors?eventId=${state.eventId}&view=archived`)
+    : { competitors: [] };
+  if (requestId !== loadArchived.requestId) return;
+  state.archived = payload.competitors;
+  document.querySelector("#archived-count").textContent = `(${state.archived.length})`;
+  const container = document.querySelector("#archived-content");
+  if (!state.archived.length) {
+    container.innerHTML = emptyState("No deleted or archived competitors", "Competitors you delete will appear here so you can restore them later.");
+    return;
+  }
+  container.innerHTML = `<div class="admin-table-wrap"><table class="admin-table">
+    <thead><tr><th>Name / gym</th><th>Belt</th><th>Weight</th><th>Instagram</th><th>Actions</th></tr></thead>
+    <tbody>${state.archived.map(competitor => `<tr>
+      <td><button class="admin-name-button" type="button" data-detail="${competitor.id}">${escapeHtml(competitor.name)} (${competitor.age ?? "—"})</button><div class="admin-muted">${gymWithDistance(competitor)}</div></td>
+      <td>${escapeHtml(label(competitor.belt))}</td><td>${weightSummary(competitor, true)}</td>
+      <td>${socialCell(competitor)}</td>
+      <td><button class="admin-button secondary" type="button" data-restore-competitor="${competitor.id}">Restore to Unmatched</button></td>
+    </tr>`).join("")}</tbody></table></div>`;
+  bindTableActions(container);
+  container.querySelectorAll("[data-restore-competitor]").forEach(button => {
+    button.addEventListener("click", async () => {
+      button.disabled = true;
+      try {
+        await api("/api/superfight-admin-competitor", {
+          method: "POST", body: JSON.stringify({ action: "restore", competitorId: button.dataset.restoreCompetitor }),
+        });
+        showToast("Competitor restored to Unmatched");
+        await loadActiveView();
+      } catch (error) {
+        button.disabled = false;
+        showToast(error.message);
+      }
+    });
+  });
 }
 
 async function loadOffers() {
@@ -649,7 +693,7 @@ async function openDetail(competitorId) {
         <p class="admin-error" id="detail-error"></p>
         <div class="admin-dialog-actions"><button class="admin-button secondary" type="button" data-copy-status="${competitor.statusPath}">Copy status link</button><button class="admin-button" type="submit">Save details</button></div>
       </form>
-      ${!competitor.match && mergeOptions ? `<hr style="border:0;border-top:1px solid var(--line);margin:24px 0"><div class="admin-field"><label>Merge this duplicate into</label><select class="admin-select" id="merge-target"><option value="">Select the record to keep</option>${mergeOptions}</select></div><div class="admin-dialog-actions"><button class="admin-button danger" id="merge-button" type="button">Merge duplicate</button></div>` : ""}
+      ${competitor.recordState === "active" && !competitor.match && mergeOptions ? `<hr style="border:0;border-top:1px solid var(--line);margin:24px 0"><div class="admin-field"><label>Merge this duplicate into</label><select class="admin-select" id="merge-target"><option value="">Select the record to keep</option>${mergeOptions}</select></div><div class="admin-dialog-actions"><button class="admin-button danger" id="merge-button" type="button">Merge duplicate</button></div>` : ""}
     `;
 
     target.querySelector("[data-copy-status]").addEventListener("click", (event) => copyText(event.currentTarget.dataset.copyStatus, "Status link copied"));
@@ -753,9 +797,10 @@ document.querySelectorAll("[data-tab]").forEach((tab) => {
     state.tab = tab.dataset.tab;
     clearSelection();
     document.querySelectorAll("[data-tab]").forEach((item) => item.classList.toggle("is-active", item === tab));
-    document.querySelector("#unmatched-panel").hidden = ["matched", "offers"].includes(state.tab);
+    document.querySelector("#unmatched-panel").hidden = ["matched", "offers", "archived"].includes(state.tab);
     document.querySelector("#matched-panel").hidden = state.tab !== "matched";
     document.querySelector("#offers-panel").hidden = state.tab !== "offers";
+    document.querySelector("#archived-panel").hidden = state.tab !== "archived";
     await loadActiveView();
   });
 });

@@ -11,6 +11,7 @@ import {
 } from "../src/server/http.js";
 import { getServiceSupabase } from "../src/server/supabase.js";
 import { competitorLocation } from "../src/server/city-distance.js";
+import { restoreCompetitor } from "../src/server/archived-competitors.js";
 import { moveCompetitorPool } from "../src/server/matchmaking-pools.js";
 import {
   loadCompetitorWeightOptions,
@@ -150,6 +151,11 @@ export default async function handler(request, response) {
     }
 
     assertSameOrigin(request);
+
+    if (request.method === "POST" && body.action === "restore") {
+      sendJson(response, 200, await restoreCompetitor(service, competitorId));
+      return;
+    }
 
     if (request.method === "POST" && body.action === "move_pool") {
       const competitor = await moveCompetitorPool(service, competitorId, body.pool);
