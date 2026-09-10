@@ -172,7 +172,13 @@
       <p id="share-profile-message" role="status"></p>
       <div class="admin-field">
         <label for="share-profile-link">Profile link</label>
-        <input class="admin-input" id="share-profile-link" readonly>
+        <div class="admin-share-link-row">
+          <input class="admin-input" id="share-profile-link" readonly>
+          <button class="admin-button secondary" id="share-profile-copy" type="button" aria-label="Copy profile link" title="Copy profile link" disabled>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="8" y="4" width="8" height="4" rx="1"/><path d="M8 6H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-2"/></svg>
+            Copy
+          </button>
+        </div>
       </div>
       <div class="admin-dialog-actions">
         <a class="admin-button secondary" id="share-profile-preview" target="_blank" rel="noopener">View profile</a>

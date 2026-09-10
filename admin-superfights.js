@@ -1,5 +1,3 @@
-import { profileShareUrl } from "/src/superfight/share-profile.js";
-
 const state = {
   events: [],
   eventId: null,
@@ -316,20 +314,32 @@ function renderUnmatched() {
     button.addEventListener("click", async () => {
       const competitor = state.competitors.find(item => item.id === button.dataset.shareProfile);
       if (!competitor) return;
-      const url = profileShareUrl(competitor, window.location.origin);
       button.closest("[popover]").hidePopover();
       const linkInput = document.querySelector("#share-profile-link");
-      linkInput.value = url;
-      document.querySelector("#share-profile-preview").href = url;
+      const copyButton = document.querySelector("#share-profile-copy");
+      const preview = document.querySelector("#share-profile-preview");
+      linkInput.value = "";
+      copyButton.disabled = true;
+      preview.hidden = true;
+      preview.removeAttribute("href");
       const message = document.querySelector("#share-profile-message");
-      message.textContent = "Copy this link to share the fighter’s current profile.";
-      document.querySelector("#share-profile-dialog").showModal();
-      linkInput.select();
+      const dialog = document.querySelector("#share-profile-dialog");
+      const requestId = dialog.shareRequestId = Symbol();
+      message.textContent = "Creating a short profile link…";
+      dialog.showModal();
       try {
-        await copyText(url, "Profile link copied");
-        message.textContent = "Link copied. It’s ready to paste and share.";
-      } catch {
-        message.textContent = "Select and copy the link below to share this profile.";
+        const result = await api("/api/superfight-profile", {
+          method: "POST", body: JSON.stringify({ competitorId: competitor.id }),
+        });
+        if (dialog.shareRequestId !== requestId || !dialog.open) return;
+        linkInput.value = new URL(result.path, window.location.origin).href;
+        preview.href = linkInput.value;
+        preview.hidden = false;
+        copyButton.disabled = false;
+        message.textContent = "Your short link is ready. Tap Copy to share it.";
+        copyButton.focus();
+      } catch (error) {
+        if (dialog.shareRequestId === requestId && dialog.open) message.textContent = error.message + " Close and try again.";
       }
     });
   });
@@ -343,6 +353,20 @@ function renderUnmatched() {
     button.addEventListener("click", () => deleteUnmatchedCompetitor(button.dataset.deleteCompetitor, button));
   });
 }
+
+document.querySelector("#share-profile-copy").addEventListener("click", async () => {
+  const linkInput = document.querySelector("#share-profile-link");
+  const message = document.querySelector("#share-profile-message");
+  if (!linkInput.value) return;
+  try {
+    await copyText(linkInput.value, "Profile link copied");
+    message.textContent = "Link copied. It’s ready to paste and share.";
+  } catch {
+    linkInput.focus();
+    linkInput.select();
+    message.textContent = "Select and copy the link below to share this profile.";
+  }
+});
 
 function confirmationBadge(summary) {
   const details = {

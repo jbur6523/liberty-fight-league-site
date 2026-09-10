@@ -2,6 +2,8 @@ import { createReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
 import http from "node:http";
 import path from "node:path";
+import { randomBytes } from "node:crypto";
+import { profileSnapshot } from "../src/superfight/share-profile.js";
 
 const port = Number(process.env.PORT || 4173);
 const root = path.resolve(".");
@@ -30,6 +32,7 @@ const competitors = [
 const confirmationResponses = new Map();
 const previewOffers = [];
 const previewMatches = [];
+const previewProfileShares = new Map();
 
 function previewAvailable() {
   const matched = new Set(previewMatches.flatMap((match) => [match.fighterA.id, match.fighterB.id, ...(match.extraFighters ?? []).map(fighter => fighter.id)]));
@@ -67,6 +70,18 @@ function confirmationPayload(response = "awaiting", gym = "North Bay Jiu-Jitsu")
 }
 
 async function mockApi(request, response, url) {
+  if (url.pathname === "/api/superfight-profile") {
+    if (request.method === "POST") {
+      const input = await body(request);
+      const fighter = competitors.find(item => item.id === input.competitorId);
+      if (!fighter) return json(response, 404, { message: "Competitor not found." });
+      const token = randomBytes(12).toString("base64url");
+      previewProfileShares.set(token, profileSnapshot(fighter));
+      return json(response, 201, { path: `/p/${token}` });
+    }
+    const profile = previewProfileShares.get(url.searchParams.get("token"));
+    return json(response, profile ? 200 : 404, profile ? { profile } : { message: "Profile link not found." });
+  }
   if (url.pathname === "/api/superfight-offers") {
     if (request.method === "GET") {
       const available = previewAvailable().filter((fighter) => !fighter.matchmakingPool || fighter.matchmakingPool === "standard");
@@ -212,6 +227,7 @@ const server = http.createServer(async (request, response) => {
   if (url.pathname.startsWith("/api/")) return mockApi(request, response, url);
 
   let pathname = rewrites.get(url.pathname) ?? url.pathname;
+  if (pathname.startsWith("/p/")) pathname = "/fighter-profile.html";
   if (pathname.startsWith("/status/")) pathname = "/status.html";
   if (pathname.startsWith("/confirm/")) pathname = "/confirm.html";
   if (pathname === "/") pathname = "/index.html";

@@ -29,6 +29,10 @@
   "crons": [{ "path": "/api/superfight-offer-notifications", "schedule": "*/5 * * * *" }],
   "rewrites": [
     {
+      "source": "/p/:token",
+      "destination": "/fighter-profile.html"
+    },
+    {
       "source": "/offers",
       "destination": "/offers.html"
     },

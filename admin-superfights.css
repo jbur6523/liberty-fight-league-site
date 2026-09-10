@@ -654,3 +654,6 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.58); }
   .admin-unmatched-table .admin-muted { font-size: 12px; line-height: 1.2; }
   .admin-unmatched-table .admin-weight-summary { font-size: 13px; }
 }
+.admin-share-link-row { display: flex; align-items: center; gap: 8px; }
+.admin-share-link-row .admin-input { flex: 1; min-width: 0; }
+.admin-share-link-row .admin-button { flex: none; display: inline-flex; align-items: center; gap: 6px; }

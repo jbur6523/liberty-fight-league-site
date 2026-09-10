@@ -1,7 +1,6 @@
 import { readProfileSnapshot } from "/src/superfight/share-profile.js";
 
-function renderProfile() {
-  const profile = readProfileSnapshot(window.location.hash);
+function renderProfile(profile) {
   document.querySelector("#profile").hidden = !profile;
   document.querySelector("#profile-error").hidden = Boolean(profile);
   if (!profile) return;
@@ -33,5 +32,24 @@ function renderProfile() {
   }
 }
 
-renderProfile();
-window.addEventListener("hashchange", renderProfile);
+async function loadProfile() {
+  const loading = document.querySelector("#profile-loading");
+  loading.hidden = false;
+  let profile = null;
+  try {
+    const token = window.location.pathname.match(/^\/p\/([A-Za-z0-9_-]{16})\/?$/)?.[1];
+    if (token) {
+      const response = await fetch(`/api/superfight-profile?token=${encodeURIComponent(token)}`);
+      if (!response.ok) throw new Error("Profile unavailable");
+      const data = await response.json();
+      profile = readProfileSnapshot(encodeURIComponent(JSON.stringify(data.profile)));
+    } else {
+      profile = readProfileSnapshot(window.location.hash);
+    }
+  } catch { /* Render the unavailable state for missing links or network errors. */ }
+  loading.hidden = true;
+  renderProfile(profile);
+}
+
+loadProfile();
+window.addEventListener("hashchange", loadProfile);
