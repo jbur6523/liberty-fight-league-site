@@ -1,0 +1,116 @@
+/* Event-specific layout. Shared branding and navigation come from home.css. */
+.event-page .navigation [aria-current="page"] { color: var(--red); }
+.event-page section[id] { scroll-margin-top: 24px; }
+.event-intro { padding-block: 40px 40px; }
+.event-intro-grid { display: grid; grid-template-columns: minmax(0, 1fr) 235px; align-items: center; gap: 70px; }
+.event-intro-copy > .eyebrow { display: flex; align-items: center; gap: 12px; color: var(--muted); }
+.event-page h1 { font-size: clamp(54px, 6.6vw, 96px); line-height: .95; margin: 24px 0 20px; letter-spacing: -1.5px; }
+.event-page h1 > span { color: var(--red); white-space: nowrap; }
+.event-location { font-size: 20px; font-weight: 500; margin: 0 0 14px; }
+.event-location > span { color: var(--red); margin-inline: 10px; }
+.event-description { max-width: 440px; color: var(--muted); font-size: 14px; line-height: 1.7; margin: 0; }
+.event-actions { display: flex; align-items: center; gap: 28px; margin-top: 27px; }
+.text-link { display: inline-flex; align-items: center; min-height: 44px; gap: 20px; font-size: 13px; font-weight: 600; }
+.text-link:hover { color: var(--red); }
+.ticket-note { font-size: 11px; color: var(--muted); margin: 14px 0 0; }
+.event-date { display: block; background: var(--red); color: var(--ink); padding: 22px 24px; transform: rotate(3deg); }
+.date-kicker { display: block; font-size: 10px; letter-spacing: 1.8px; font-weight: 700; }
+.date-number { display: block; font: 800 128px/.8 var(--display); letter-spacing: -3px; margin-top: 23px; }
+.date-number > span { display: block; font-size: 49px; letter-spacing: -.5px; margin-top: 10px; }
+.date-bottom { display: flex; justify-content: space-between; gap: 15px; border-top: 1px solid #99352c; padding-top: 15px; margin-top: 22px; font-size: 10px; letter-spacing: 1px; font-weight: 700; }
+.event-sections { border-block: 1px solid var(--line); }
+.event-sections .container { display: flex; gap: 48px; }
+.event-sections a { display: flex; gap: 12px; align-items: center; min-height: 62px; font-size: 10px; color: var(--muted); }
+.event-sections a > span { color: var(--paper); font-size: 12px; font-weight: 500; }
+.event-sections a:hover > span { color: var(--red); }
+.event-plan { background: var(--paper); color: var(--ink); padding-block: 46px 48px; }
+.event-plan .eyebrow { color: #62635c; }
+.event-page h2 { font-size: clamp(34px, 3.8vw, 48px); }
+.plan-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; margin-top: 32px; }
+.event-page .plan-grid h3 { font-family: var(--body); font-size: 10px; font-weight: 600; letter-spacing: 1.6px; margin: 0 0 20px; color: #62635c; }
+.schedule-list { list-style: none; padding: 0; margin: 0; }
+.schedule-list li { display: grid; grid-template-columns: 128px 1fr; align-items: center; gap: 25px; padding-block: 18px; border-top: 1px solid #c4c4ba; }
+.schedule-list time { font: 700 37px/1 var(--display); }
+.schedule-list time > span { font: 600 12px var(--body); }
+.schedule-list strong { font-size: 16px; font-weight: 600; }
+.schedule-list p { margin: 6px 0 0; font-size: 12px; color: #62635c; }
+.schedule-note { color: #62635c; font-size: 11px; margin: 10px 0 0; }
+.venue { border-left: 1px solid #c4c4ba; padding-left: 60px; }
+.venue-name { font: 700 43px/1 var(--display); margin: 0 0 12px; }
+.venue address { font-size: 14px; font-style: normal; line-height: 1.7; color: #55564f; }
+.directions-link { display: inline-flex; gap: 45px; align-items: center; min-height: 44px; border-bottom: 1px solid #999b91; font-size: 13px; font-weight: 600; margin-top: 12px; }
+.directions-link > span { font-size: 20px; color: #ad2b22; }
+.directions-link:hover { color: #ad2b22; }
+.venue-note { font-size: 10px; color: #62635c; margin: 9px 0 0; }
+.fight-card-section { padding-block: 48px; }
+.fight-card-grid, .questions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; }
+.fight-card-section .eyebrow, .event-questions .eyebrow { color: var(--muted); }
+.fight-description { font-size: 13px; color: var(--muted); line-height: 1.6; margin: 18px 0 0; }
+.matchmaking { border-left: 2px solid var(--red); padding-left: 28px; }
+.status-label { font-size: 9px; letter-spacing: 1.3px; margin: 0; color: var(--muted); }
+.status-label > span { font-size: 7px; color: var(--red); margin-right: 7px; }
+.event-page .matchmaking h3 { font: 600 25px/1.2 var(--body); letter-spacing: -.5px; margin: 14px 0 12px; }
+.matchmaking > p:not(.status-label) { color: var(--muted); font-size: 13px; line-height: 1.7; max-width: 380px; margin: 0 0 22px; }
+.event-questions { padding-block: 42px 48px; border-top: 1px solid var(--line); }
+.questions-list details { border-bottom: 1px solid var(--line); }
+.questions-list summary { position: relative; padding: 19px 30px 19px 0; cursor: pointer; font-size: 14px; list-style: none; }
+.questions-list summary::-webkit-details-marker { display: none; }
+.questions-list summary::after { content: "+"; position: absolute; right: 0; top: 14px; color: var(--red); font-size: 24px; font-weight: 400; }
+.questions-list details[open] summary::after { content: "−"; }
+.questions-list summary:focus-visible { outline: 3px solid var(--red); outline-offset: 3px; }
+.questions-list details > p { margin: 0 0 20px; color: var(--muted); font-size: 13px; line-height: 1.7; }
+.questions-list details > p > a { color: var(--paper); text-decoration: underline; text-underline-offset: 3px; }
+.contact-note { color: var(--muted); font-size: 12px; margin: 22px 0 0; }
+.contact-note > a { color: var(--paper); margin-left: 8px; }
+.event-page .site-footer { border-top: 1px solid var(--line); }
+@media (max-width: 1000px) {
+  .event-intro-grid { grid-template-columns: minmax(0, 1fr) 185px; gap: 35px; }
+  .event-date { padding: 20px; }
+  .date-number { font-size: 100px; }
+  .date-number > span { font-size: 42px; }
+  .plan-grid, .fight-card-grid, .questions-grid { gap: 35px; }
+  .venue { padding-left: 35px; }
+  .schedule-list li { grid-template-columns: 105px 1fr; gap: 15px; }
+}
+@media (max-width: 680px) {
+  .event-intro { padding-block: 35px; }
+  .event-intro-grid { grid-template-columns: minmax(0, 1fr) 118px; gap: 20px; align-items: start; }
+  .event-page h1 { font-size: clamp(48px, 9vw, 62px); margin-top: 19px; }
+  .event-intro-copy > .eyebrow { font-size: 8px; gap: 8px; letter-spacing: .8px; }
+  .event-location { font-size: 15px; line-height: 1.6; }
+  .event-location > span { margin-inline: 4px; }
+  .event-description { font-size: 13px; }
+  .event-date { padding: 14px; margin-top: 34px; }
+  .date-kicker { font-size: 7px; letter-spacing: .9px; }
+  .date-number { font-size: 74px; margin-top: 17px; }
+  .date-number > span { font-size: 32px; }
+  .date-bottom { font-size: 7px; letter-spacing: .1px; gap: 8px; margin-top: 15px; padding-top: 12px; }
+  .event-actions { flex-wrap: wrap; gap: 10px 20px; margin-top: 22px; }
+  .event-actions .button { font-size: 12px; gap: 25px; }
+  .text-link { font-size: 12px; }
+  .ticket-note { font-size: 10px; line-height: 1.6; }
+  .event-sections .container { justify-content: space-between; gap: 12px; }
+  .event-sections a { gap: 6px; min-height: 56px; font-size: 8px; }
+  .event-sections a > span { font-size: 10px; }
+  .event-plan { padding-block: 36px; }
+  .plan-grid, .fight-card-grid, .questions-grid { grid-template-columns: 1fr; gap: 30px; }
+  .plan-grid { margin-top: 27px; }
+  .venue { border-left: 0; border-top: 1px solid #c4c4ba; padding: 27px 0 0; }
+  .schedule-list li { grid-template-columns: 120px 1fr; gap: 20px; }
+  .fight-card-section, .event-questions { padding-block: 36px; }
+  .event-page h2 { font-size: 36px; }
+  .matchmaking { padding-left: 20px; }
+  .event-page .matchmaking h3 { font-size: 23px; }
+  .questions-grid { gap: 15px; }
+}
+@media (max-width: 420px) {
+  .event-intro-grid { grid-template-columns: minmax(0, 1fr); }
+  .event-date { display: flex; justify-content: space-between; align-items: center; gap: 15px; transform: none; margin: 4px 0 0; padding: 14px 18px; }
+  .date-kicker { display: none; }
+  .date-number { font-size: 42px; letter-spacing: -1px; margin: 0; }
+  .date-number > span { display: inline; margin-left: 9px; font-size: 27px; }
+  .date-bottom { margin: 0; border: 0; padding: 0; font-size: 9px; gap: 10px; }
+  .event-page h1 { font-size: 58px; }
+  .event-intro-copy > .eyebrow { font-size: 9px; }
+  .event-actions { gap: 23px; }
+}
