@@ -33,6 +33,7 @@ const competitors = [
 const confirmationResponses = new Map();
 const previewOffers = [];
 const previewMatches = [];
+let previewDefaultFlyerCompleted = false;
 const previewProfileShares = new Map();
 
 function previewAvailable() {
@@ -170,6 +171,14 @@ async function mockApi(request, response, url) {
         }
         return json(response, 201, { match: { id: match.id } });
       }
+      if (input.action === "flyer") {
+        const match = previewMatches.find((item) => item.id === input.matchId);
+        if (typeof input.flyerCompleted !== "boolean") return json(response, 400, { message: "Choose a valid flyer status." });
+        if (match) match.flyerCompleted = input.flyerCompleted;
+        else if (input.matchId === "00000000-0000-4000-8000-000000000301") previewDefaultFlyerCompleted = input.flyerCompleted;
+        else return json(response, 404, { message: "The active match could not be found." });
+        return json(response, 200, { match: { id: input.matchId, flyerCompleted: input.flyerCompleted } });
+      }
       const index = previewMatches.findIndex((match) => match.id === input.matchId);
       if (index >= 0) previewMatches.splice(index, 1);
       return json(response, 200, { unmatched: true });
@@ -177,6 +186,7 @@ async function mockApi(request, response, url) {
     return json(response, 200, {
       matches: [...previewMatches, {
         id: "00000000-0000-4000-8000-000000000301",
+        flyerCompleted: previewDefaultFlyerCompleted,
         weightLbs: 155,
         weightOption: previewEvent.weightOptions[1],
         boutType: "gi",

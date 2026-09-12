@@ -415,20 +415,43 @@ function renderMatched() {
   }
 
   elements.matched.innerHTML = `
-    <div class="admin-table-wrap"><table class="admin-table">
+    <div class="admin-table-wrap"><table class="admin-table admin-matched-table">
       <thead><tr><th>Fighter A</th><th>Other competitors</th><th>Bout type</th><th>Match weight</th><th>Confirmation</th><th>Quick actions</th></tr></thead>
       <tbody>${state.matches.map((match) => `
-        <tr>
+        <tr class="${match.flyerCompleted ? "is-flyer-completed" : ""}">
           <td>${matchFighterCell(match.fighterA)}${matchLinks(match.fighterA)}</td>
           <td>${[match.fighterB, ...(match.extraFighters ?? [])].map(fighter => `<div class="admin-match-participant">${matchFighterCell(fighter)}${matchLinks(fighter)}</div>`).join("")}</td>
           <td>${label(match.boutType)}</td>
           <td>${escapeHtml(match.weightOption?.label ?? (match.weightLbs === null ? "—" : `${match.weightLbs} lb`))}</td>
           <td>${confirmationBadge(match.confirmation.summary)}</td>
-          <td><button class="admin-button danger" type="button" data-unmatch="${match.id}">Unmatch</button></td>
+          <td><div class="admin-controls"><button class="admin-button secondary" type="button" data-flyer="${match.id}" aria-pressed="${match.flyerCompleted === true}">${match.flyerCompleted ? "Flyer ✓" : "Flyer"}</button><button class="admin-button danger" type="button" data-unmatch="${match.id}">Unmatch</button></div></td>
         </tr>`).join("")}</tbody>
     </table></div>`;
 
   bindTableActions(elements.matched);
+  elements.matched.querySelectorAll("[data-flyer]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      if (button.disabled) return;
+      const match = state.matches.find((item) => item.id === button.dataset.flyer);
+      if (!match) return;
+      button.disabled = true;
+      try {
+        const payload = await api("/api/superfight-admin-matches", {
+          method: "POST",
+          body: JSON.stringify({ action: "flyer", matchId: match.id, flyerCompleted: !match.flyerCompleted }),
+        });
+        match.flyerCompleted = payload.match.flyerCompleted;
+        button.closest("tr").classList.toggle("is-flyer-completed", match.flyerCompleted);
+        button.setAttribute("aria-pressed", String(match.flyerCompleted));
+        button.textContent = match.flyerCompleted ? "Flyer ✓" : "Flyer";
+        showToast(match.flyerCompleted ? "Flyer marked complete" : "Flyer marked incomplete");
+      } catch (error) {
+        showToast(error.message);
+      } finally {
+        button.disabled = false;
+      }
+    });
+  });
   elements.matched.querySelectorAll("[data-unmatch]").forEach((button) => {
     button.addEventListener("click", async () => {
       if (!window.confirm("Unmatch these competitors? Their records and response history will be preserved.")) return;

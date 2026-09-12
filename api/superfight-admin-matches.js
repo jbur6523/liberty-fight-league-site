@@ -18,7 +18,7 @@ import { boutType, uuid, uuidList } from "../src/superfight/validation.js";
 async function listMatches(service, eventId) {
   const { data: matches, error: matchError } = await service
     .from("superfight_matches")
-    .select("id, fighter_a_id, fighter_b_id, fighter_c_id, fighter_d_id, weight_option_id, match_weight_lbs, bout_type, state, created_at")
+    .select("id, fighter_a_id, fighter_b_id, fighter_c_id, fighter_d_id, weight_option_id, match_weight_lbs, bout_type, state, flyer_completed, created_at")
     .eq("event_id", eventId)
     .eq("state", "active")
     .order("created_at", { ascending: false });
@@ -92,6 +92,7 @@ async function listMatches(service, eventId) {
       } : null,
       boutType: match.bout_type,
       state: match.state,
+      flyerCompleted: match.flyer_completed,
       createdAt: match.created_at,
       confirmation: confirmationState(matchConfirmations, match.fighter_a_id, match.fighter_b_id, [match.fighter_c_id, match.fighter_d_id].filter(Boolean)),
       fighterA: fighterPayload(match.fighter_a_id),
@@ -114,6 +115,24 @@ export default async function handler(request, response) {
 
     assertSameOrigin(request);
     const body = await readJsonBody(request);
+
+    if (body.action === "flyer") {
+      if (typeof body.flyerCompleted !== "boolean") {
+        throw new HttpError(400, "Choose a valid flyer status.", "invalid_flyer_status");
+      }
+      const { data, error } = await service
+        .from("superfight_matches")
+        .update({ flyer_completed: body.flyerCompleted })
+        .eq("id", uuid(body.matchId, "Match"))
+        .eq("state", "active")
+        .select("id, flyer_completed")
+        .maybeSingle();
+
+      if (error) throw databaseFailure(error, "admin flyer update failed");
+      if (!data) throw new HttpError(404, "The active match could not be found.", "match_not_found");
+      sendJson(response, 200, { match: { id: data.id, flyerCompleted: data.flyer_completed } });
+      return;
+    }
 
     if (body.action === "unmatch") {
       const { data, error } = await service

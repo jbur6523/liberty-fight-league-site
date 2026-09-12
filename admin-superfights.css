@@ -275,6 +275,14 @@ a { -webkit-tap-highlight-color: transparent; }
 .admin-table tbody tr:hover { background: #fafaf7; }
 .admin-table tr.is-selected { background: #ecece6; }
 
+.admin-matched-table tbody tr.is-flyer-completed,
+.admin-matched-table tbody tr.is-flyer-completed:hover { background: #d6ecff; }
+.admin-matched-table [data-flyer][aria-pressed="true"] {
+  border-color: #3979ad;
+  background: #b9ddfa;
+  color: #153e60;
+}
+
 .admin-unmatched-table {
   min-width: 0;
   table-layout: fixed;
@@ -639,6 +647,16 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.58); }
 .admin-toast.is-visible { opacity: 1; transform: translateY(0); }
 
 @media (max-width: 700px) {
+  .admin-matched-table { min-width: 0; }
+  .admin-matched-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .admin-matched-table tbody { display: block; }
+  .admin-matched-table tr { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); border-bottom: 2px solid var(--line); }
+  .admin-matched-table td { min-width: 0; overflow-wrap: anywhere; border: 0; }
+  .admin-matched-table td:nth-child(5),
+  .admin-matched-table td:last-child { grid-column: 1 / -1; }
+  .admin-matched-table td:last-child .admin-controls { justify-content: flex-end; }
+  .admin-matched-table [data-flyer],
+  .admin-matched-table [data-unmatch] { min-height: 44px; }
   .admin-header { padding-inline: 14px; }
   .admin-brand img { width: 38px; height: 38px; }
   .admin-account span { display: none; }
