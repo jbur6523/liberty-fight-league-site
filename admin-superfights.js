@@ -184,9 +184,8 @@ function socialCell(competitor) {
 }
 
 function unmatchedTableName(competitor) {
-  const parts = competitor.name.trim().split(/\s+/);
-  const shortenedName = `${Array.from(parts[0])[0]}. ${parts.at(-1)}`;
-  return `${escapeHtml(shortenedName)}${competitor.genderDivision === "womens" ? " 💕" : ""} (${competitor.age ?? "—"})`;
+  const firstName = competitor.name.trim().split(/\s+/)[0];
+  return `${escapeHtml(firstName)}${competitor.genderDivision === "womens" ? " 💕" : ""} (${competitor.age ?? "—"})`;
 }
 
 function unmatchedBeltClass(belt) {
