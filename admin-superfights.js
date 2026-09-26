@@ -403,7 +403,7 @@ function matchFighterCell(fighter) {
 }
 
 function matchLinks(fighter) {
-  return `<div class="admin-controls"><button class="admin-button ghost" type="button" data-copy-path="${fighter.confirmationPath}">Copy confirmation</button>${fighter.instagramHandle ? `<button class="admin-button ghost" type="button" data-copy="${escapeHtml(fighter.instagramHandle)}" data-raw-copy>Copy @${escapeHtml(fighter.instagramHandle)}</button>` : ""}</div>`;
+  return `<div class="admin-controls"><button class="admin-button ghost" type="button" data-copy-path="${fighter.confirmationPath}">Copy confirmation</button>${fighter.instagramHandle ? `<a class="admin-button ghost" href="https://www.instagram.com/${encodeURIComponent(fighter.instagramHandle)}/" target="_blank" rel="noopener noreferrer" aria-label="Open @${escapeHtml(fighter.instagramHandle)} on Instagram (new tab)">@${escapeHtml(fighter.instagramHandle)} <span aria-hidden="true">↗</span></a>` : ""}</div>`;
 }
 
 function renderMatched() {
