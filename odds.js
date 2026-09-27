@@ -241,11 +241,12 @@ document.querySelector("#parlay-share").addEventListener("click", async () => {
     field.select();
   }
 });
-document.querySelector("#parlay-download").addEventListener("click", async () => {
+async function downloadParlayTicket() {
   const button = document.querySelector("#parlay-download");
   const legs = parlay.legs(snapshot);
   if (legs.length < 2 || button.disabled) return;
   button.disabled = true;
+  document.querySelector("#parlay-quick-download").disabled = true;
   const status = document.querySelector("#parlay-download-status");
   status.textContent = "Creating your ticket…";
   const eventName = snapshot.event?.name || "Liberty Fight League";
@@ -265,7 +266,12 @@ document.querySelector("#parlay-download").addEventListener("click", async () =>
     document.querySelector("#parlay-ticket-fallback").hidden = false;
     status.textContent = "Your PNG ticket is ready. If the download didn't open, use the image link below to save it.";
   } catch (error) { status.textContent = "Couldn't create the ticket. Please try again, or use Share Parlay."; }
-  finally { button.disabled = false; }
+  finally { button.disabled = false; document.querySelector("#parlay-quick-download").disabled = false; }
+}
+document.querySelector("#parlay-download").addEventListener("click", downloadParlayTicket);
+document.querySelector("#parlay-quick-download").addEventListener("click", () => {
+  openParlayReview();
+  downloadParlayTicket();
 });
 new ResizeObserver(() => {
   const slip = document.querySelector("#parlay-slip");

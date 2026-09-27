@@ -199,7 +199,10 @@ html { scroll-padding-bottom: var(--parlay-space, 0px); }
 }
 
 .slip-top { display: grid; grid-template-columns: minmax(0, 1fr) auto 44px; }
-#parlay-lock { margin: 8px 0 8px 10px; border-color: #c6a15f; color: #f5d78e; min-height: 42px; white-space: nowrap; }
+.slip-actions { display: flex; gap: 8px; margin: 8px 0 8px 10px; }
+#parlay-lock, #parlay-quick-download { border-color: #c6a15f; color: #f5d78e; min-height: 44px; white-space: nowrap; }
+#parlay-quick-download { background: #dfbb70; color: #211709; }
+#parlay-quick-download:hover { background: #f2cf87; }
 #parlay-review { width: min(94vw, 620px); max-height: 86dvh; margin: auto; padding: 0; border: 1px solid #987647; border-radius: 10px; color: #eee7ef; background: #151419; box-shadow: 0 15px 70px #0009; }
 #parlay-review::backdrop { background: #000a; }
 .parlay-review-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding: 16px; position: sticky; top: 0; background: #19151c; z-index: 1; border-bottom: 1px solid #5e4730; }
@@ -216,5 +219,5 @@ html { scroll-padding-bottom: var(--parlay-space, 0px); }
   .slip-top { grid-template-columns: minmax(0, 1fr) 44px; }
   .slip-summary { grid-column: 1; grid-row: 1; min-height: 60px; }
   #parlay-close { grid-column: 2; grid-row: 1; }
-  #parlay-lock { grid-column: 1 / -1; grid-row: 2; margin: 0 10px 10px; min-height: 38px; }
+  .slip-actions { grid-column: 1 / -1; grid-row: 2; margin: 0 10px 10px; display: grid; grid-template-columns: 1fr 1fr; }
 }
