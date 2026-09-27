@@ -36,7 +36,7 @@ h1 span { display: block; margin-top: 2px; font-size: 1.4em; color: #ff3e4d; }
 .fighters { display: grid; grid-template-columns: minmax(0, 1fr) clamp(38px, 12vw, 94px) minmax(0, 1fr); padding: 0 20px 12px; align-items: stretch; }
 .fighter { --fighter-accent: #cb1f2c; min-width: 0; display: flex; flex-direction: column; }
 .fighter-b { --fighter-accent: #292a2d; }
-.portrait { width: 100%; height: auto; aspect-ratio: 5 / 3; object-fit: cover; object-position: center 30%; border-radius: 5px; background: #e9e9eb; display: block; }
+.portrait { width: 100%; height: auto; aspect-ratio: 1; object-fit: cover; object-position: center; border-radius: 5px; background: #e9e9eb; display: block; }
 .portrait.is-placeholder { object-fit: contain; }
 .fighter.is-picked .portrait { outline: 3px solid #d92330; outline-offset: -3px; }
 .vs { align-self: stretch; display: flex; flex-direction: column; align-items: center; gap: 10px; font-size: 16px; font-weight: 700; color: #5a5a61; padding: 3px 0; }

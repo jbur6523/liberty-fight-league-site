@@ -21,11 +21,16 @@ uses demo data stored in its server process; production uses the database.
 
 ## Verified production target
 
+**Superseded September 24, 2026:** the site now uses the shared Bestie Cloud
+backend at `https://camo-superfight-api.bestiecloud.com`. The details below are
+historical. Do not target the old Supabase project for live-site changes. See
+[Fan Picks deployment notes](fan-picks.md) for the verified current runtime.
+
 On September 12, 2026, the Vercel production `SUPABASE_URL` for
 `liberty-fight-league-site` was verified as
 `https://nfgoioginqxezmpqzkgz.supabase.co` (project `nfgoioginqxezmpqzkgz`).
-Use this project explicitly: the connector's project listing returned a different
-project and did not enumerate this accessible production database.
+At that time, the connector's project listing returned a different project and
+did not enumerate this accessible database.
 
 Migration `20260912135301_match_flyer_tracking.sql` was applied to this database
 and recorded in its migration history. The local filename matches the version

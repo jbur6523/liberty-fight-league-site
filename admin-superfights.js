@@ -1,4 +1,5 @@
 import { US_STATES } from "/src/superfight/us-states.js";
+import { cropFighterPhoto } from "/src/superfight/photo-crop.js";
 
 for (const [code, name] of Object.entries(US_STATES)) {
   document.querySelector("#add-state").add(new Option(name, code));
@@ -431,12 +432,13 @@ function renderFanPicksControls() {
 async function updateFighterPhoto(competitorId, file, remove, control) {
   const message = document.querySelector("#fan-picks-admin-message");
   control.disabled = true;
-  message.textContent = remove ? "Removing image…" : "Uploading image…";
+  message.textContent = remove ? "Removing image…" : "Opening photo…";
   try {
     const values = { competitorId };
     if (!remove) {
-      if (!file || !["image/jpeg", "image/png", "image/webp"].includes(file.type)) throw new Error("Choose a JPEG, PNG, or WebP image.");
-      if (file.size > 3 * 1024 * 1024) throw new Error("Choose an image smaller than 3 MB.");
+      file = await cropFighterPhoto(file);
+      if (!file) { message.textContent = ""; return; }
+      message.textContent = "Uploading image…";
       values.type = file.type;
       values.image = await new Promise((resolve, reject) => {
         const reader = new FileReader();

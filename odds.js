@@ -28,7 +28,7 @@ function render() {
       <div class="fighters">${match.fighters.map((fighter, side) => {
         const selected = match.selectedFighterId === fighter.id;
         return `${side ? '<span class="vs" aria-hidden="true">VS</span>' : ""}<div class="fighter${side ? " fighter-b" : ""}${selected ? " is-picked" : ""}">
-          <img class="portrait${fighter.photoUrl ? "" : " is-placeholder"}" src="${escapeHtml(fighter.photoUrl || "/fighter-silhouette.svg")}" alt="${fighter.photoUrl ? escapeHtml(fighter.name) : "Photo not yet available"}" width="500" height="300" ${index > 1 ? 'loading="lazy"' : ""}>
+          <img class="portrait${fighter.photoUrl ? "" : " is-placeholder"}" src="${escapeHtml(fighter.photoUrl || "/fighter-silhouette.svg")}" alt="${fighter.photoUrl ? escapeHtml(fighter.name) : "Photo not yet available"}" width="500" height="500" ${index > 1 ? 'loading="lazy"' : ""}>
           <h3>${escapeHtml(fighter.name)}</h3><p class="academy">${escapeHtml(fighter.academy)}</p>
           <div class="percentage">${fighter.percentage}%</div>
           <div class="bar" aria-hidden="true"><span style="width:${fighter.percentage}%"></span></div>
