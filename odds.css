@@ -154,3 +154,42 @@ footer a { color: var(--gold); text-decoration: none; }
   footer > span { order: 3; width: 100%; text-align: center; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+
+/* The event ticket CTA stays primary; the builder is opt-in and understated. */
+body { padding-bottom: var(--parlay-space, 0px); }
+html { scroll-padding-bottom: var(--parlay-space, 0px); }
+.parlay-entry { margin: 2px 0 12px; }
+.secondary-control { min-height: 40px; padding: 9px 13px; border: 1px solid #785a3c; border-radius: 5px; background: #1c1c22; color: #e2d5be; font-size: 11px; font-weight: 700; letter-spacing: .03em; box-shadow: none; }
+.secondary-control:hover { border-color: #d6b36c; background: #28242a; }
+.secondary-control:disabled { opacity: .5; }
+.parlay-mode { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px; margin-bottom: 12px; background: #1b1718; border: 1px solid #705633; border-radius: 6px; scroll-margin-top: 12px; }
+.parlay-mode strong { color: var(--gold); font-size: 11px; letter-spacing: .06em; }
+.parlay-mode p, #parlay-progress { font-size: 11px; line-height: 1.5; color: #c2bac6; margin: 4px 0 0; }
+.parlay-mode .secondary-control { flex-shrink: 0; }
+.parlay-slip { position: fixed; z-index: 5; bottom: 0; left: 50%; transform: translateX(-50%); width: min(100%, 660px); background: #151419; border: 1px solid #8e7040; border-bottom: 0; border-radius: 9px 9px 0 0; box-shadow: 0 -6px 24px #0006; padding-bottom: env(safe-area-inset-bottom, 0px); }
+.slip-top { display: flex; align-items: center; }
+#parlay-expand { display: flex; justify-content: space-between; gap: 14px; align-items: center; text-align: left; flex: 1; min-width: 0; min-height: 66px; padding: 10px 14px; border: 0; border-radius: 9px 0 0; background: transparent; color: #ece7df; font-size: 11px; font-weight: 800; }
+#parlay-expand small { display: block; font-size: 9px; color: #b7abb9; font-weight: 400; margin-top: 4px; }
+#parlay-expand > span:nth-child(2) { text-align: right; }
+#parlay-odds { display: block; color: var(--gold); font-size: 23px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.many-legs #parlay-odds { color: #ffdf91; font-size: 27px; }
+#parlay-close, #parlay-legs button { width: 44px; height: 44px; flex-shrink: 0; background: transparent; border: 0; color: #c2b6c7; font-size: 23px; border-radius: 4px; }
+#parlay-close:hover, #parlay-legs button:hover { color: #fff; background: #332630; }
+#parlay-details { max-height: min(48dvh, 390px); overflow: auto; overscroll-behavior: contain; padding: 0 14px 12px; border-top: 1px solid #41323d; }
+#parlay-legs { list-style: none; margin: 0; padding: 0; }
+#parlay-legs li { display: flex; gap: 8px; align-items: center; border-bottom: 1px solid #ffffff0c; padding: 3px 0; font-size: 12px; }
+#parlay-legs li > span { flex: 1; }
+#parlay-legs small { display: block; color: #aaa0ae; font-size: 10px; margin-top: 3px; }
+#parlay-legs strong { color: var(--gold); }
+.parlay-disclaimer, .parlay-explainer, #parlay-share-status { font-size: 10px; color: #c9bdcb; line-height: 1.5; margin: 10px 0; }
+.parlay-explainer { color: #a79aac; }
+.parlay-actions { display: flex; gap: 8px; }
+#parlay-share-fallback label { display: block; font-size: 11px; margin: 10px 0 5px; }
+#parlay-share-text { width: 100%; background: #0d0d10; color: #eee; border: 1px solid #847147; border-radius: 4px; padding: 8px; font: inherit; font-size: 12px; }
+@media (max-width: 420px) {
+  .parlay-mode { align-items: flex-start; flex-direction: column; }
+  #parlay-expand { gap: 8px; padding: 8px 10px; font-size: 10px; }
+  #parlay-expand small { font-size: 8px; }
+  #parlay-odds { font-size: 21px; }
+  .many-legs #parlay-odds { font-size: 24px; }
+}

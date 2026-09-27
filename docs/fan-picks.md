@@ -36,6 +36,16 @@ Operator receipts, the previous runtime configuration, and SQL are retained on U
 
 ## Verification
 
+### Fan Parlay
+
+The small secondary **Build a Fan Parlay** button below the ticket CTA enables a separate, client-only selection mode. Each matchup contributes at most one fighter; tapping a selected fighter removes that leg. These actions never submit the voting endpoint. **Back to Fan Picks** restores normal voting and retains the draft in the open page. Reloading or leaving the page clears the draft; no account or additional identifier is used.
+
+The slip is initially hidden and appears collapsed only after two selections. Its details expand on request, have bounded scrolling, and can be collapsed using the same header or Escape. The page reserves space for the slip. Clear/remove controls and native text sharing (with clipboard and selectable-text fallbacks) are inside. No wagering, monetary stakes, payouts, or prizes are implemented.
+
+`src/superfight/parlay.js` combines implied probabilities from the displayed moneylines, treating PK as 50%, and rounds the resulting American line to a whole number. Very large values use scientific notation; logarithms avoid overflow. This is a community-derived combination, not a claim of actual independent win probabilities. Existing 30-second snapshot refreshes update draft names and odds; removed matchups/fighters are pruned and an event change clears all legs. Closed voting disables Fan Pick submissions but leaves the separate entertainment draft usable.
+
+No new database migration, dependency, storage bucket, environment variable or setup is required. Parlay tests cover math (including extreme values), selection isolation, replacements/removal, refreshed lines, event changes and all share fallbacks.
+
 Run `npm run check` for module loading, frontend syntax checks and all tests. This static repository has no separate bundler/build command; Vercel serves the static files and packages the `api/` functions. No framework migration was introduced.
 
 Automated checks cover baseline/clamped percentages; signed-cookie validation; the production API against the migration's PostgreSQL functions; concurrent request/retry uniqueness; changed picks; refresh persistence; shared-IP visitors; rate limits; current-event switching; closed voting; removal/rematching and specialty bouts; edits retaining votes; public field filtering; RLS and function grants; storage bucket constraints; photo decoding, upload/replacement/removal and failure cleanup; and admin/cross-origin restrictions. PGlite serializes connections; row-lock behavior on multiple live PostgreSQL connections is not simulated by these tests.

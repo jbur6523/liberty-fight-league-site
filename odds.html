@@ -42,6 +42,7 @@
       <address class="event-venue"><strong>SOMArts</strong><span>934 Brannan St</span><span>San Francisco, CA 94103</span></address>
       <a class="ticket-cta" href="https://cornerpass.com/rwi3">BUY YOUR TICKETS NOW <span aria-hidden="true">↗</span></a>
       <a class="ticket-url" href="https://cornerpass.com/rwi3">CornerPass.com/RWI3</a>
+      <div class="parlay-entry"><button id="parlay-start" class="secondary-control" type="button" aria-pressed="false" disabled>+ BUILD A FAN PARLAY</button></div>
       <a class="live-label" href="#fan-lines"><i aria-hidden="true"></i> LIVE ODDS <span class="live-cadence">· Updates every 30s</span><span aria-hidden="true">↓</span></a>
     </section>
     <section id="fan-lines" class="fan-intro" aria-labelledby="fan-lines-title">
@@ -50,6 +51,7 @@
     </section>
     <section id="summary" class="summary" aria-label="Live fan line highlights" hidden></section>
     <div class="board-heading"><div><h2 id="event-name">Event matchups</h2><p>Tap a line to pick your fighter.</p></div><span id="refresh-status">Updates every 30s</span></div>
+    <div id="parlay-mode" class="parlay-mode" hidden><div><strong>PARLAY BUILDER</strong><p id="parlay-help">Pick one fighter per matchup. Tap again to remove. These selections do not cast votes.</p><span id="parlay-progress" role="status"></span></div><button id="parlay-exit" class="secondary-control" type="button">Back to Fan Picks</button></div>
     <p id="page-message" role="status">Loading the fan lines…</p>
     <button id="retry" class="retry" type="button" hidden>Try again</button>
     <div id="matchups" class="matchups" aria-label="Fan pick matchups"></div>
@@ -66,6 +68,17 @@
     </aside>
     <noscript><p>Enable JavaScript to view matchups and make your picks.</p></noscript>
   </main>
+  <aside id="parlay-slip" class="parlay-slip" aria-label="Your Fan Parlay" hidden>
+    <div class="slip-top"><button id="parlay-expand" type="button" aria-expanded="false" aria-controls="parlay-details"><span>YOUR FAN PARLAY <small id="parlay-count"></small></span><span><small>COMBINED FAN ODDS</small><strong id="parlay-odds"></strong></span><span id="parlay-chevron" aria-hidden="true">⌃</span></button><button id="parlay-close" type="button" aria-label="Exit Parlay Builder">×</button></div>
+    <div id="parlay-details" hidden>
+      <ul id="parlay-legs"></ul>
+      <p class="parlay-disclaimer">For fun only • No wagering • Fan odds are based on community picks.</p>
+      <p class="parlay-explainer">Combined lines multiply the implied probabilities of your picks. They are not actual win probabilities. Lines refresh with Fan Picks. Your draft lasts until you reload or leave this page.</p>
+      <div class="parlay-actions"><button id="parlay-share" class="secondary-control" type="button">SHARE MY PARLAY</button><button id="parlay-clear" class="secondary-control" type="button">Clear parlay</button></div>
+      <p id="parlay-share-status" role="status"></p>
+      <div id="parlay-share-fallback" hidden><label for="parlay-share-text">Copy your parlay text</label><textarea id="parlay-share-text" readonly rows="6"></textarea></div>
+    </div>
+  </aside>
   <footer><a href="/event">EVENT DETAILS ↗</a><span>LIBERTY FIGHT LEAGUE · ROLL WITH IT 3</span><a href="https://cornerpass.com/rwi3">BUY TICKETS ↗</a></footer>
 </body>
 </html>

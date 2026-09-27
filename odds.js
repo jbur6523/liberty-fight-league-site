@@ -1,3 +1,6 @@
+import { FanParlay, combinedFanOdds, parlayShareText, shareParlay } from "/src/superfight/parlay.js";
+
+const parlay = new FanParlay();
 const container = document.querySelector("#matchups");
 const message = document.querySelector("#page-message");
 const retry = document.querySelector("#retry");
@@ -17,6 +20,7 @@ async function request(options) {
   const response = await fetch("/api/fan-picks", { credentials: "same-origin", cache: "no-store", ...options });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(data.message || "Couldn't save your pick. Please try again.");
+  document.querySelector("#refresh-status").textContent = "Updated just now · 30s refresh";
   return data;
 }
 
@@ -44,13 +48,16 @@ function render() {
   const focusedId = focused?.dataset.fighter;
   const focusedMatch = focused?.closest("[data-match]")?.dataset.match;
   const event = snapshot.event;
+  const previousLegs = parlay.picks.size;
+  parlay.sync(snapshot);
+  renderParlay();
+  if (parlay.active && parlay.picks.size < previousLegs) document.querySelector("#parlay-progress").textContent += " Unavailable picks were removed.";
   document.querySelector("#event-name").textContent = event?.name || "Event matchups";
   const status = document.querySelector("#voting-status");
   status.hidden = !event;
   status.textContent = event?.votingOpen ? "VOTING OPEN" : "VOTING CLOSED";
   status.classList.toggle("is-closed", !event?.votingOpen);
-  document.querySelector(".board-heading p").textContent = event?.votingOpen ? "Tap a line to pick your fighter." : "Explore the community's picks.";
-  document.querySelector("#refresh-status").textContent = "Updated just now · 30s refresh";
+  document.querySelector(".board-heading p").textContent = parlay.active ? "Tap lines to build your parlay. No votes are cast." : event?.votingOpen ? "Tap a line to pick your fighter." : "Explore the community's picks.";
   message.hidden = Boolean(snapshot.matches.length);
   message.textContent = event ? "Matchups are on the way. Check back when the card is ready." : "Fan Picks will open when the next event is ready.";
   retry.hidden = true;
@@ -62,12 +69,13 @@ function render() {
       <div class="card-header"><h2>${escapeHtml({ gi: "GI", no_gi: "NO-GI", john_wick: "JOHN WICK", gauntlet: "GAUNTLET" }[match.boutType] || match.boutType || "MATCHUP")} <span>${match.weightLbs == null ? "Weight TBA" : `${escapeHtml(match.weightLbs)} LBS`}</span></h2><span class="market-label">FAN ODDS</span></div>
       <div class="line-ticker"><span>Open <b>${match.openingLine}</b></span><span>Now <b>${currentLine}</b></span><span class="trend" title="Support change since the 50/50 opening">${trend ? `▲ ${escapeHtml(trend.firstName)} <b>+${trend.movement} pts</b>` : "— Even support"}</span></div>
       <div class="fighters"><span class="vs" aria-hidden="true">VS</span>${match.fighters.map(fighter => {
-        const selected = match.selectedFighterId === fighter.id;
+        const fanSelected = match.selectedFighterId === fighter.id;
+        const selected = parlay.active ? parlay.picks.get(match.id) === fighter.id : fanSelected;
         return `<div class="fighter${selected ? " is-picked" : ""}">
           <div class="photo-wrap"><img class="portrait${fighter.photoUrl ? "" : " is-placeholder"}" src="${escapeHtml(fighter.photoUrl || "/fighter-silhouette.svg")}" alt="${fighter.photoUrl ? escapeHtml(fighter.name) : "Photo not yet available"}" width="500" height="500" ${index > 2 ? 'loading="lazy"' : ""}></div>
           <div class="fighter-identity"><h3>${escapeHtml(fighter.name)}</h3><p class="academy">${escapeHtml(fighter.academy)}</p></div>
-          <button class="pick-button" type="button" data-fighter="${fighter.id}" aria-pressed="${selected}" aria-label="Pick ${escapeHtml(fighter.name)}, Fan Odds ${fighter.fanOdds}" ${!event.votingOpen || busy ? "disabled" : ""}><span>${escapeHtml(fighter.name)}</span><strong>${fighter.fanOdds}</strong></button>
-          <div class="fighter-stats"><div class="stat-row"><strong>${fighter.percentage}%</strong><span>${number(fighter.picks)} ${fighter.picks === 1 ? "pick" : "picks"}</span></div><div class="bar" aria-hidden="true"><span style="width:${fighter.percentage}%"></span></div><div class="pick-state">${selected ? '<b class="your-pick">✓ YOUR PICK</b>' : `<span class="fighter-movement">${fighter.movement === 0 ? "Opened PK" : `${fighter.movement > 0 ? "▲" : "▼"} ${signed(fighter.movement)} pts since open`}</span>`}</div></div>
+          <button class="pick-button" type="button" data-fighter="${fighter.id}" aria-pressed="${selected}" aria-label="${parlay.active ? `${selected ? "Remove" : "Add"} ${escapeHtml(fighter.name)} ${selected ? "from" : "to"} parlay` : `Pick ${escapeHtml(fighter.name)}`}, Fan Odds ${fighter.fanOdds}" ${busy || (!parlay.active && !event.votingOpen) ? "disabled" : ""}><span>${escapeHtml(fighter.name)}</span><strong>${fighter.fanOdds}</strong></button>
+          <div class="fighter-stats"><div class="stat-row"><strong>${fighter.percentage}%</strong><span>${number(fighter.picks)} ${fighter.picks === 1 ? "pick" : "picks"}</span></div><div class="bar" aria-hidden="true"><span style="width:${fighter.percentage}%"></span></div><div class="pick-state">${selected ? `<b class="your-pick">✓ ${parlay.active ? "PARLAY PICK" : "YOUR PICK"}</b>` : parlay.active && fanSelected ? '<span class="fighter-movement">✓ Your Fan Pick vote</span>' : `<span class="fighter-movement">${fighter.movement === 0 ? "Opened PK" : `${fighter.movement > 0 ? "▲" : "▼"} ${signed(fighter.movement)} pts since open`}</span>`}</div></div>
         </div>`;
       }).join("")}</div>
       <p class="card-error" role="alert" hidden></p>
@@ -92,10 +100,16 @@ async function load({ quiet = false } = {}) {
 
 container.addEventListener("click", async event => {
   const button = event.target.closest("[data-fighter]");
-  if (!button || busy || !snapshot.event?.votingOpen) return;
+  if (!button || busy) return;
   const card = button.closest("[data-match]");
   const matchId = card.dataset.match;
   const match = snapshot.matches.find(item => item.id === matchId);
+  if (parlay.active) {
+    parlay.toggle(matchId, button.dataset.fighter, snapshot);
+    render();
+    return;
+  }
+  if (!snapshot.event?.votingOpen) return;
   if (match.selectedFighterId === button.dataset.fighter) return;
   busy = true;
   container.querySelectorAll("button").forEach(item => { item.disabled = true; });
@@ -114,6 +128,84 @@ container.addEventListener("click", async event => {
     container.querySelectorAll("button").forEach(item => { item.disabled = !snapshot.event?.votingOpen; });
   } finally { busy = false; }
 });
+
+function renderParlay() {
+  const legs = parlay.legs(snapshot);
+  const start = document.querySelector("#parlay-start");
+  start.disabled = !snapshot.matches.length;
+  start.textContent = parlay.active ? `PARLAY · ${legs.length} PICKS` : legs.length ? `BUILD A FAN PARLAY (${legs.length})` : "+ BUILD A FAN PARLAY";
+  start.setAttribute("aria-pressed", String(parlay.active));
+  document.querySelector("#parlay-mode").hidden = !parlay.active;
+  const progress = `${legs.length} ${legs.length === 1 ? "pick" : "picks"} selected. ${legs.length < 2 ? "Select at least 2 to see combined odds." : `Combined Fan Odds: ${combinedFanOdds(legs)}.`}`;
+  if (document.querySelector("#parlay-progress").textContent !== progress) document.querySelector("#parlay-progress").textContent = progress;
+  const slip = document.querySelector("#parlay-slip");
+  slip.hidden = !parlay.active || legs.length < 2;
+  document.querySelector("#parlay-count").textContent = `${legs.length}-LEG PARLAY`;
+  document.querySelector("#parlay-odds").textContent = combinedFanOdds(legs) || "—";
+  slip.classList.toggle("many-legs", legs.length >= 5);
+  document.querySelector("#parlay-expand").setAttribute("aria-expanded", String(parlay.expanded));
+  document.querySelector("#parlay-chevron").textContent = parlay.expanded ? "⌄" : "⌃";
+  document.querySelector("#parlay-details").hidden = !parlay.expanded;
+  const focusedRemove = document.activeElement?.dataset.removeLeg;
+  document.querySelector("#parlay-legs").innerHTML = legs.map(leg => `<li><span>${escapeHtml(leg.name)} <small>${escapeHtml(leg.academy)}</small></span><strong>${escapeHtml(leg.fanOdds)}</strong><button type="button" data-remove-leg="${leg.matchId}" aria-label="Remove ${escapeHtml(leg.name)} from parlay">×</button></li>`).join("");
+  if (focusedRemove) (document.querySelector(`[data-remove-leg="${focusedRemove}"]`) || document.querySelector(legs.length >= 2 ? "#parlay-expand" : "#parlay-exit")).focus({ preventScroll: true });
+  if (!document.querySelector("#parlay-share-fallback").hidden) document.querySelector("#parlay-share-text").value = parlayShareText(snapshot.event?.name, legs);
+  document.documentElement.style.setProperty("--parlay-space", slip.hidden ? "0px" : `${slip.offsetHeight + 16}px`);
+}
+
+document.querySelector("#parlay-start").addEventListener("click", () => {
+  if (busy) return;
+  parlay.active = true;
+  render();
+  document.querySelector("#parlay-mode").scrollIntoView({ block: "start" });
+  container.querySelector("button")?.focus({ preventScroll: true });
+});
+function exitParlay() {
+  parlay.active = false;
+  parlay.expanded = false;
+  render();
+  container.querySelector("button:not(:disabled)")?.focus({ preventScroll: true });
+}
+document.querySelector("#parlay-exit").addEventListener("click", exitParlay);
+document.querySelector("#parlay-close").addEventListener("click", exitParlay);
+document.querySelector("#parlay-expand").addEventListener("click", () => { parlay.expanded = !parlay.expanded; renderParlay(); });
+document.querySelector("#parlay-legs").addEventListener("click", event => {
+  const button = event.target.closest("[data-remove-leg]");
+  if (!button) return;
+  parlay.picks.delete(button.dataset.removeLeg);
+  render();
+  (parlay.picks.size >= 2 ? document.querySelector("#parlay-expand") : document.querySelector("#parlay-exit")).focus({ preventScroll: true });
+});
+document.querySelector("#parlay-clear").addEventListener("click", () => {
+  parlay.clear();
+  render();
+  document.querySelector("#parlay-progress").textContent = "Parlay cleared. Select at least 2 picks to start again.";
+  document.querySelector("#parlay-exit").focus({ preventScroll: true });
+});
+document.querySelector("#parlay-share").addEventListener("click", async () => {
+  const button = document.querySelector("#parlay-share");
+  const legs = parlay.legs(snapshot);
+  if (legs.length < 2 || button.disabled) return;
+  button.disabled = true;
+  const text = parlayShareText(snapshot.event?.name, legs);
+  const result = await shareParlay(text, navigator);
+  button.disabled = false;
+  document.querySelector("#parlay-share-status").textContent = { shared: "Parlay shared.", copied: "Parlay copied. Paste it into your message.", cancelled: "", manual: "Select and copy the text below to share your parlay." }[result];
+  document.querySelector("#parlay-share-fallback").hidden = result !== "manual";
+  if (result === "manual") {
+    const field = document.querySelector("#parlay-share-text");
+    field.value = text;
+    field.focus();
+    field.select();
+  }
+});
+document.querySelector("#parlay-slip").addEventListener("keydown", event => {
+  if (event.key === "Escape" && parlay.expanded) { parlay.expanded = false; renderParlay(); document.querySelector("#parlay-expand").focus(); }
+});
+new ResizeObserver(() => {
+  const slip = document.querySelector("#parlay-slip");
+  document.documentElement.style.setProperty("--parlay-space", slip.hidden ? "0px" : `${slip.offsetHeight + 16}px`);
+}).observe(document.querySelector("#parlay-slip"));
 retry.addEventListener("click", () => load());
 document.addEventListener("visibilitychange", () => { if (!document.hidden) load({ quiet: true }); });
 window.setInterval(() => { if (!document.hidden) load({ quiet: true }); }, 30_000);
