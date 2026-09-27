@@ -1,6 +1,7 @@
 import { FanParlay, combinedFanOdds, parlayShareText, shareParlay } from "/src/superfight/parlay.js";
 import { restoreParlay, rememberParlay } from "/src/superfight/parlay-storage.js";
 import { createParlayTicket } from "/src/superfight/parlay-ticket.js";
+import { boardMatches, isMainEvent } from "/src/superfight/board-order.js";
 
 const parlay = new FanParlay();
 const review = document.querySelector("#parlay-review");
@@ -77,11 +78,11 @@ function render() {
   message.textContent = event ? "Matchups are on the way. Check back when the card is ready." : "Fan Picks will open when the next event is ready.";
   retry.hidden = true;
   renderSummary();
-  container.innerHTML = snapshot.matches.map((match, index) => {
+  container.innerHTML = boardMatches(event?.id, snapshot.matches).map((match, index) => {
     const trend = match.fighters.find(f => f.id === match.trendFighterId);
     const currentLine = trend?.fanOdds || "PK";
     return `<article class="match-card" id="match-${match.id}" data-match="${match.id}" aria-label="${escapeHtml(match.fighters.map(f => f.name).join(" versus "))}">
-      <div class="card-header"><h2>${escapeHtml({ gi: "GI", no_gi: "NO-GI", john_wick: "JOHN WICK", gauntlet: "GAUNTLET" }[match.boutType] || match.boutType || "MATCHUP")} <span>${match.weightLbs == null ? "Weight TBA" : `${escapeHtml(match.weightLbs)} LBS`}</span></h2><span class="market-label">FAN ODDS</span></div>
+      <div class="card-header"><h2>${isMainEvent(event?.id, match) ? '<b class="main-event-label">MAIN EVENT</b> ' : ''}${escapeHtml({ gi: "GI", no_gi: "NO-GI", john_wick: "JOHN WICK", gauntlet: "GAUNTLET" }[match.boutType] || match.boutType || "MATCHUP")} <span>${match.weightLbs == null ? "Weight TBA" : `${escapeHtml(match.weightLbs)} LBS`}</span></h2><span class="market-label">FAN ODDS</span></div>
       <div class="line-ticker"><span>Open <b>${match.openingLine}</b></span><span>Now <b>${currentLine}</b></span><span class="trend" title="Support change since the 50/50 opening">${trend ? `▲ ${escapeHtml(trend.firstName)} <b>+${trend.movement} pts</b>` : "— Even support"}</span></div>
       <div class="fighters"><span class="vs" aria-hidden="true">VS</span>${match.fighters.map(fighter => {
         const fanSelected = match.selectedFighterId === fighter.id;

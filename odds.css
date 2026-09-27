@@ -155,13 +155,17 @@ footer a { color: var(--gold); text-decoration: none; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
 
-/* The event ticket CTA stays primary; the builder is opt-in and understated. */
+/* Gold draws attention to the compact builder; the full-width ticket CTA stays primary. */
 body { padding-bottom: var(--parlay-space, 0px); }
 html { scroll-padding-bottom: var(--parlay-space, 0px); }
 .parlay-entry { margin: 2px 0 12px; }
 .secondary-control { min-height: 40px; padding: 9px 13px; border: 1px solid #785a3c; border-radius: 5px; background: #1c1c22; color: #e2d5be; font-size: 11px; font-weight: 700; letter-spacing: .03em; box-shadow: none; }
 .secondary-control:hover { border-color: #d6b36c; background: #28242a; }
 .secondary-control:disabled { opacity: .5; }
+#parlay-start { background: linear-gradient(135deg, #ffe5a0, #d2a34f); color: #241408; border-color: #f5d48c; min-height: 44px; padding: 11px 18px; box-shadow: 0 0 20px #d7193838, inset 0 1px 0 #fff5; }
+#parlay-start:hover:not(:disabled) { background: linear-gradient(135deg, #fff0bc, #e3b765); box-shadow: 0 0 24px #d7193855; }
+#parlay-start:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
+.main-event-label { display: inline-block; color: #f3cf83; margin-right: 7px; font-size: inherit; }
 .parlay-mode { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px; margin-bottom: 12px; background: #1b1718; border: 1px solid #705633; border-radius: 6px; scroll-margin-top: 12px; }
 .parlay-mode strong { color: var(--gold); font-size: 11px; letter-spacing: .06em; }
 .parlay-mode p, #parlay-progress { font-size: 11px; line-height: 1.5; color: #c2bac6; margin: 4px 0 0; }
