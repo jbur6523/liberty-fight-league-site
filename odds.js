@@ -2,6 +2,7 @@ import { FanParlay, combinedFanOdds, parlayShareText, shareParlay } from "/src/s
 import { restoreParlay, rememberParlay } from "/src/superfight/parlay-storage.js";
 import { createParlayTicket } from "/src/superfight/parlay-ticket.js";
 import { boardMatches, isMainEvent } from "/src/superfight/board-order.js";
+import { savedFanPicks } from "/src/superfight/picks-ticket.js";
 
 const parlay = new FanParlay();
 const review = document.querySelector("#parlay-review");
@@ -10,6 +11,8 @@ let savedFingerprint = null;
 let savedLocally = false;
 let ticketUrl = null;
 let ticketFingerprint = null;
+let picksTicketUrl = null;
+let picksDownloading = false;
 function localParlayStorage() { try { return window.localStorage; } catch { return null; } }
 const container = document.querySelector("#matchups");
 const message = document.querySelector("#page-message");
@@ -78,6 +81,9 @@ function render() {
   message.textContent = event ? "Matchups are on the way. Check back when the card is ready." : "Fan Picks will open when the next event is ready.";
   retry.hidden = true;
   renderSummary();
+  const savedPicks = savedFanPicks(snapshot);
+  document.querySelector("#picks-download").disabled = picksDownloading || !savedPicks.length;
+  document.querySelector("#picks-download-count").textContent = savedPicks.length ? `${savedPicks.length} saved ${savedPicks.length === 1 ? "pick" : "picks"} ready to download.` : "Make your picks above, then save your ticket.";
   container.innerHTML = boardMatches(event?.id, snapshot.matches).map((match, index) => {
     const trend = match.fighters.find(f => f.id === match.trendFighterId);
     const currentLine = trend?.fanOdds || "PK";
@@ -272,6 +278,36 @@ document.querySelector("#parlay-download").addEventListener("click", downloadPar
 document.querySelector("#parlay-quick-download").addEventListener("click", () => {
   openParlayReview();
   downloadParlayTicket();
+});
+document.querySelector("#picks-download").addEventListener("click", async () => {
+  const legs = savedFanPicks(snapshot);
+  if (picksDownloading || !legs.length) return;
+  const button = document.querySelector("#picks-download");
+  const status = document.querySelector("#picks-download-status");
+  const link = document.querySelector("#picks-ticket-link");
+  picksDownloading = true;
+  button.disabled = true;
+  link.hidden = true;
+  status.textContent = "Creating your Fan Picks ticket…";
+  try {
+    const { blob, capturedAt } = await createParlayTicket({ eventName: snapshot.event?.name || "Liberty Fight League", legs, kind: "fan-picks" });
+    if (picksTicketUrl) URL.revokeObjectURL(picksTicketUrl);
+    picksTicketUrl = URL.createObjectURL(blob);
+    const download = document.createElement("a");
+    download.href = picksTicketUrl;
+    download.download = `fan-picks-${capturedAt.replace(/[:.]/g, "-")}.png`;
+    document.body.append(download);
+    download.click();
+    download.remove();
+    link.href = picksTicketUrl;
+    link.hidden = false;
+    status.textContent = "Your Fan Picks ticket is ready. It captures your saved picks and odds at download time. If the download didn't open, use the image link below.";
+  } catch {
+    status.textContent = "Couldn't create your Fan Picks ticket. Please try again.";
+  } finally {
+    picksDownloading = false;
+    button.disabled = !savedFanPicks(snapshot).length;
+  }
 });
 new ResizeObserver(() => {
   const slip = document.querySelector("#parlay-slip");

@@ -38,6 +38,8 @@ Operator receipts, the previous runtime configuration, and SQL are retained on U
 
 ### Fan Parlay
 
+Normal Fan Picks have their own **Download My Picks** control below the matchup board. It exports confirmed selections from the voter-specific server snapshot, with each fighter's current odds and a capture timestamp. One saved vote is sufficient. It does not use parlay selections or combined odds, and downloading never casts votes. An image link is available if the browser does not start the PNG download automatically.
+
 The public board promotes the RWI 3 Hurricane/Ty main event using verified event, matchup and competitor IDs in `src/superfight/board-order.js`. This is presentation-only: other matchups retain their order, admin lineup data is unchanged, and removed or changed pairings are not fabricated or promoted. Future event promotion can be configured there. The main site navigation links to `/odds` as **Fan Picks**.
 
 The small secondary **Build a Fan Parlay** button below the ticket CTA enables a separate, client-only selection mode. Each matchup contributes at most one fighter; tapping a selected fighter removes that leg. These actions never submit the voting endpoint. Picks automatically save in localStorage by event, storing only matchup and fighter IDs. **Back to Fan Picks** restores normal voting and retains the draft. Returning visitors see **View My Parlay**; the slip stays hidden until requested. No account or additional identifier is used. Saved picks are specific to this browser and disappear if its site data is cleared. Storage failures display an explanation and do not prevent building, downloading or sharing.

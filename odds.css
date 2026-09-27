@@ -166,6 +166,11 @@ html { scroll-padding-bottom: var(--parlay-space, 0px); }
 #parlay-start:hover:not(:disabled) { background: linear-gradient(135deg, #fff0bc, #e3b765); box-shadow: 0 0 24px #d7193855; }
 #parlay-start:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
 .main-event-label { display: inline-block; color: #f3cf83; margin-right: 7px; font-size: inherit; }
+.picks-download { margin: 24px 0; padding: 20px; border: 1px solid #80643c; border-radius: 8px; background: #19161b; text-align: center; }
+.picks-download h2 { color: var(--gold); font-size: 17px; margin: 0 0 10px; }
+.picks-download p { font-size: 12px; line-height: 1.5; color: #c9bdcb; }
+#picks-download { min-height: 48px; width: min(100%, 340px); background: linear-gradient(135deg, #ffe5a0, #d2a34f); color: #241408; font-size: 13px; }
+#picks-ticket-link { color: var(--gold); display: inline-block; padding: 12px; font-size: 13px; }
 .parlay-mode { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px; margin-bottom: 12px; background: #1b1718; border: 1px solid #705633; border-radius: 6px; scroll-margin-top: 12px; }
 .parlay-mode strong { color: var(--gold); font-size: 11px; letter-spacing: .06em; }
 .parlay-mode p, #parlay-progress { font-size: 11px; line-height: 1.5; color: #c2bac6; margin: 4px 0 0; }
