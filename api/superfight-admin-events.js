@@ -58,7 +58,7 @@ async function listEvents(service) {
   const [{ data: events, error: eventError }, { data: weights, error: weightError }] = await Promise.all([
     service
       .from("superfight_events")
-      .select("id, public_slug, name, starts_at, venue, application_info, applications_open, instagram_url, created_at")
+      .select("id, public_slug, name, starts_at, venue, application_info, applications_open, instagram_url, created_at, fan_picks_open, fan_picks_current")
       .order("starts_at", { ascending: true, nullsFirst: false }),
     service
       .from("superfight_event_weight_options")
@@ -81,6 +81,8 @@ async function listEvents(service) {
     applicationsOpen: event.applications_open,
     instagramUrl: event.instagram_url,
     createdAt: event.created_at,
+    fanPicksOpen: event.fan_picks_open,
+    fanPicksCurrent: event.fan_picks_current,
     weightOptions: weights
       .filter((weight) => weight.event_id === event.id)
       .map((weight) => ({
@@ -107,6 +109,13 @@ export default async function handler(request, response) {
     assertSameOrigin(request);
     const body = await readJsonBody(request);
     const resource = body.resource ?? "event";
+
+    if (request.method === "PATCH" && resource === "fanPicksCurrent") {
+      const { error } = await service.rpc("set_superfight_fan_event", { requested_event: uuid(body.eventId, "Event") });
+      if (error) throw databaseFailure(error, "current Fan Picks event update failed");
+      sendJson(response, 200, { events: await listEvents(service) });
+      return;
+    }
 
     if (resource === "weightOption") {
       const values = {
@@ -153,6 +162,10 @@ export default async function handler(request, response) {
     } else {
       const eventId = uuid(body.eventId, "Event");
       const updates = {};
+      if (Object.hasOwn(body, "fanPicksOpen")) {
+        if (typeof body.fanPicksOpen !== "boolean") throw new HttpError(400, "Choose Voting Open or Closed.", "invalid_event");
+        updates.fan_picks_open = body.fanPicksOpen;
+      }
       if (Object.hasOwn(body, "slug")) updates.public_slug = publicSlug(body.slug);
       if (Object.hasOwn(body, "name")) updates.name = requiredText(body.name, "Event name", 160);
       if (Object.hasOwn(body, "startsAt")) updates.starts_at = optionalDateTime(body.startsAt);

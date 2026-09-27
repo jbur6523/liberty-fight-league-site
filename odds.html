@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111214">
+  <meta name="description" content="Who you got? Pick the winner of each Roll With It matchup. Free community fan picks, just for fun.">
+  <title>Roll With It – Fan Picks | Liberty Fight League</title>
+  <link rel="canonical" href="https://libertyfightleague.com/odds">
+  <link rel="stylesheet" href="/odds.css">
+  <script type="module" src="/odds.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="/" aria-label="Liberty Fight League home"><span class="brand-mark"><img src="/rwi-logo.svg" alt="Roll With It" width="44" height="44"></span><span>LIBERTY FIGHT LEAGUE</span></a>
+    <details class="site-menu">
+      <summary aria-label="Site navigation"><span></span><span></span><span></span></summary>
+      <nav aria-label="Main navigation"><a href="/">Home</a><a href="/event">The event</a><a href="/fighters">Competitors</a><a href="/tickets">Get tickets</a><a href="/contact">Contact</a></nav>
+    </details>
+  </header>
+  <main>
+    <section class="intro" aria-labelledby="page-title">
+      <h1 id="page-title">ROLL WITH IT <span>FAN PICKS</span></h1>
+      <p class="subtitle">Who you got? Pick the winner of each matchup.</p>
+      <ul class="how-it-works" aria-label="How Fan Picks works">
+        <li><svg viewBox="0 0 28 28" aria-hidden="true"><path d="M3 25h22M6 21V12h4v9m3 0V4h4v17m3 0v-6h4v6"/></svg><span>See what the<br>community thinks</span></li>
+        <li><svg viewBox="0 0 28 28" aria-hidden="true"><path d="m10 24-5-8q-1-3 2-2l3 3V6a2 2 0 0 1 4 0v7l2-1 2 2 2-1 3 3-2 8M7 8a5 5 0 0 1 10-1"/></svg><span>Tap to pick<br>your winner</span></li>
+        <li><svg viewBox="0 0 28 28" aria-hidden="true"><circle cx="14" cy="8" r="4"/><path d="M6 25v-4a8 8 0 0 1 16 0v4H6ZM5 6a3 3 0 0 0 0 6m18-6a3 3 0 0 1 0 6M4 16a5 5 0 0 0-3 5v2m23-7a5 5 0 0 1 3 5v2"/></svg><span>No account needed<br><small>One pick per matchup*</small></span></li>
+      </ul>
+      <div class="event-line"><span id="event-name"></span><span id="voting-status" hidden></span></div>
+    </section>
+    <p id="page-message" role="status">Loading matchups…</p>
+    <button id="retry" class="retry" type="button" hidden>Try again</button>
+    <div id="matchups" class="matchups" aria-label="Fan pick matchups"></div>
+    <aside class="poll-note">
+      <strong>Your picks. Our community.</strong>
+      <p>Each fighter starts with 2 baseline votes for percentages only. Fan pick totals count real picks only. Percentages represent community picks, not actual win probabilities.</p>
+      <p>*One active pick per matchup in this browser; change it while voting is open. Anonymous polling cannot guarantee one person, one vote.</p>
+      <p>Free and just for fun. No money, wagers, or prizes.</p>
+    </aside>
+    <noscript><p>Enable JavaScript to view matchups and make your picks.</p></noscript>
+  </main>
+  <footer>LIBERTY FIGHT LEAGUE <span>•</span> ROLL WITH IT</footer>
+</body>
+</html>

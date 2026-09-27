@@ -399,7 +399,57 @@ function confirmationBadge(summary) {
 }
 
 function matchFighterCell(fighter) {
-  return `<button class="admin-name-button" type="button" data-detail="${fighter.id}">${escapeHtml(fighter.name)}</button><div class="admin-muted">${label(fighter.belt)} · ${gymWithDistance(fighter)}</div>`;
+  return `<button class="admin-name-button" type="button" data-detail="${fighter.id}">${escapeHtml(fighter.name)}</button>
+    <div class="admin-photo-controls">${fighter.photoUrl ? `<img class="admin-fighter-thumbnail" src="${escapeHtml(fighter.photoUrl)}" alt="${escapeHtml(fighter.name)}">` : ""}
+    <label class="admin-button ghost admin-photo-label">${fighter.photoUrl ? "Replace Image" : "Add Image"}<input type="file" accept="image/jpeg,image/png,image/webp" data-photo="${fighter.id}" aria-label="${fighter.photoUrl ? "Replace" : "Add"} image for ${escapeHtml(fighter.name)}"></label>
+    ${fighter.photoUrl ? `<button class="admin-button ghost" type="button" data-remove-photo="${fighter.id}">Remove Image</button>` : ""}</div>
+    <div class="admin-muted">${label(fighter.belt)} · ${gymWithDistance(fighter)}</div>`;
+}
+
+function renderFanPicksControls() {
+  const event = currentEvent();
+  const controls = document.querySelector("#fan-picks-controls");
+  controls.innerHTML = event ? `<strong>Fan Picks</strong><button class="admin-button secondary" type="button" id="fan-voting-toggle" aria-pressed="${event.fanPicksOpen === true}">Voting ${event.fanPicksOpen ? "Open" : "Closed"}</button>
+    ${event.fanPicksCurrent ? '<span class="admin-muted">Current public event</span>' : '<button class="admin-button secondary" type="button" id="fan-current-event">Use this event on Fan Picks</button>'}
+    <a class="admin-button ghost" href="/odds" target="_blank" rel="noopener">View Fan Picks ↗</a>` : "";
+  async function save(button, values) {
+    button.disabled = true;
+    try {
+      const payload = await api("/api/superfight-admin-events", { method: "PATCH", body: JSON.stringify({ eventId: event.id, ...values }) });
+      state.events = payload.events;
+      renderFanPicksControls();
+      document.querySelector("#fan-picks-admin-message").textContent = "Fan Picks settings saved.";
+    } catch (error) {
+      document.querySelector("#fan-picks-admin-message").textContent = error.message;
+      button.disabled = false;
+    }
+  }
+  controls.querySelector("#fan-voting-toggle")?.addEventListener("click", eventClick => save(eventClick.currentTarget, { fanPicksOpen: !event.fanPicksOpen }));
+  controls.querySelector("#fan-current-event")?.addEventListener("click", eventClick => save(eventClick.currentTarget, { resource: "fanPicksCurrent" }));
+}
+
+async function updateFighterPhoto(competitorId, file, remove, control) {
+  const message = document.querySelector("#fan-picks-admin-message");
+  control.disabled = true;
+  message.textContent = remove ? "Removing image…" : "Uploading image…";
+  try {
+    const values = { competitorId };
+    if (!remove) {
+      if (!file || !["image/jpeg", "image/png", "image/webp"].includes(file.type)) throw new Error("Choose a JPEG, PNG, or WebP image.");
+      if (file.size > 3 * 1024 * 1024) throw new Error("Choose an image smaller than 3 MB.");
+      values.type = file.type;
+      values.image = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result).split(",")[1]);
+        reader.onerror = () => reject(new Error("The image could not be read."));
+        reader.readAsDataURL(file);
+      });
+    }
+    await api("/api/superfight-admin-photo", { method: remove ? "DELETE" : "POST", body: JSON.stringify(values) });
+    await loadMatches();
+    message.textContent = remove ? "Image removed." : "Image saved. Fan Picks will use it automatically.";
+  } catch (error) { message.textContent = error.message; }
+  finally { control.disabled = false; if (control.type === "file") control.value = ""; }
 }
 
 function matchLinks(fighter) {
@@ -407,6 +457,7 @@ function matchLinks(fighter) {
 }
 
 function renderMatched() {
+  renderFanPicksControls();
   document.querySelector("#matched-count").textContent = `(${state.matches.length})`;
   if (state.matches.length === 0) {
     elements.matched.innerHTML = emptyState("No active matchups", "Create a matchup from the Unmatched workspace.");
@@ -428,6 +479,10 @@ function renderMatched() {
     </table></div>`;
 
   bindTableActions(elements.matched);
+  elements.matched.querySelectorAll("[data-photo]").forEach(input => input.addEventListener("change", () => {
+    if (input.files[0]) updateFighterPhoto(input.dataset.photo, input.files[0], false, input);
+  }));
+  elements.matched.querySelectorAll("[data-remove-photo]").forEach(button => button.addEventListener("click", () => updateFighterPhoto(button.dataset.removePhoto, null, true, button)));
   elements.matched.querySelectorAll("[data-flyer]").forEach((button) => {
     button.addEventListener("click", async () => {
       if (button.disabled) return;

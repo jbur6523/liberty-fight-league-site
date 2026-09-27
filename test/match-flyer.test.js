@@ -23,7 +23,7 @@ test("Flyer UI waits for save, ignores repeated clicks, toggles both ways, and r
   runInNewContext(`${renderSource}; renderMatched();`, {
     state: { matches: [match] }, elements: { matched }, document: { querySelector() { return {}; } },
     matchFighterCell: () => "Fighter", matchLinks: () => "", label: String, escapeHtml: String,
-    confirmationBadge: value => value, bindTableActions() {}, showToast: value => messages.push(value),
+    confirmationBadge: value => value, bindTableActions() {}, renderFanPicksControls() {}, showToast: value => messages.push(value),
     api: async (path, options) => {
       calls++;
       assert.equal(path, "/api/superfight-admin-matches");

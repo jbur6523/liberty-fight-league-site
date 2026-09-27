@@ -1,4 +1,5 @@
 import { requireSuperfightAdmin } from "../src/server/admin-auth.js";
+import { photoUrl } from "../src/server/fan-picks.js";
 import {
   HttpError,
   allowMethods,
@@ -46,7 +47,7 @@ async function listMatches(service, eventId) {
   ] = await Promise.all([
     service
       .from("superfight_competitors")
-      .select("id, full_name, belt, gym, city, state, distance_from_sf_miles, instagram_handle, instagram_url")
+      .select("id, full_name, belt, gym, city, state, distance_from_sf_miles, instagram_handle, instagram_url, fan_photo_path")
       .in("id", competitorIds),
     service
       .from("superfight_match_confirmations")
@@ -69,6 +70,7 @@ async function listMatches(service, eventId) {
       return {
         id: competitor.id,
         name: competitor.full_name,
+        photoUrl: photoUrl(service, competitor.fan_photo_path),
         belt: competitor.belt,
         gym: competitor.gym,
         city: competitor.city,

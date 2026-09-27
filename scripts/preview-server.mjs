@@ -5,6 +5,14 @@ import path from "node:path";
 import { randomBytes } from "node:crypto";
 import { profileSnapshot } from "../src/superfight/share-profile.js";
 import { competitorLocation } from "../src/server/city-distance.js";
+import { anonymousVoter, percentages } from "../src/server/fan-picks.js";
+import { validatedPhoto } from "../src/server/fighter-photos.js";
+
+// Local mock preview only. Production always uses the database-backed API routes.
+process.env.FAN_PICKS_SECRET ||= randomBytes(32).toString("hex");
+const previewFanVotes = new Map();
+const previewPhotos = new Map();
+let previewDefaultUnmatched = false;
 
 const port = Number(process.env.PORT || 4173);
 const root = path.resolve(".");
@@ -16,6 +24,8 @@ const previewEvent = {
   venue: "Preview Venue · California",
   applicationInfo: "A local interface preview using sample configuration only.",
   applicationsOpen: true,
+  fanPicksOpen: true,
+  fanPicksCurrent: true,
   instagramUrl: "https://instagram.com/libertyfightleague",
   weightOptions: [
     { id: "00000000-0000-4000-8000-000000000151", label: "Preview · 150 lb", valueLbs: 150 },
@@ -35,6 +45,12 @@ const previewOffers = [];
 const previewMatches = [];
 let previewDefaultFlyerCompleted = false;
 const previewProfileShares = new Map();
+
+function previewFanMatches() {
+  return [...previewMatches, ...(previewDefaultUnmatched ? [] : [{
+    id: "00000000-0000-4000-8000-000000000301", fighterA: competitors[0], fighterB: competitors[1], boutType: "gi", weightLbs: 155,
+  }])].filter(match => !(match.extraFighters || []).length);
+}
 
 function previewAvailable() {
   const matched = new Set(previewMatches.flatMap((match) => [match.fighterA.id, match.fighterB.id, ...(match.extraFighters ?? []).map(fighter => fighter.id)]));
@@ -72,6 +88,48 @@ function confirmationPayload(response = "awaiting", gym = "North Bay Jiu-Jitsu")
 }
 
 async function mockApi(request, response, url) {
+  if (url.pathname === "/api/fan-picks") {
+    try {
+      const voter = anonymousVoter(request, response, { issue: request.method === "GET" });
+      if (request.method === "POST") {
+        const input = await body(request);
+        if (!previewEvent.fanPicksOpen) return json(response, 409, { message: "Voting is closed. You can still view the fan picks." });
+        const match = previewFanMatches().find(item => item.id === input.matchId);
+        if (input.eventId !== previewEvent.id || !match || ![match.fighterA.id, match.fighterB.id].includes(input.fighterId)) return json(response, 409, { message: "This matchup is no longer available." });
+        previewFanVotes.set(`${match.id}:${voter}`, input.fighterId);
+      }
+      return json(response, 200, {
+        event: { id: previewEvent.id, name: previewEvent.name, votingOpen: previewEvent.fanPicksOpen },
+        matches: previewFanMatches().map(match => {
+          const votes = [...previewFanVotes].filter(([key]) => key.startsWith(`${match.id}:`)).map(([, fighter]) => fighter);
+          const a = votes.filter(id => id === match.fighterA.id).length;
+          const scores = percentages(a, votes.length - a);
+          return { id: match.id, boutType: match.boutType, weightLbs: match.weightLbs, totalPicks: votes.length, selectedFighterId: previewFanVotes.get(`${match.id}:${voter}`) || null,
+            fighters: [match.fighterA, match.fighterB].map((fighter, index) => {
+              const words = fighter.name.split(/\s+/);
+              return { id: fighter.id, firstName: words[0], name: `${words[0]} ${words.at(-1)[0]}.`, academy: fighter.gym, photoUrl: fighter.photoUrl || null, percentage: scores[index] };
+            }),
+          };
+        }),
+      });
+    } catch (error) { return json(response, error.statusCode || 500, { message: error.message }); }
+  }
+  if (url.pathname === "/api/superfight-admin-photo") {
+    const input = await body(request);
+    const fighter = competitors.find(item => item.id === input.competitorId);
+    if (!fighter) return json(response, 404, { message: "Competitor not found." });
+    try {
+      const old = fighter.photoUrl;
+      if (request.method === "DELETE") fighter.photoUrl = null;
+      else {
+        const image = await validatedPhoto(input);
+        fighter.photoUrl = `/preview-photo/${randomBytes(12).toString("hex")}.webp`;
+        previewPhotos.set(fighter.photoUrl, image);
+      }
+      if (old) previewPhotos.delete(old);
+      return json(response, 200, { competitorId: fighter.id, photoUrl: fighter.photoUrl });
+    } catch (error) { return json(response, error.statusCode || 500, { message: error.message }); }
+  }
   if (url.pathname === "/api/superfight-profile") {
     if (request.method === "POST") {
       const input = await body(request);
@@ -153,6 +211,10 @@ async function mockApi(request, response, url) {
     return json(response, 200, { signedIn: request.method !== "DELETE", email: "promoter@example.com" });
   }
   if (url.pathname === "/api/superfight-admin-events") {
+    if (request.method === "PATCH") {
+      const input = await body(request);
+      if (typeof input.fanPicksOpen === "boolean") previewEvent.fanPicksOpen = input.fanPicksOpen;
+    }
     return json(response, 200, { events: [previewEvent] });
   }
   if (url.pathname === "/api/superfight-admin-competitors") {
@@ -180,11 +242,12 @@ async function mockApi(request, response, url) {
         return json(response, 200, { match: { id: input.matchId, flyerCompleted: input.flyerCompleted } });
       }
       const index = previewMatches.findIndex((match) => match.id === input.matchId);
+      if (input.matchId === "00000000-0000-4000-8000-000000000301") previewDefaultUnmatched = true;
       if (index >= 0) previewMatches.splice(index, 1);
       return json(response, 200, { unmatched: true });
     }
     return json(response, 200, {
-      matches: [...previewMatches, {
+      matches: [...previewMatches, ...(previewDefaultUnmatched ? [] : [{
         id: "00000000-0000-4000-8000-000000000301",
         flyerCompleted: previewDefaultFlyerCompleted,
         weightLbs: 155,
@@ -193,7 +256,7 @@ async function mockApi(request, response, url) {
         confirmation: { summary: "fighter_a_accepted" },
         fighterA: { ...competitors[0], confirmationPath: "/confirm/00000000-0000-4000-8000-000000000501", response: "accepted" },
         fighterB: { ...competitors[1], confirmationPath: "/confirm/00000000-0000-4000-8000-000000000502", response: "awaiting" },
-      }],
+      }])],
     });
   }
   if (url.pathname === "/api/superfight-admin-competitor") {
@@ -237,6 +300,7 @@ async function mockApi(request, response, url) {
 }
 
 const rewrites = new Map([
+  ["/odds", "/odds.html"],
   ["/offers", "/offers.html"],
   ["/event", "/event.html"],
   ["/fighters", "/fighters.html"],
@@ -250,6 +314,11 @@ const rewrites = new Map([
 
 const server = http.createServer(async (request, response) => {
   const url = new URL(request.url, `http://${request.headers.host}`);
+  if (previewPhotos.has(url.pathname)) {
+    response.writeHead(200, { "Content-Type": "image/webp" });
+    response.end(previewPhotos.get(url.pathname));
+    return;
+  }
   if (url.pathname === "/tickets") {
     response.writeHead(307, { Location: "https://cornerpass.com/rwi3" }).end();
     return;
