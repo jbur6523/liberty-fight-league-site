@@ -57,9 +57,9 @@ test("real migrations and public API cover votes, refresh, privacy, current even
     const otherEvent = (await db.query("insert into superfight_events(public_slug,name) values('other-test','Other event') returning id")).rows[0].id;
     const fighters = [];
     for (let i = 0; i < 8; i++) fighters.push((await db.query("insert into superfight_competitors(event_id,source,full_name,gym,belt) values($1,'admin_quick_add',$2,'Academy','blue') returning id", [eventId, i === 0 ? "Michael Smith" : `Fighter ${i}`])).rows[0].id);
-    const createMatch = async (ids, type = "gi") => (await db.query("insert into superfight_matches(event_id,fighter_a_id,fighter_b_id,fighter_c_id,bout_type,match_weight_lbs) values($1,$2,$3,$4,$5,155) returning id", [eventId, ids[0], ids[1], ids[2] || null, type])).rows[0].id;
+    const createMatch = async (ids, type = "gi") => (await db.query("insert into superfight_matches(event_id,fighter_a_id,fighter_b_id,fighter_c_id,fighter_d_id,bout_type,match_weight_lbs) values($1,$2,$3,$4,$5,$6,155) returning id", [eventId, ids[0], ids[1], ids[2] || null, ids[3] || null, type])).rows[0].id;
     const matchId = await createMatch(fighters.slice(0, 2));
-    const gauntletId = await createMatch(fighters.slice(2, 5), "gauntlet");
+    const gauntletId = await createMatch(fighters.slice(2, 6), "gauntlet");
     service.rpc = async (name, params) => {
       try {
         const keys = Object.keys(params);
@@ -75,7 +75,34 @@ test("real migrations and public API cover votes, refresh, privacy, current even
     const initial = await call();
     const cookie = initial.headers["Set-Cookie"].split(";")[0];
     assert.equal(initial.statusCode, 200);
-    assert.equal(initial.payload.matches.length, 1, "multi-fighter specialty bouts are omitted");
+    assert.equal(initial.payload.matches.length, 2, "gauntlet is one group market, never fake individual matches");
+    const group = initial.payload.matches.find(m => m.id === gauntletId);
+    assert.equal(group.groupPick, true);
+    assert.deepEqual(group.opponents.map(f => f.id), fighters.slice(3, 6));
+    for (const field of ['voter_hash','ip_hash','phone','email','full_name','fan_photo_path']) assert(!JSON.stringify(group).includes(field));
+    assert.deepEqual(group.fighters.map(f => f.percentage), [50, 50]);
+    assert.equal(group.fighters[1].name, 'Opponents vs Fighter 2.');
+    assert.deepEqual(group.fighters.map(f => f.fanOdds), ['PK', 'PK']);
+    const groupVote = fighterId => call('POST', { eventId, matchId: gauntletId, fighterId }, cookie);
+    assert.equal((await groupVote(fighters[4])).statusCode, 400, 'individual extra opponent cannot be voted as a separate outcome');
+    assert.equal((await groupVote(fighters[2])).statusCode, 200);
+    const repeatedGroup = await Promise.all(Array.from({ length: 4 }, () => groupVote(fighters[3])));
+    for (const response of repeatedGroup) {
+      const card = response.payload.matches.find(m => m.id === gauntletId);
+      assert.equal(card.totalPicks, 1);
+      assert.equal(card.selectedFighterId, fighters[3]);
+      assert.deepEqual(card.fighters.map(f => f.percentage), [40, 60]);
+    }
+    assert.equal((await call('GET', null, cookie)).payload.matches.find(m => m.id === gauntletId).selectedFighterId, fighters[3]);
+    await db.query('update superfight_events set fan_picks_open=false where id=$1', [eventId]);
+    assert.equal((await groupVote(fighters[2])).statusCode, 409);
+    assert.equal((await call('GET', null, cookie)).payload.matches.find(m => m.id === gauntletId).totalPicks, 1);
+    await db.query('update superfight_events set fan_picks_open=true where id=$1', [eventId]);
+    await assert.rejects(db.query('update superfight_matches set fighter_c_id=$1 where id=$2', [fighters[5],gauntletId]), /Unmatch/);
+    await db.query("update superfight_matches set state='unmatched',unmatched_at=now() where id=$1", [gauntletId]);
+    assert.equal((await groupVote(fighters[2])).statusCode, 409);
+    await db.query('delete from superfight_fan_votes where match_id=$1', [gauntletId]);
+    await db.exec('delete from superfight_fan_limits');
     assert.equal(initial.payload.matches[0].totalPicks, 0);
     assert.equal(initial.payload.matches[0].boutType, "gi");
     assert.equal(initial.payload.matches[0].weightLbs, 155);
@@ -157,6 +184,7 @@ test("real migrations and public API cover votes, refresh, privacy, current even
       has_function_privilege('anon','cast_superfight_fan_pick(uuid,uuid,uuid,text,text)','execute') c,
       has_function_privilege('authenticated','superfight_fan_picks_snapshot(text)','execute') d`);
     assert.deepEqual(privileges.rows[0], { a: false, b: false, c: false, d: false });
+    assert.equal((await db.query("select has_function_privilege('anon','superfight_fan_picks_snapshot_v2(text)','execute') allowed")).rows[0].allowed, false);
     assert.equal((await db.query("select count(*)::int n from pg_class where relname in ('superfight_fan_votes','superfight_fan_limits') and relrowsecurity")).rows[0].n, 2);
     const bucket = (await db.query("select * from storage.buckets where id='superfight-fighter-photos'")).rows[0];
     assert.equal(bucket.public, true);

@@ -87,15 +87,16 @@ function render() {
   container.innerHTML = boardMatches(event?.id, snapshot.matches).map((match, index) => {
     const trend = match.fighters.find(f => f.id === match.trendFighterId);
     const currentLine = trend?.fanOdds || "PK";
-    return `<article class="match-card" id="match-${match.id}" data-match="${match.id}" aria-label="${escapeHtml(match.fighters.map(f => f.name).join(" versus "))}">
-      <div class="card-header"><h2>${isMainEvent(event?.id, match) ? '<b class="main-event-label">MAIN EVENT</b> ' : ''}${escapeHtml({ gi: "GI", no_gi: "NO-GI", john_wick: "JOHN WICK", gauntlet: "GAUNTLET" }[match.boutType] || match.boutType || "MATCHUP")} <span>${match.weightLbs == null ? "Weight TBA" : `${escapeHtml(match.weightLbs)} LBS`}</span></h2><span class="market-label">FAN ODDS</span></div>
+    return `<article class="match-card${match.groupPick ? ' group-pick-card' : ''}" id="match-${match.id}" data-match="${match.id}" aria-label="${escapeHtml(match.groupPick ? `${match.anchor.name} versus ${match.opponents.map(f => f.name).join(', ')}` : match.fighters.map(f => f.name).join(" versus "))}">
+      <div class="card-header"><h2>${isMainEvent(event?.id, match) ? '<b class="main-event-label">MAIN EVENT</b> ' : ''}${escapeHtml(match.groupPick ? "GROUP PICK" : { gi: "GI", no_gi: "NO-GI", john_wick: "JOHN WICK", gauntlet: "GAUNTLET" }[match.boutType] || match.boutType || "MATCHUP")} <span>${match.weightLbs == null ? "Weight TBA" : `${escapeHtml(match.weightLbs)} LBS`}</span></h2><span class="market-label">FAN ODDS</span></div>
+      ${match.groupPick ? groupRoster(match) : ''}
       <div class="line-ticker"><span>Open <b>${match.openingLine}</b></span><span>Now <b>${currentLine}</b></span><span class="trend" title="Support change since the 50/50 opening">${trend ? `▲ ${escapeHtml(trend.firstName)} <b>+${trend.movement} pts</b>` : "— Even support"}</span></div>
       <div class="fighters"><span class="vs" aria-hidden="true">VS</span>${match.fighters.map(fighter => {
         const fanSelected = match.selectedFighterId === fighter.id;
         const selected = parlay.active ? parlay.picks.get(match.id) === fighter.id : fanSelected;
         return `<div class="fighter${selected ? " is-picked" : ""}">
-          <div class="photo-wrap"><img class="portrait${fighter.photoUrl ? "" : " is-placeholder"}" src="${escapeHtml(fighter.photoUrl || "/fighter-silhouette.svg")}" alt="${fighter.photoUrl ? escapeHtml(fighter.name) : "Photo not yet available"}" width="500" height="500" ${index > 2 ? 'loading="lazy"' : ""}></div>
-          <div class="fighter-identity"><h3>${escapeHtml(fighter.name)}</h3><p class="academy">${escapeHtml(fighter.academy)}</p></div>
+          ${match.groupPick ? '' : `<div class="photo-wrap"><img class="portrait${fighter.photoUrl ? "" : " is-placeholder"}" src="${escapeHtml(fighter.photoUrl || "/fighter-silhouette.svg")}" alt="${fighter.photoUrl ? escapeHtml(fighter.name) : "Photo not yet available"}" width="500" height="500" ${index > 2 ? 'loading="lazy"' : ""}></div>`}
+          <div class="fighter-identity"><h3>${escapeHtml(match.groupPick ? (fighter.id === match.anchor.id ? `${match.anchor.firstName} wins` : 'Opponents win') : fighter.name)}</h3><p class="academy">${escapeHtml(fighter.description || fighter.academy)}</p></div>
           <button class="pick-button" type="button" data-fighter="${fighter.id}" aria-pressed="${selected}" aria-label="${parlay.active ? `${selected ? "Remove" : "Add"} ${escapeHtml(fighter.name)} ${selected ? "from" : "to"} parlay` : `Pick ${escapeHtml(fighter.name)}`}, Fan Odds ${fighter.fanOdds}" ${busy || (!parlay.active && !event.votingOpen) ? "disabled" : ""}><span>${escapeHtml(fighter.name)}</span><strong>${fighter.fanOdds}</strong></button>
           <div class="fighter-stats"><div class="stat-row"><strong>${fighter.percentage}%</strong><span>${number(fighter.picks)} ${fighter.picks === 1 ? "pick" : "picks"}</span></div><div class="bar" aria-hidden="true"><span style="width:${fighter.percentage}%"></span></div><div class="pick-state">${selected ? `<b class="your-pick">✓ ${parlay.active ? "PARLAY PICK" : "YOUR PICK"}</b>` : parlay.active && fanSelected ? '<span class="fighter-movement">✓ Your Fan Pick vote</span>' : `<span class="fighter-movement">${fighter.movement === 0 ? "Opened PK" : `${fighter.movement > 0 ? "▲" : "▼"} ${signed(fighter.movement)} pts since open`}</span>`}</div></div>
         </div>`;
@@ -106,6 +107,14 @@ function render() {
   }).join("");
   container.querySelectorAll("img").forEach(img => img.addEventListener("error", () => { img.classList.add("is-placeholder"); img.alt = "Photo not yet available"; img.src = "/fighter-silhouette.svg"; }, { once: true }));
   if (focusedId && focusedMatch) container.querySelector(`[data-match="${focusedMatch}"] [data-fighter="${focusedId}"]`)?.focus({ preventScroll: true });
+}
+
+function groupRoster(match) {
+  const portrait = fighter => `<img src="${escapeHtml(fighter.photoUrl || '/fighter-silhouette.svg')}" alt="${escapeHtml(fighter.name)}" width="200" height="200" loading="lazy">`;
+  return `<div class="group-title"><h3>${escapeHtml(match.anchor.name)} <span>VS</span></h3><p>${escapeHtml(match.opponents.map(f => f.name).join(' · '))}</p></div>
+    <div class="group-roster"><div class="group-anchor">${portrait(match.anchor)}<strong>${escapeHtml(match.anchor.name)}</strong><small>${escapeHtml(match.anchor.academy)}</small></div>
+    <div class="group-opponents">${match.opponents.map(f => `<div>${portrait(f)}<span><strong>${escapeHtml(f.name)}</strong><small>${escapeHtml(f.academy)}</small></span></div>`).join('')}</div></div>
+    <p class="group-rule">One group pick: ${escapeHtml(match.anchor.firstName)} beats all ${match.opponents.length} opponents, or any opponent beats ${escapeHtml(match.anchor.firstName)}.</p>`;
 }
 
 async function load({ quiet = false } = {}) {

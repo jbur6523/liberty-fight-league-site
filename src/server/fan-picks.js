@@ -56,7 +56,7 @@ export function publicFighter(service, fighter) {
 }
 
 export async function fanPicksSnapshot(service, voterHash) {
-  const { data, error } = await service.rpc("superfight_fan_picks_snapshot", { voter_hash: voterHash });
+  const { data, error } = await service.rpc("superfight_fan_picks_snapshot_v2", { voter_hash: voterHash });
   if (error) throw databaseFailure(error, "Fan Picks snapshot failed");
   if (!data) return withFanLines({ event: null, matches: [] });
   return withFanLines({
@@ -64,12 +64,15 @@ export async function fanPicksSnapshot(service, voterHash) {
     matches: data.matches.map(match => {
       const votesA = Number(match.votes_a), votesB = Number(match.votes_b);
       const [percentageA, percentageB] = percentages(votesA, votesB);
+      const anchor = publicFighter(service, match.fighter_a);
+      const opponents = match.opponents?.map(fighter => publicFighter(service, fighter));
       return {
         id: match.id, totalPicks: votesA + votesB, selectedFighterId: match.selected_fighter_id,
         boutType: match.bout_type, weightLbs: match.match_weight_lbs == null ? null : Number(match.match_weight_lbs),
+        ...(opponents ? { groupPick: true, anchor, opponents } : {}),
         fighters: [
-          { ...publicFighter(service, match.fighter_a), percentage: percentageA, picks: votesA },
-          { ...publicFighter(service, match.fighter_b), percentage: percentageB, picks: votesB },
+          { ...anchor, ...(opponents ? { name: `${anchor.name} sweeps`, description: `Beats all ${opponents.length} opponents`, academy: `Beats ${opponents.map(f => f.name).join(', ')}` } : {}), percentage: percentageA, picks: votesA },
+          { ...publicFighter(service, match.fighter_b), ...(opponents ? { name: `Opponents vs ${anchor.name}`, firstName: "Opponents", photoUrl: null, description: `Any opponent beats ${anchor.firstName}`, academy: opponents.map(f => f.name).join(', ') } : {}), percentage: percentageB, picks: votesB },
         ],
       };
     }),

@@ -166,6 +166,28 @@ html { scroll-padding-bottom: var(--parlay-space, 0px); }
 #parlay-start:hover:not(:disabled) { background: linear-gradient(135deg, #fff0bc, #e3b765); box-shadow: 0 0 24px #d7193855; }
 #parlay-start:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
 .main-event-label { display: inline-block; color: #f3cf83; margin-right: 7px; font-size: inherit; }
+.group-pick-card { border-color: #87683e; background: linear-gradient(140deg, #25191c, #111216 60%); }
+.group-title { padding: 16px 16px 12px; }
+.group-title h3 { font-size: 25px; margin: 0; text-transform: uppercase; }
+.group-title h3 span { color: var(--red); font-size: 12px; margin-left: 7px; }
+.group-title p { margin: 8px 0 0; color: #d9c9c1; font-size: 14px; }
+.group-roster { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 0 16px 14px; }
+.group-roster img { object-fit: cover; border-radius: 5px; background: #17171b; }
+.group-anchor > img { width: 100%; height: auto; aspect-ratio: 1; max-height: 260px; object-fit: contain; }
+.group-anchor strong { display: block; font-size: 18px; margin: 8px 0 4px; }
+.group-roster small { display: block; font-size: 10px; color: #aaa0ad; line-height: 1.4; margin-top: 4px; }
+.group-opponents > div { display: flex; align-items: center; gap: 9px; padding-bottom: 9px; margin-bottom: 9px; border-bottom: 1px solid #ffffff12; }
+.group-opponents > div:last-child { border: 0; margin: 0; padding: 0; }
+.group-opponents img { width: 48px; height: 58px; flex-shrink: 0; }
+.group-opponents strong { font-size: 13px; }
+.group-rule { margin: 0; padding: 0 16px 14px; font-size: 11px; line-height: 1.5; color: #d2c2cc; }
+.group-pick-card .fighter { display: flex; flex-direction: column; gap: 8px; }
+.group-pick-card .fighter-identity { min-height: 48px; }
+.group-pick-card .fighter-stats { width: 100%; }
+.group-pick-card .pick-button { width: 100%; min-height: 60px; margin-top: auto; }
+.group-pick-card .pick-button span { white-space: normal; }
+.group-pick-card .vs { display: none; }
+@media (max-width: 380px) { .group-roster { gap: 10px; padding-inline: 12px; } .group-opponents img { width: 36px; height: 46px; } .group-opponents strong { font-size: 11px; } .group-roster small { font-size: 9px; } }
 .picks-download { margin: 24px 0; padding: 20px; border: 1px solid #80643c; border-radius: 8px; background: #19161b; text-align: center; }
 .picks-download h2 { color: var(--gold); font-size: 17px; margin: 0 0 10px; }
 .picks-download p { font-size: 12px; line-height: 1.5; color: #c9bdcb; }
