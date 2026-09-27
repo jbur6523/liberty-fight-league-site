@@ -69,16 +69,23 @@
     <noscript><p>Enable JavaScript to view matchups and make your picks.</p></noscript>
   </main>
   <aside id="parlay-slip" class="parlay-slip" aria-label="Your Fan Parlay" hidden>
-    <div class="slip-top"><button id="parlay-expand" type="button" aria-expanded="false" aria-controls="parlay-details"><span>YOUR FAN PARLAY <small id="parlay-count"></small></span><span><small>COMBINED FAN ODDS</small><strong id="parlay-odds"></strong></span><span id="parlay-chevron" aria-hidden="true">⌃</span></button><button id="parlay-close" type="button" aria-label="Exit Parlay Builder">×</button></div>
-    <div id="parlay-details" hidden>
+    <div class="slip-top"><div class="slip-summary"><span>YOUR FAN PARLAY <small id="parlay-count"></small></span><span><small>COMBINED FAN ODDS</small><strong id="parlay-odds"></strong></span></div><button id="parlay-lock" class="secondary-control" type="button" aria-haspopup="dialog">Lock In Parlay</button><button id="parlay-close" type="button" aria-label="Exit Parlay Builder">×</button></div>
+  </aside>
+  <dialog id="parlay-review" aria-labelledby="parlay-review-title">
+    <header class="parlay-review-header"><div><h2 id="parlay-review-title">Your Fan Parlay</h2><p id="parlay-review-total"></p></div><button id="parlay-review-close" type="button" aria-label="Close parlay review">×</button></header>
+    <div id="parlay-details">
+      <p class="parlay-persistence" role="status"></p>
       <ul id="parlay-legs"></ul>
       <p class="parlay-disclaimer">For fun only • No wagering • Fan odds are based on community picks.</p>
-      <p class="parlay-explainer">Combined lines multiply the implied probabilities of your picks. They are not actual win probabilities. Lines refresh with Fan Picks. Your draft lasts until you reload or leave this page.</p>
-      <div class="parlay-actions"><button id="parlay-share" class="secondary-control" type="button">SHARE MY PARLAY</button><button id="parlay-clear" class="secondary-control" type="button">Clear parlay</button></div>
+      <p class="parlay-explainer">You can still edit your picks. Combined Fan Odds follow the live fan lines; your downloaded ticket captures the lines at that moment.</p>
+      <div class="parlay-actions"><button id="parlay-download" class="secondary-control" type="button">Download Ticket</button><button id="parlay-share" class="secondary-control" type="button">Share Parlay</button></div>
+      <p id="parlay-download-status" role="status"></p>
+      <div id="parlay-ticket-fallback" hidden><p>Tap to open the image, then use your browser’s Save Image or Share option.</p><a id="parlay-ticket-link" target="_blank" rel="noopener">Open ticket image</a></div>
       <p id="parlay-share-status" role="status"></p>
       <div id="parlay-share-fallback" hidden><label for="parlay-share-text">Copy your parlay text</label><textarea id="parlay-share-text" readonly rows="6"></textarea></div>
+      <div class="parlay-edit-actions"><button id="parlay-edit" class="secondary-control" type="button">Edit Picks</button><button id="parlay-clear" class="secondary-control" type="button">Clear Parlay</button></div>
     </div>
-  </aside>
+  </dialog>
   <footer><a href="/event">EVENT DETAILS ↗</a><span>LIBERTY FIGHT LEAGUE · ROLL WITH IT 3</span><a href="https://cornerpass.com/rwi3">BUY TICKETS ↗</a></footer>
 </body>
 </html>

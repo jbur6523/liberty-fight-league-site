@@ -1,6 +1,15 @@
 import { FanParlay, combinedFanOdds, parlayShareText, shareParlay } from "/src/superfight/parlay.js";
+import { restoreParlay, rememberParlay } from "/src/superfight/parlay-storage.js";
+import { createParlayTicket } from "/src/superfight/parlay-ticket.js";
 
 const parlay = new FanParlay();
+const review = document.querySelector("#parlay-review");
+let restoredEvent = null;
+let savedFingerprint = null;
+let savedLocally = false;
+let ticketUrl = null;
+let ticketFingerprint = null;
+function localParlayStorage() { try { return window.localStorage; } catch { return null; } }
 const container = document.querySelector("#matchups");
 const message = document.querySelector("#page-message");
 const retry = document.querySelector("#retry");
@@ -50,6 +59,12 @@ function render() {
   const event = snapshot.event;
   const previousLegs = parlay.picks.size;
   parlay.sync(snapshot);
+  if (!event?.id) { restoredEvent = null; savedFingerprint = null; }
+  if (event?.id && restoredEvent !== event.id) {
+    parlay.picks = new Map(restoreParlay(localParlayStorage(), snapshot));
+    restoredEvent = event.id;
+    savedFingerprint = null;
+  }
   renderParlay();
   if (parlay.active && parlay.picks.size < previousLegs) document.querySelector("#parlay-progress").textContent += " Unavailable picks were removed.";
   document.querySelector("#event-name").textContent = event?.name || "Event matchups";
@@ -131,9 +146,25 @@ container.addEventListener("click", async event => {
 
 function renderParlay() {
   const legs = parlay.legs(snapshot);
+  const fingerprint = JSON.stringify([parlay.eventId, [...parlay.picks]]);
+  if (parlay.eventId && fingerprint !== savedFingerprint) {
+    savedLocally = rememberParlay(localParlayStorage(), parlay.eventId, parlay.picks);
+    savedFingerprint = savedLocally ? fingerprint : null;
+  }
+  document.querySelector(".parlay-persistence").textContent = savedLocally
+    ? "Saved automatically on this browser. Clearing browser data removes saved picks."
+    : "This browser couldn't save your picks. Download or share your ticket to keep a copy.";
+  const currentTicketFingerprint = JSON.stringify([snapshot.event?.name, legs]);
+  if (ticketFingerprint && ticketFingerprint !== currentTicketFingerprint) {
+    document.querySelector("#parlay-download-status").textContent = "The live lines or picks changed. Download again for an updated ticket.";
+    document.querySelector("#parlay-ticket-fallback").hidden = true;
+    if (ticketUrl) URL.revokeObjectURL(ticketUrl);
+    ticketUrl = null;
+    ticketFingerprint = null;
+  }
   const start = document.querySelector("#parlay-start");
   start.disabled = !snapshot.matches.length;
-  start.textContent = parlay.active ? `PARLAY · ${legs.length} PICKS` : legs.length ? `BUILD A FAN PARLAY (${legs.length})` : "+ BUILD A FAN PARLAY";
+  start.textContent = parlay.active ? `PARLAY · ${legs.length} PICKS` : legs.length ? `VIEW MY PARLAY (${legs.length})` : "+ BUILD A FAN PARLAY";
   start.setAttribute("aria-pressed", String(parlay.active));
   document.querySelector("#parlay-mode").hidden = !parlay.active;
   const progress = `${legs.length} ${legs.length === 1 ? "pick" : "picks"} selected. ${legs.length < 2 ? "Select at least 2 to see combined odds." : `Combined Fan Odds: ${combinedFanOdds(legs)}.`}`;
@@ -143,12 +174,11 @@ function renderParlay() {
   document.querySelector("#parlay-count").textContent = `${legs.length}-LEG PARLAY`;
   document.querySelector("#parlay-odds").textContent = combinedFanOdds(legs) || "—";
   slip.classList.toggle("many-legs", legs.length >= 5);
-  document.querySelector("#parlay-expand").setAttribute("aria-expanded", String(parlay.expanded));
-  document.querySelector("#parlay-chevron").textContent = parlay.expanded ? "⌄" : "⌃";
-  document.querySelector("#parlay-details").hidden = !parlay.expanded;
+  document.querySelector("#parlay-review-total").textContent = `${legs.length}-leg parlay · Combined Fan Odds ${combinedFanOdds(legs) || "—"}`;
+  if (review.open && (!parlay.active || legs.length < 2)) review.close();
   const focusedRemove = document.activeElement?.dataset.removeLeg;
   document.querySelector("#parlay-legs").innerHTML = legs.map(leg => `<li><span>${escapeHtml(leg.name)} <small>${escapeHtml(leg.academy)}</small></span><strong>${escapeHtml(leg.fanOdds)}</strong><button type="button" data-remove-leg="${leg.matchId}" aria-label="Remove ${escapeHtml(leg.name)} from parlay">×</button></li>`).join("");
-  if (focusedRemove) (document.querySelector(`[data-remove-leg="${focusedRemove}"]`) || document.querySelector(legs.length >= 2 ? "#parlay-expand" : "#parlay-exit")).focus({ preventScroll: true });
+  if (focusedRemove) (document.querySelector(`[data-remove-leg="${focusedRemove}"]`) || document.querySelector(legs.length >= 2 ? "#parlay-edit" : "#parlay-exit")).focus({ preventScroll: true });
   if (!document.querySelector("#parlay-share-fallback").hidden) document.querySelector("#parlay-share-text").value = parlayShareText(snapshot.event?.name, legs);
   document.documentElement.style.setProperty("--parlay-space", slip.hidden ? "0px" : `${slip.offsetHeight + 16}px`);
 }
@@ -157,6 +187,7 @@ document.querySelector("#parlay-start").addEventListener("click", () => {
   if (busy) return;
   parlay.active = true;
   render();
+  if (parlay.picks.size >= 2) { openParlayReview(); return; }
   document.querySelector("#parlay-mode").scrollIntoView({ block: "start" });
   container.querySelector("button")?.focus({ preventScroll: true });
 });
@@ -168,13 +199,23 @@ function exitParlay() {
 }
 document.querySelector("#parlay-exit").addEventListener("click", exitParlay);
 document.querySelector("#parlay-close").addEventListener("click", exitParlay);
-document.querySelector("#parlay-expand").addEventListener("click", () => { parlay.expanded = !parlay.expanded; renderParlay(); });
+function openParlayReview() {
+  if (parlay.picks.size < 2 || review.open) return;
+  renderParlay();
+  review.showModal();
+}
+document.querySelector("#parlay-lock").addEventListener("click", openParlayReview);
+document.querySelector("#parlay-review-close").addEventListener("click", () => review.close());
+document.querySelector("#parlay-edit").addEventListener("click", () => review.close());
+review.addEventListener("close", () => {
+  document.querySelector(parlay.picks.size >= 2 && parlay.active ? "#parlay-lock" : "#parlay-start").focus({ preventScroll: true });
+});
 document.querySelector("#parlay-legs").addEventListener("click", event => {
   const button = event.target.closest("[data-remove-leg]");
   if (!button) return;
   parlay.picks.delete(button.dataset.removeLeg);
   render();
-  (parlay.picks.size >= 2 ? document.querySelector("#parlay-expand") : document.querySelector("#parlay-exit")).focus({ preventScroll: true });
+  (parlay.picks.size >= 2 ? document.querySelector("#parlay-edit") : document.querySelector("#parlay-exit")).focus({ preventScroll: true });
 });
 document.querySelector("#parlay-clear").addEventListener("click", () => {
   parlay.clear();
@@ -199,8 +240,31 @@ document.querySelector("#parlay-share").addEventListener("click", async () => {
     field.select();
   }
 });
-document.querySelector("#parlay-slip").addEventListener("keydown", event => {
-  if (event.key === "Escape" && parlay.expanded) { parlay.expanded = false; renderParlay(); document.querySelector("#parlay-expand").focus(); }
+document.querySelector("#parlay-download").addEventListener("click", async () => {
+  const button = document.querySelector("#parlay-download");
+  const legs = parlay.legs(snapshot);
+  if (legs.length < 2 || button.disabled) return;
+  button.disabled = true;
+  const status = document.querySelector("#parlay-download-status");
+  status.textContent = "Creating your ticket…";
+  const eventName = snapshot.event?.name || "Liberty Fight League";
+  const fingerprint = JSON.stringify([snapshot.event?.name, legs]);
+  try {
+    const { blob, capturedAt } = await createParlayTicket({ eventName, legs });
+    if (ticketUrl) URL.revokeObjectURL(ticketUrl);
+    ticketUrl = URL.createObjectURL(blob);
+    ticketFingerprint = fingerprint;
+    const download = document.createElement("a");
+    download.href = ticketUrl;
+    download.download = `fan-parlay-${capturedAt.replace(/[:.]/g, "-")}.png`;
+    document.body.append(download);
+    download.click();
+    download.remove();
+    document.querySelector("#parlay-ticket-link").href = ticketUrl;
+    document.querySelector("#parlay-ticket-fallback").hidden = false;
+    status.textContent = "Your PNG ticket is ready. If the download didn't open, use the image link below to save it.";
+  } catch (error) { status.textContent = "Couldn't create the ticket. Please try again, or use Share Parlay."; }
+  finally { button.disabled = false; }
 });
 new ResizeObserver(() => {
   const slip = document.querySelector("#parlay-slip");
