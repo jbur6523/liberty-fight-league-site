@@ -1,5 +1,6 @@
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { HttpError, databaseFailure } from "./http.js";
+import { withFanLines } from "../superfight/fan-lines.js";
 
 const COOKIE = "lfl_fan_picks";
 export const PHOTO_BUCKET = "superfight-fighter-photos";
@@ -48,7 +49,7 @@ export function publicFighter(service, fighter) {
   return {
     id: fighter.id,
     firstName: words[0],
-    name: words[0] + (words.length > 1 ? ` ${Array.from(words.at(-1))[0]}.` : ""),
+    name: words[0] + (words.length > 1 ? ` ${Array.from(words.at(-1))[0].toLocaleUpperCase()}.` : ""),
     academy: fighter.gym || "Academy not listed",
     photoUrl: photoUrl(service, fighter.fan_photo_path),
   };
@@ -57,8 +58,8 @@ export function publicFighter(service, fighter) {
 export async function fanPicksSnapshot(service, voterHash) {
   const { data, error } = await service.rpc("superfight_fan_picks_snapshot", { voter_hash: voterHash });
   if (error) throw databaseFailure(error, "Fan Picks snapshot failed");
-  if (!data) return { event: null, matches: [] };
-  return {
+  if (!data) return withFanLines({ event: null, matches: [] });
+  return withFanLines({
     event: { id: data.event.id, name: data.event.name, votingOpen: data.event.voting_open },
     matches: data.matches.map(match => {
       const votesA = Number(match.votes_a), votesB = Number(match.votes_b);
@@ -67,10 +68,10 @@ export async function fanPicksSnapshot(service, voterHash) {
         id: match.id, totalPicks: votesA + votesB, selectedFighterId: match.selected_fighter_id,
         boutType: match.bout_type, weightLbs: match.match_weight_lbs == null ? null : Number(match.match_weight_lbs),
         fighters: [
-          { ...publicFighter(service, match.fighter_a), percentage: percentageA },
-          { ...publicFighter(service, match.fighter_b), percentage: percentageB },
+          { ...publicFighter(service, match.fighter_a), percentage: percentageA, picks: votesA },
+          { ...publicFighter(service, match.fighter_b), percentage: percentageB, picks: votesB },
         ],
       };
     }),
-  };
+  });
 }

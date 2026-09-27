@@ -7,6 +7,7 @@ import { profileSnapshot } from "../src/superfight/share-profile.js";
 import { competitorLocation } from "../src/server/city-distance.js";
 import { anonymousVoter, percentages } from "../src/server/fan-picks.js";
 import { validatedPhoto } from "../src/server/fighter-photos.js";
+import { withFanLines } from "../src/superfight/fan-lines.js";
 
 // Local mock preview only. Production always uses the database-backed API routes.
 process.env.FAN_PICKS_SECRET ||= randomBytes(32).toString("hex");
@@ -98,7 +99,7 @@ async function mockApi(request, response, url) {
         if (input.eventId !== previewEvent.id || !match || ![match.fighterA.id, match.fighterB.id].includes(input.fighterId)) return json(response, 409, { message: "This matchup is no longer available." });
         previewFanVotes.set(`${match.id}:${voter}`, input.fighterId);
       }
-      return json(response, 200, {
+      return json(response, 200, withFanLines({
         event: { id: previewEvent.id, name: previewEvent.name, votingOpen: previewEvent.fanPicksOpen },
         matches: previewFanMatches().map(match => {
           const votes = [...previewFanVotes].filter(([key]) => key.startsWith(`${match.id}:`)).map(([, fighter]) => fighter);
@@ -107,11 +108,11 @@ async function mockApi(request, response, url) {
           return { id: match.id, boutType: match.boutType, weightLbs: match.weightLbs, totalPicks: votes.length, selectedFighterId: previewFanVotes.get(`${match.id}:${voter}`) || null,
             fighters: [match.fighterA, match.fighterB].map((fighter, index) => {
               const words = fighter.name.split(/\s+/);
-              return { id: fighter.id, firstName: words[0], name: `${words[0]} ${words.at(-1)[0]}.`, academy: fighter.gym, photoUrl: fighter.photoUrl || null, percentage: scores[index] };
+              return { id: fighter.id, firstName: words[0], name: `${words[0]} ${words.at(-1)[0].toUpperCase()}.`, academy: fighter.gym, photoUrl: fighter.photoUrl || null, percentage: scores[index], picks: index === 0 ? a : votes.length - a };
             }),
           };
         }),
-      });
+      }));
     } catch (error) { return json(response, error.statusCode || 500, { message: error.message }); }
   }
   if (url.pathname === "/api/superfight-admin-photo") {
