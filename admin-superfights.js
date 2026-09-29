@@ -473,14 +473,17 @@ function renderMatched() {
         <tr class="${match.flyerCompleted ? "is-flyer-completed" : ""}">
           <td>${matchFighterCell(match.fighterA)}${matchLinks(match.fighterA)}</td>
           <td>${[match.fighterB, ...(match.extraFighters ?? [])].map(fighter => `<div class="admin-match-participant">${matchFighterCell(fighter)}${matchLinks(fighter)}</div>`).join("")}</td>
-          <td>${label(match.boutType)}</td>
+          <td>${label(match.boutType)}${match.notes ? `<div class="admin-muted admin-bout-notes">${escapeHtml(match.notes)}</div>` : ""}</td>
           <td>${escapeHtml(match.weightOption?.label ?? (match.weightLbs === null ? "—" : `${match.weightLbs} lb`))}</td>
           <td>${confirmationBadge(match.confirmation.summary)}</td>
-          <td><div class="admin-controls"><button class="admin-button secondary" type="button" data-flyer="${match.id}" aria-pressed="${match.flyerCompleted === true}">${match.flyerCompleted ? "Flyer ✓" : "Flyer"}</button><button class="admin-button danger" type="button" data-unmatch="${match.id}">Unmatch</button></div></td>
+          <td><div class="admin-controls"><button class="admin-button secondary" type="button" data-edit-bout="${match.id}">Edit bout</button><button class="admin-button secondary" type="button" data-flyer="${match.id}" aria-pressed="${match.flyerCompleted === true}">${match.flyerCompleted ? "Flyer ✓" : "Flyer"}</button><button class="admin-button danger" type="button" data-unmatch="${match.id}">Unmatch</button></div></td>
         </tr>`).join("")}</tbody>
     </table></div>`;
 
   bindTableActions(elements.matched);
+  elements.matched.querySelectorAll("[data-edit-bout]").forEach(button => {
+    button.addEventListener("click", () => openEditBout(button.dataset.editBout));
+  });
   elements.matched.querySelectorAll("[data-photo]").forEach(input => input.addEventListener("change", () => {
     if (input.files[0]) updateFighterPhoto(input.dataset.photo, input.files[0], false, input);
   }));
@@ -525,6 +528,35 @@ function renderMatched() {
       }
     });
   });
+}
+
+function updateEditBoutWeight() {
+  const manual = !document.querySelector("#edit-bout-weight-option").value;
+  document.querySelector("#edit-bout-manual-field").hidden = !manual;
+  document.querySelector("#edit-bout-weight").required = manual;
+  document.querySelector("#edit-bout-weight").disabled = !manual;
+}
+
+function openEditBout(matchId) {
+  const match = state.matches.find(item => item.id === matchId);
+  if (!match) return;
+  const form = document.querySelector("#edit-bout-form");
+  form.reset();
+  form.dataset.matchId = match.id;
+  const fighters = [match.fighterA, match.fighterB, ...(match.extraFighters ?? [])];
+  document.querySelector("#edit-bout-fighters").textContent = fighters.map(fighter => fighter.name).join(" vs ");
+  const options = activeWeightOptions();
+  const weightSelect = document.querySelector("#edit-bout-weight-option");
+  weightSelect.innerHTML = '<option value="">Custom agreed weight</option>' + options.map(option => `<option value="${option.id}">${escapeHtml(option.label)}</option>`).join("");
+  weightSelect.value = options.some(option => option.id === match.weightOption?.id) ? match.weightOption.id : "";
+  document.querySelector("#edit-bout-weight").value = match.weightLbs ?? "";
+  const typeSelect = document.querySelector("#edit-bout-type");
+  for (const option of typeSelect.options) option.disabled = fighters.length > 2 && option.value !== "gauntlet";
+  typeSelect.value = match.boutType;
+  document.querySelector("#edit-bout-notes").value = match.notes ?? "";
+  document.querySelector("#edit-bout-error").textContent = "";
+  updateEditBoutWeight();
+  document.querySelector("#edit-bout-dialog").showModal();
 }
 
 function bindTableActions(container) {
@@ -937,6 +969,41 @@ document.querySelector("#quick-add-form").addEventListener("submit", async (even
   } catch (error) {
     document.querySelector("#add-error").textContent = error.message;
   } finally { button.disabled = false; }
+});
+
+document.querySelector("#edit-bout-weight-option").addEventListener("change", updateEditBoutWeight);
+document.querySelector("#edit-bout-form").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  if (form.dataset.saving === "true") return;
+  const dialog = document.querySelector("#edit-bout-dialog");
+  const errorElement = document.querySelector("#edit-bout-error");
+  const weightOptionId = document.querySelector("#edit-bout-weight-option").value;
+  const body = {
+    action: "edit", matchId: form.dataset.matchId, weightOptionId,
+    agreedWeightLbs: weightOptionId ? "" : document.querySelector("#edit-bout-weight").value,
+    boutType: document.querySelector("#edit-bout-type").value,
+    notes: document.querySelector("#edit-bout-notes").value,
+  };
+  const controls = [...dialog.querySelectorAll("button, input, select, textarea")];
+  const disabledStates = controls.map(control => control.disabled);
+  const preventClose = event => event.preventDefault();
+  dialog.addEventListener("cancel", preventClose);
+  form.dataset.saving = "true";
+  controls.forEach(control => { control.disabled = true; });
+  errorElement.textContent = "";
+  try {
+    await api("/api/superfight-admin-matches", { method: "POST", body: JSON.stringify(body) });
+    dialog.close();
+    showToast("Bout details saved");
+    try { await loadActiveView(); } catch { showToast("Bout saved. Refresh the page to reload the list."); }
+  } catch (error) {
+    errorElement.textContent = error.message;
+  } finally {
+    form.dataset.saving = "false";
+    controls.forEach((control, index) => { control.disabled = disabledStates[index]; });
+    dialog.removeEventListener("cancel", preventClose);
+  }
 });
 
 document.querySelector("#match-form").addEventListener("submit", async (event) => {

@@ -14,12 +14,12 @@ import { getServiceSupabase } from "../src/server/supabase.js";
 import { loadCompetitorWeightOptions } from "../src/server/weight-preferences.js";
 import { confirmationState } from "../src/superfight/contracts.js";
 import { formatPreferencesConflict, resolveMatchWeight } from "../src/superfight/match-agreement.js";
-import { boutType, uuid, uuidList } from "../src/superfight/validation.js";
+import { boutType, optionalText, positiveWeight, uuid, uuidList } from "../src/superfight/validation.js";
 
 async function listMatches(service, eventId) {
   const { data: matches, error: matchError } = await service
     .from("superfight_matches")
-    .select("id, fighter_a_id, fighter_b_id, fighter_c_id, fighter_d_id, weight_option_id, match_weight_lbs, bout_type, state, flyer_completed, created_at")
+    .select("id, fighter_a_id, fighter_b_id, fighter_c_id, fighter_d_id, weight_option_id, match_weight_lbs, bout_type, notes, state, flyer_completed, created_at")
     .eq("event_id", eventId)
     .eq("state", "active")
     .order("created_at", { ascending: false });
@@ -93,6 +93,7 @@ async function listMatches(service, eventId) {
         valueLbs: Number(weightOptionMap.get(match.weight_option_id).value_lbs),
       } : null,
       boutType: match.bout_type,
+      notes: match.notes ?? "",
       state: match.state,
       flyerCompleted: match.flyer_completed,
       createdAt: match.created_at,
@@ -117,6 +118,44 @@ export default async function handler(request, response) {
 
     assertSameOrigin(request);
     const body = await readJsonBody(request);
+
+    if (body.action === "edit") {
+      const matchId = uuid(body.matchId, "Match");
+      const finalBoutType = boutType(body.boutType, { special: true });
+      const weightOptionId = body.weightOptionId ? uuid(body.weightOptionId, "Weight class") : null;
+      if (weightOptionId && body.agreedWeightLbs !== "" && body.agreedWeightLbs != null) {
+        throw new HttpError(400, "Choose a weight class or enter an agreed weight, not both.", "invalid_match");
+      }
+      const weightLbs = weightOptionId ? null : positiveWeight(body.agreedWeightLbs);
+      const notes = optionalText(body.notes, "Bout notes", 5000);
+      const { data: existing, error: lookupError } = await service.from("superfight_matches")
+        .select("id, event_id, fighter_c_id, fighter_d_id")
+        .eq("id", matchId).eq("state", "active").maybeSingle();
+      if (lookupError) throw databaseFailure(lookupError, "admin match edit lookup failed");
+      if (!existing) throw new HttpError(404, "The active match could not be found.", "match_not_found");
+      if ((existing.fighter_c_id || existing.fighter_d_id) && finalBoutType !== "gauntlet") {
+        throw new HttpError(400, "Bouts with more than two competitors must remain Gauntlet.", "invalid_match");
+      }
+      if (weightOptionId) {
+        const { data: option, error } = await service.from("superfight_event_weight_options")
+          .select("id").eq("id", weightOptionId).eq("event_id", existing.event_id)
+          .eq("is_active", true).maybeSingle();
+        if (error) throw databaseFailure(error, "admin match weight lookup failed");
+        if (!option) throw new HttpError(400, "Choose an active weight class for this event.", "invalid_match");
+      }
+      const { data, error } = await service.from("superfight_matches")
+        .update({ weight_option_id: weightOptionId, match_weight_lbs: weightLbs, bout_type: finalBoutType, notes })
+        .eq("id", matchId).eq("state", "active").select("id").maybeSingle();
+      if (error) {
+        if (error.code === "P0001" || error.code === "23514") {
+          throw new HttpError(409, "The bout could not be updated. Check its weight class and bout type and try again.", "match_conflict");
+        }
+        throw databaseFailure(error, "admin match edit failed");
+      }
+      if (!data) throw new HttpError(404, "The active match could not be found.", "match_not_found");
+      sendJson(response, 200, { match: { id: data.id } });
+      return;
+    }
 
     if (body.action === "flyer") {
       if (typeof body.flyerCompleted !== "boolean") {

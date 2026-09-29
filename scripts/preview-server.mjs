@@ -14,6 +14,7 @@ process.env.FAN_PICKS_SECRET ||= randomBytes(32).toString("hex");
 const previewFanVotes = new Map();
 const previewPhotos = new Map();
 let previewDefaultUnmatched = false;
+const previewDefaultBoutDetails = {};
 
 const port = Number(process.env.PORT || 4173);
 const root = path.resolve(".");
@@ -234,6 +235,14 @@ async function mockApi(request, response, url) {
         }
         return json(response, 201, { match: { id: match.id } });
       }
+      if (input.action === "edit") {
+        const match = previewMatches.find(item => item.id === input.matchId)
+          ?? (input.matchId === "00000000-0000-4000-8000-000000000301" && !previewDefaultUnmatched ? previewDefaultBoutDetails : null);
+        if (!match) return json(response, 404, { message: "The active match could not be found." });
+        const option = previewEvent.weightOptions.find(option => option.id === input.weightOptionId);
+        Object.assign(match, { weightOption: option ?? null, weightLbs: option?.valueLbs ?? Number(input.agreedWeightLbs), boutType: input.boutType, notes: input.notes });
+        return json(response, 200, { match: { id: input.matchId } });
+      }
       if (input.action === "flyer") {
         const match = previewMatches.find((item) => item.id === input.matchId);
         if (typeof input.flyerCompleted !== "boolean") return json(response, 400, { message: "Choose a valid flyer status." });
@@ -254,6 +263,7 @@ async function mockApi(request, response, url) {
         weightLbs: 155,
         weightOption: previewEvent.weightOptions[1],
         boutType: "gi",
+        ...previewDefaultBoutDetails,
         confirmation: { summary: "fighter_a_accepted" },
         fighterA: { ...competitors[0], confirmationPath: "/confirm/00000000-0000-4000-8000-000000000501", response: "accepted" },
         fighterB: { ...competitors[1], confirmationPath: "/confirm/00000000-0000-4000-8000-000000000502", response: "awaiting" },

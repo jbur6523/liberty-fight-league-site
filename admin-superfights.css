@@ -595,6 +595,9 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.58); }
 
 .admin-dialog-header h2 { margin: 0; font-size: 24px; }
 .admin-dialog-body { padding: 20px; }
+#edit-bout-form .admin-field { margin-top: 18px; }
+#edit-bout-notes { resize: vertical; }
+.admin-bout-notes { white-space: pre-wrap; overflow-wrap: anywhere; max-width: 28rem; margin-top: 8px; }
 .admin-dialog-actions { margin-top: 20px; display: flex; justify-content: flex-end; gap: 8px; }
 
 .admin-detail-grid {
@@ -655,6 +658,7 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.58); }
   .admin-matched-table td:nth-child(5),
   .admin-matched-table td:last-child { grid-column: 1 / -1; }
   .admin-matched-table td:last-child .admin-controls { justify-content: flex-end; }
+  .admin-matched-table [data-edit-bout],
   .admin-matched-table [data-flyer],
   .admin-matched-table [data-unmatch] { min-height: 44px; }
   .admin-header { padding-inline: 14px; }

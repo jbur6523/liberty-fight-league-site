@@ -138,6 +138,20 @@
     </form>
   </dialog>
 
+  <dialog id="edit-bout-dialog" aria-labelledby="edit-bout-title">
+    <div class="admin-dialog-header"><h2 id="edit-bout-title">Edit bout</h2><button class="admin-button ghost" data-close type="button">Close</button></div>
+    <form class="admin-dialog-body" id="edit-bout-form">
+      <p id="edit-bout-fighters"></p>
+      <div class="admin-field"><label for="edit-bout-weight-option">Weight class</label><select class="admin-select" id="edit-bout-weight-option"></select></div>
+      <div class="admin-field" id="edit-bout-manual-field"><label for="edit-bout-weight">Agreed match weight (lbs)</label><input class="admin-input" id="edit-bout-weight" type="number" inputmode="decimal" min="0.01" max="9999" step="0.01"></div>
+      <div class="admin-field"><label for="edit-bout-type">Bout type</label><select class="admin-select" id="edit-bout-type" required><option value="gi">Gi</option><option value="no_gi">No-Gi</option><option value="john_wick">John Wick</option><option value="gauntlet">Gauntlet</option></select></div>
+      <div class="admin-field"><label for="edit-bout-notes">Additional details / notes</label><textarea class="admin-input" id="edit-bout-notes" rows="4" maxlength="5000" placeholder="Rules, round length, or other bout details"></textarea><span class="admin-muted">Visible to admins only.</span></div>
+      <p class="admin-muted">Existing fighter responses and confirmation links are kept. Please check any changed terms with the fighters.</p>
+      <p class="admin-error" id="edit-bout-error" role="alert"></p>
+      <div class="admin-dialog-actions"><button class="admin-button secondary" data-close type="button">Cancel</button><button class="admin-button" type="submit">Save bout</button></div>
+    </form>
+  </dialog>
+
   <dialog id="detail-dialog">
     <div class="admin-dialog-header"><h2>Competitor details</h2><button class="admin-button ghost" data-close type="button">Close</button></div>
     <div class="admin-dialog-body" id="detail-content"></div>
