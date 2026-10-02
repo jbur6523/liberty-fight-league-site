@@ -47,7 +47,7 @@ async function listMatches(service, eventId) {
   ] = await Promise.all([
     service
       .from("superfight_competitors")
-      .select("id, full_name, belt, gym, city, state, distance_from_sf_miles, instagram_handle, instagram_url, fan_photo_path")
+      .select("id, full_name, belt, gym, city, state, distance_from_sf_miles, instagram_handle, instagram_url, fan_photo_path, official_weight_lbs")
       .in("id", competitorIds),
     service
       .from("superfight_match_confirmations")
@@ -70,6 +70,7 @@ async function listMatches(service, eventId) {
       return {
         id: competitor.id,
         name: competitor.full_name,
+        officialWeightLbs: competitor.official_weight_lbs == null ? null : Number(competitor.official_weight_lbs),
         photoUrl: photoUrl(service, competitor.fan_photo_path),
         belt: competitor.belt,
         gym: competitor.gym,
@@ -119,6 +120,31 @@ export default async function handler(request, response) {
 
     assertSameOrigin(request);
     const body = await readJsonBody(request);
+
+    if (body.action === "weigh_in") {
+      const matchId = uuid(body.matchId, "Match");
+      const competitorId = uuid(body.competitorId, "Competitor");
+      if (body.officialWeightLbs !== null && typeof body.officialWeightLbs !== "string" && typeof body.officialWeightLbs !== "number") {
+        throw new HttpError(400, "Enter an official weight in pounds, or clear the field.", "invalid_weight");
+      }
+      const weight = positiveWeight(body.officialWeightLbs, { optional: true });
+      const { data: match, error: lookupError } = await service.from("superfight_matches")
+        .select("id, event_id, fighter_a_id, fighter_b_id, fighter_c_id, fighter_d_id")
+        .eq("id", matchId).eq("state", "active").maybeSingle();
+      if (lookupError) throw databaseFailure(lookupError, "weigh-in match lookup failed");
+      if (!match) throw new HttpError(404, "The active match could not be found.", "match_not_found");
+      if (![match.fighter_a_id, match.fighter_b_id, match.fighter_c_id, match.fighter_d_id].includes(competitorId)) {
+        throw new HttpError(400, "Choose a fighter in this matchup.", "invalid_competitor");
+      }
+      const { data, error } = await service.from("superfight_competitors")
+        .update({ official_weight_lbs: weight }).eq("id", competitorId).eq("event_id", match.event_id)
+        .eq("record_state", "active").select("id, official_weight_lbs").maybeSingle();
+      if (error?.code === "23514" || error?.code === "22003") throw new HttpError(400, "Enter a valid official weight in pounds.", "invalid_weight");
+      if (error) throw databaseFailure(error, "official weigh-in save failed");
+      if (!data) throw new HttpError(404, "The active competitor could not be found.", "competitor_not_found");
+      sendJson(response, 200, { competitor: { id: data.id, officialWeightLbs: data.official_weight_lbs == null ? null : Number(data.official_weight_lbs) } });
+      return;
+    }
 
     if (body.action === "result") {
       const matchId = uuid(body.matchId, "Match");

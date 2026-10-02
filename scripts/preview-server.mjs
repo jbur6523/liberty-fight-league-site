@@ -237,6 +237,15 @@ async function mockApi(request, response, url) {
         }
         return json(response, 201, { match: { id: match.id } });
       }
+      if (input.action === "weigh_in") {
+        const match = previewFanMatches().find(item => item.id === input.matchId);
+        const fighter = match && [match.fighterA, match.fighterB, ...(match.extraFighters ?? [])].find(f => f.id === input.competitorId);
+        if (!fighter) return json(response, 404, { message: "The matched competitor could not be found." });
+        const weight = input.officialWeightLbs === null ? null : Number(input.officialWeightLbs);
+        if (weight !== null && (!Number.isFinite(weight) || weight <= 0 || weight > 9999)) return json(response, 400, { message: "Enter a valid weight." });
+        fighter.officialWeightLbs = weight === null ? null : Math.round(weight * 100) / 100;
+        return json(response, 200, { competitor: { id: fighter.id, officialWeightLbs: fighter.officialWeightLbs } });
+      }
       if (input.action === "result") {
         const match = previewFanMatches().find(item => item.id === input.matchId);
         if (!match) return json(response, 404, { message: "The active match could not be found." });

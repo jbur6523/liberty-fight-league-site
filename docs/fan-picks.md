@@ -76,3 +76,11 @@ In **Matched**, choose a competitor in **Winner**, then click **Save result**. C
 Live Odds shows a FINAL banner and highlights the winning side on its next successful refresh (normally within 30 seconds while visible). Result publication closes voting for that match inside the existing row-locked voting function; existing votes and percentages remain intact. Clearing a result reopens that match when event voting is open. Existing parlay drafts are preserved, but completed matches cannot be added or changed through card selection. No automatic parlay settlement is introduced.
 
 The existing promoter authentication and match RLS protect result writes. A database constraint rejects a winner outside the immutable match participants. Public snapshots expose only the winning participant ID alongside already-public abbreviated competitor information.
+
+## Official weigh-ins
+
+In **Matched**, enter each fighter's **Official weight (lb)** and select **Save weight**. Decimal pounds are supported; clear the field and save to remove an entry. Each fighter, including additional gauntlet participants, has an independent saved weight. The weight belongs to the event's competitor record, so it survives rematching without changing the agreed bout weight. Weigh-ins are admin-only and are excluded from the Live Odds projection.
+
+On phones, matches display as stacked cards with weigh-in controls beside each fighter, followed by bout information and the winner selector. **Fighter details** contains photo and contact controls; **Match actions** contains bout editing, flyer status, and unmatching.
+
+Deployment prerequisite: apply `supabase/migrations/20261002152609_official_weigh_in_weights.sql` to the verified Bestie production runtime **before deploying this API change**. This migration is currently local and has not been applied to production. Verify the Vercel backend URL and Bestie runtime identity and follow the backup procedure above. The local Supabase CLI failed migration creation with `Unsupported Config Type`; the file uses a UTC timestamp fallback. Existing promoter access policies apply to the new nullable, positive numeric column. Automated checks cover authorization, decimal persistence, clearing, invalid values, gauntlet fighters, failed saves, and public data exclusion.

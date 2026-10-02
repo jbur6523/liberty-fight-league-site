@@ -143,6 +143,33 @@ test("bout edits persist through the admin API, validate event weights, and pres
     fail = true;
     assert.equal((await request()).statusCode, 500);
     fail = false;
+    // Official weigh-ins are competitor-specific and never overwrite agreed bout weights.
+    const weighBody = { action: "weigh_in", matchId, competitorId: fighters[0], officialWeightLbs: "154.25" };
+    assert.equal((await request(weighBody, { cookie: "" })).statusCode, 401);
+    authorized = false;
+    assert.equal((await request(weighBody)).statusCode, 403);
+    authorized = true;
+    assert.equal((await request(weighBody, { origin: "https://other.com" })).statusCode, 403);
+    for (const value of [undefined, false, [], {}, "NaN", "-1", "0", "10000"]) assert.equal((await request({ ...weighBody, officialWeightLbs: value })).statusCode, 400);
+    assert.equal((await request({ ...weighBody, competitorId: fighters[2] })).statusCode, 400);
+    assert.equal((await request({ ...weighBody, matchId: randomUUID() })).statusCode, 404);
+    assert.equal((await request(weighBody)).payload.competitor.officialWeightLbs, 154.25);
+    let weighed = (await request(null, { method: "GET" })).payload.matches.find(m => m.id === matchId);
+    assert.equal(weighed.fighterA.officialWeightLbs, 154.25);
+    assert.equal(weighed.fighterB.officialWeightLbs, null);
+    assert.equal(weighed.weightLbs, 170);
+    assert.equal((await request({ ...weighBody, competitorId: fighters[1], officialWeightLbs: "155.8" })).statusCode, 200);
+    assert.equal((await request({ ...weighBody, matchId: groupId, competitorId: fighters[4], officialWeightLbs: "178.6" })).statusCode, 200);
+    assert.equal((await request(null, { method: "GET" })).payload.matches.find(m => m.id === groupId).extraFighters[0].officialWeightLbs, 178.6);
+    fail = true;
+    assert.equal((await request({ ...weighBody, officialWeightLbs: "160" })).statusCode, 500);
+    fail = false;
+    assert.equal((await request(null, { method: "GET" })).payload.matches.find(m => m.id === matchId).fighterA.officialWeightLbs, 154.25);
+    assert.equal((await request({ ...weighBody, officialWeightLbs: null })).statusCode, 200);
+    assert.equal((await request(null, { method: "GET" })).payload.matches.find(m => m.id === matchId).fighterA.officialWeightLbs, null);
+    await assert.rejects(db.query("update superfight_competitors set official_weight_lbs=-1 where id=$1", [fighters[0]]), /check constraint/);
+    assert.deepEqual((await db.query("select * from superfight_fan_votes")).rows, votes);
+    assert.deepEqual((await db.query("select * from superfight_match_confirmations order by id")).rows, confirmations);
     // The authenticated result write flows through the real snapshot and voting functions.
     const resultBody = { action: "result", matchId, winnerFighterId: fighters[0] };
     assert.equal((await request(resultBody, { cookie: "" })).statusCode, 401);
@@ -160,6 +187,7 @@ test("bout edits persist through the admin API, validate event weights, and pres
     let card = await publicCard(matchId);
     assert.equal(card.winnerFighterId, fighters[0]);
     assert.equal(matchResult(card).outcomeId, fighters[0]);
+    assert(!JSON.stringify(card).includes("officialWeight"));
     assert.equal(card.totalPicks, 1);
     assert.equal(card.selectedFighterId, fighters[0]);
     const cast = async () => (await db.query("select cast_superfight_fan_pick($1,$2,$3,$4,$5) result", [eventId, matchId, fighters[1], "a".repeat(64), "b".repeat(64)])).rows[0].result;
@@ -183,6 +211,8 @@ test("bout edits persist through the admin API, validate event weights, and pres
     fail = false;
     await db.query("update superfight_matches set state='unmatched', unmatched_at=now() where id=$1", [matchId]);
     assert.equal((await request(resultBody)).statusCode, 404);
+    assert.equal((await request(weighBody)).statusCode, 404);
+    assert.equal(Number((await db.query("select official_weight_lbs from superfight_competitors where id=$1", [fighters[1]])).rows[0].official_weight_lbs), 155.8);
     assert.equal((await request()).statusCode, 404);
   } finally {
     service.from = originals.from; service.rpc = originals.rpc; service.auth.getUser = originals.getUser;

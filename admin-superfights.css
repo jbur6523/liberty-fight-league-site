@@ -706,3 +706,58 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.58); }
 .admin-result-form label { font-weight:700; }
 .admin-result-form select { width:100%; max-width:260px; }
 .admin-result-form [role="status"] { font-size:12px; line-height:1.5; color:#5d543e; }
+
+/* Weigh-in entry stays next to the competitor it belongs to. */
+.admin-fighter-heading { margin-bottom:12px; }
+.admin-weigh-in { display:grid; gap:6px; min-width:210px; margin:12px 0; }
+.admin-weigh-in label { font-size:14px; font-weight:700; }
+.admin-weigh-in label span { font-weight:400; color:var(--muted); }
+.admin-weight-entry { display:flex; gap:8px; }
+.admin-weight-entry input { min-width:0; width:110px; flex:1; font-size:16px; }
+.admin-weight-entry button { white-space:nowrap; min-height:44px; padding-inline:12px; }
+.admin-weight-status { color:#57574f; font-size:13px; line-height:1.4; min-height:18px; }
+.admin-fighter-tools summary,.admin-match-actions summary { cursor:pointer; color:#57574f; font-size:14px; min-height:44px; padding:12px 0; }
+.admin-fighter-tools[open] summary,.admin-match-actions[open] summary { color:var(--ink); font-weight:700; }
+.admin-match-actions .admin-controls { padding-top:8px; }
+.admin-match-number { white-space:nowrap; font-weight:700; }
+.admin-match-number span { display:none; }
+.admin-match-participant+.admin-match-participant { margin-top:18px; padding-top:18px; border-top:1px solid var(--line); }
+@media (max-width:800px) {
+ body { min-width:0; }
+ .admin-main { padding:20px 12px 60px; }
+ .admin-toolbar { gap:12px; }
+ .admin-toolbar h1 { font-size:27px; }
+ .admin-toolbar-actions { width:100%; }
+ .admin-tabs { gap:18px; margin-top:16px; }
+ #matched-panel .admin-workbar { min-height:0; padding-block:14px; }
+ #fan-picks-controls { display:grid; grid-template-columns:1fr 1fr; align-items:center; gap:8px; }
+ #fan-picks-controls .admin-button { min-height:44px; font-size:14px; }
+ #matched-content .admin-table-wrap { overflow:visible; border:0; background:transparent; }
+ .admin-matched-table { display:block; min-width:0; width:100%; }
+ .admin-matched-table thead { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
+ .admin-matched-table tbody { display:grid; gap:18px; }
+ .admin-matched-table tr { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); border:1px solid var(--line); border-radius:12px; overflow:hidden; background:#fff; box-shadow:0 3px 10px #00000008; }
+ .admin-matched-table td { min-width:0; padding:14px 16px; border:0; overflow-wrap:anywhere; }
+ .admin-matched-table td:first-child { grid-column:1; grid-row:1; background:#eee9df; font-size:18px; }
+ .admin-match-number span { display:inline; }
+ .admin-matched-table td:nth-child(6) { grid-column:2; grid-row:1; background:#eee9df; text-align:right; }
+ .admin-matched-table td:nth-child(2) { grid-column:1 / -1; grid-row:2; }
+ .admin-matched-table td:nth-child(3) { grid-column:1 / -1; grid-row:3; border-top:1px solid var(--line); }
+ .admin-matched-table td:nth-child(4) { grid-column:1; grid-row:4; background:#f6f6f1; }
+ .admin-matched-table td:nth-child(5) { grid-column:2; grid-row:4; background:#f6f6f1; }
+ .admin-matched-table td[data-label]::before { content:attr(data-label); display:block; margin-bottom:4px; font-size:12px; color:var(--muted); font-weight:700; text-transform:uppercase; letter-spacing:.05em; }
+ .admin-matched-table td:nth-child(7) { grid-column:1 / -1; grid-row:5; border-top:1px solid var(--line); }
+ .admin-matched-table td:last-child { grid-column:1 / -1; grid-row:6; padding-top:0; }
+ .admin-matched-table .admin-name-button { font-size:22px; min-height:36px; }
+ .admin-fighter-heading { margin:0; }
+ .admin-weigh-in { min-width:0; margin:14px 0 0; }
+ .admin-weight-entry input { width:100%; min-height:48px; }
+ .admin-weight-entry button { min-width:108px; min-height:48px; }
+ .admin-fighter-tools summary { padding-bottom:0; }
+ .admin-result-form { min-width:0; max-width:none; grid-template-columns:minmax(0,1fr) auto; gap:8px; }
+ .admin-result-form label,.admin-result-form [role="status"] { grid-column:1 / -1; }
+ .admin-result-form select { max-width:none; min-width:0; min-height:48px; font-size:16px; }
+ .admin-result-form button { min-height:48px; }
+ .admin-matched-table td:last-child .admin-controls { display:grid; grid-template-columns:1fr 1fr; justify-content:stretch; gap:8px; }
+ .admin-match-actions [data-unmatch] { grid-column:1 / -1; }
+}

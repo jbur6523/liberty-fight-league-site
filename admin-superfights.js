@@ -400,12 +400,19 @@ function confirmationBadge(summary) {
   return `<span class="admin-badge ${details[1]}">${details[0]}</span>`;
 }
 
-function matchFighterCell(fighter) {
-  return `<button class="admin-name-button" type="button" data-detail="${fighter.id}">${escapeHtml(fighter.name)}</button>
-    <div class="admin-photo-controls">${fighter.photoUrl ? `<img class="admin-fighter-thumbnail" src="${escapeHtml(fighter.photoUrl)}" alt="${escapeHtml(fighter.name)}">` : ""}
-    <label class="admin-button ghost admin-photo-label">${fighter.photoUrl ? "Replace Image" : "Add Image"}<input type="file" accept="image/jpeg,image/png,image/webp" data-photo="${fighter.id}" aria-label="${fighter.photoUrl ? "Replace" : "Add"} image for ${escapeHtml(fighter.name)}"></label>
-    ${fighter.photoUrl ? `<button class="admin-button ghost" type="button" data-remove-photo="${fighter.id}">Remove Image</button>` : ""}</div>
-    <div class="admin-muted">${label(fighter.belt)} · ${gymWithDistance(fighter)}</div>`;
+function matchFighterCell(fighter, matchId) {
+  return `<div class="admin-fighter-heading"><button class="admin-name-button" type="button" data-detail="${fighter.id}">${escapeHtml(fighter.name)}</button><div class="admin-muted">${label(fighter.belt)} · ${gymWithDistance(fighter)}</div></div>
+    <form class="admin-weigh-in" data-weigh-in="${fighter.id}" data-match-id="${matchId}">
+      <label for="weight-${matchId}-${fighter.id}">Official weight <span>(lb)</span></label>
+      <div class="admin-weight-entry"><input id="weight-${matchId}-${fighter.id}" class="admin-input" name="weight" type="number" inputmode="decimal" min="0.01" max="9999" step="0.01" placeholder="Not weighed" value="${fighter.officialWeightLbs ?? ''}" aria-label="Official weight in pounds for ${escapeHtml(fighter.name)}"><button class="admin-button" type="submit">Save weight</button></div>
+      <span class="admin-weight-status" role="status">${fighter.officialWeightLbs == null ? 'Not recorded' : 'Saved: '+fighter.officialWeightLbs+' lb'}</span>
+    </form>
+    <details class="admin-fighter-tools"><summary>Fighter details</summary>
+      <div class="admin-photo-controls">${fighter.photoUrl ? `<img class="admin-fighter-thumbnail" src="${escapeHtml(fighter.photoUrl)}" alt="${escapeHtml(fighter.name)}">` : ""}
+      <label class="admin-button ghost admin-photo-label">${fighter.photoUrl ? "Replace Image" : "Add Image"}<input type="file" accept="image/jpeg,image/png,image/webp" data-photo="${fighter.id}" aria-label="${fighter.photoUrl ? "Replace" : "Add"} image for ${escapeHtml(fighter.name)}"></label>
+      ${fighter.photoUrl ? `<button class="admin-button ghost" type="button" data-remove-photo="${fighter.id}">Remove Image</button>` : ""}</div>
+      ${matchLinks(fighter)}
+    </details>`;
 }
 
 function renderFanPicksControls() {
@@ -472,17 +479,39 @@ function renderMatched() {
       <thead><tr><th>Match</th><th>Fighter A</th><th>Other competitors</th><th>Bout type</th><th>Match weight</th><th>Confirmation</th><th>Result</th><th>Quick actions</th></tr></thead>
       <tbody>${boardMatches(state.eventId, state.matches).map((match) => `
         <tr class="${match.flyerCompleted ? "is-flyer-completed" : ""}">
-          <td>${scheduledMatchNumber(state.eventId, match) ?? "&mdash;"}</td>
-          <td>${matchFighterCell(match.fighterA)}${matchLinks(match.fighterA)}</td>
-          <td>${[match.fighterB, ...(match.extraFighters ?? [])].map(fighter => `<div class="admin-match-participant">${matchFighterCell(fighter)}${matchLinks(fighter)}</div>`).join("")}</td>
-          <td>${label(match.boutType)}${match.notes ? `<div class="admin-muted admin-bout-notes">${escapeHtml(match.notes)}</div>` : ""}</td>
-          <td>${escapeHtml(match.weightOption?.label ?? (match.weightLbs === null ? "—" : `${match.weightLbs} lb`))}</td>
-          <td>${confirmationBadge(match.confirmation.summary)}</td>
+          <td class="admin-match-number"><span>Match</span> ${scheduledMatchNumber(state.eventId, match) ?? "&mdash;"}</td>
+          <td>${matchFighterCell(match.fighterA, match.id)}</td>
+          <td>${[match.fighterB, ...(match.extraFighters ?? [])].map(fighter => `<div class="admin-match-participant">${matchFighterCell(fighter, match.id)}</div>`).join("")}</td>
+          <td data-label="Bout type">${label(match.boutType)}${match.notes ? `<div class="admin-muted admin-bout-notes">${escapeHtml(match.notes)}</div>` : ""}</td>
+          <td data-label="Agreed weight">${escapeHtml(match.weightOption?.label ?? (match.weightLbs === null ? "—" : `${match.weightLbs} lb`))}</td>
+          <td class="admin-match-confirmation">${confirmationBadge(match.confirmation.summary)}</td>
           <td><form class="admin-result-form" data-result="${match.id}"><label for="winner-${match.id}">Winner</label><select id="winner-${match.id}" class="admin-input" name="winner"><option value="">No result yet</option>${[match.fighterA, match.fighterB, ...(match.extraFighters ?? [])].map(f => `<option value="${f.id}" ${match.winnerFighterId === f.id ? "selected" : ""}>${escapeHtml(f.name)}</option>`).join("")}</select><button class="admin-button secondary" type="submit">Save result</button><span role="status">${match.winnerFighterId ? "Final result saved" : ""}</span></form></td>
-          <td><div class="admin-controls"><button class="admin-button secondary" type="button" data-edit-bout="${match.id}">Edit bout</button><button class="admin-button secondary" type="button" data-flyer="${match.id}" aria-pressed="${match.flyerCompleted === true}">${match.flyerCompleted ? "Flyer ✓" : "Flyer"}</button><button class="admin-button danger" type="button" data-unmatch="${match.id}">Unmatch</button></div></td>
+          <td><details class="admin-match-actions"><summary>Match actions</summary><div class="admin-controls"><button class="admin-button secondary" type="button" data-edit-bout="${match.id}">Edit bout</button><button class="admin-button secondary" type="button" data-flyer="${match.id}" aria-pressed="${match.flyerCompleted === true}">${match.flyerCompleted ? "Flyer ✓" : "Flyer"}</button><button class="admin-button danger" type="button" data-unmatch="${match.id}">Unmatch</button></div></details></td>
         </tr>`).join("")}</tbody>
     </table></div>`;
 
+  elements.matched.querySelectorAll("[data-weigh-in]").forEach(form => {
+    const input = form.querySelector("input");
+    const status = form.querySelector('[role="status"]');
+    input.addEventListener("input", () => { status.textContent = "Unsaved changes"; });
+    form.addEventListener("submit", async event => {
+      event.preventDefault();
+      const button = form.querySelector("button");
+      if (button.disabled) return;
+      button.disabled = true;
+      input.disabled = true;
+      status.textContent = "Saving...";
+      try {
+        const { competitor } = await api("/api/superfight-admin-matches", { method: "POST", body: JSON.stringify({ action: "weigh_in", matchId: form.dataset.matchId, competitorId: form.dataset.weighIn, officialWeightLbs: input.value || null }) });
+        for (const match of state.matches) for (const fighter of [match.fighterA, match.fighterB, ...(match.extraFighters ?? [])]) {
+          if (fighter.id === competitor.id) fighter.officialWeightLbs = competitor.officialWeightLbs;
+        }
+        input.value = competitor.officialWeightLbs ?? "";
+        status.textContent = competitor.officialWeightLbs == null ? "Weight cleared" : "Saved: " + competitor.officialWeightLbs + " lb";
+      } catch (error) { status.textContent = error.message + " Your entry has not been saved."; }
+      finally { button.disabled = false; input.disabled = false; }
+    });
+  });
   elements.matched.querySelectorAll("[data-result]").forEach(form => form.addEventListener("submit", async event => {
     event.preventDefault();
     const button = form.querySelector("button");
