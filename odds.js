@@ -180,7 +180,7 @@ function renderParlay() {
   }
   const start = document.querySelector("#parlay-start");
   start.disabled = !snapshot.matches.length;
-  start.textContent = parlay.active ? `PARLAY · ${legs.length} PICKS` : legs.length ? `VIEW MY PARLAY (${legs.length})` : "+ BUILD A FAN PARLAY";
+  start.textContent = parlay.active ? `PARLAY · ${legs.length} PICKS` : legs.length ? `VIEW MY PARLAY (${legs.length})` : "+ BUILD MY PARLAY";
   start.setAttribute("aria-pressed", String(parlay.active));
   document.querySelector("#parlay-mode").hidden = !parlay.active;
   const progress = `${legs.length} ${legs.length === 1 ? "pick" : "picks"} selected. ${legs.length < 2 ? "Select at least 2 to see combined odds." : `Combined Fan Odds: ${combinedFanOdds(legs)}.`}`;

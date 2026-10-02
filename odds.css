@@ -158,11 +158,14 @@ footer a { color: var(--gold); text-decoration: none; }
 /* Gold draws attention to the compact builder; the full-width ticket CTA stays primary. */
 body { padding-bottom: var(--parlay-space, 0px); }
 html { scroll-padding-bottom: var(--parlay-space, 0px); }
-.parlay-entry { margin: 2px 0 12px; }
+.parlay-entry { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin: 0 0 18px; padding: 22px; border: 1px solid #b88e45; border-left: 4px solid var(--gold); border-radius: 9px; background: linear-gradient(115deg, #38271b, #1b171c 75%); box-shadow: 0 6px 26px #0004; }
+.parlay-entry-copy strong { color: var(--gold); font-size: 15px; line-height: 1.5; letter-spacing: .04em; }
+.parlay-entry-copy p { margin: 6px 0 0; color: #e0d5c7; font-size: 13px; line-height: 1.6; }
+@media (max-width: 650px) { .parlay-entry { flex-direction: column; align-items: stretch; gap: 16px; padding: 20px; } .parlay-entry #parlay-start { width: 100%; } }
 .secondary-control { min-height: 40px; padding: 9px 13px; border: 1px solid #785a3c; border-radius: 5px; background: #1c1c22; color: #e2d5be; font-size: 11px; font-weight: 700; letter-spacing: .03em; box-shadow: none; }
 .secondary-control:hover { border-color: #d6b36c; background: #28242a; }
 .secondary-control:disabled { opacity: .5; }
-#parlay-start { background: linear-gradient(135deg, #ffe5a0, #d2a34f); color: #241408; border-color: #f5d48c; min-height: 44px; padding: 11px 18px; box-shadow: 0 0 20px #d7193838, inset 0 1px 0 #fff5; }
+#parlay-start { background: linear-gradient(135deg, #ffe5a0, #d2a34f); color: #241408; border-color: #f5d48c; min-height: 56px; padding: 16px 24px; font-size: 15px; font-weight: 800; flex-shrink: 0; box-shadow: 0 0 20px #d7193838, inset 0 1px 0 #fff5; }
 #parlay-start:hover:not(:disabled) { background: linear-gradient(135deg, #fff0bc, #e3b765); box-shadow: 0 0 24px #d7193855; }
 #parlay-start:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
 .main-event-label { display: inline-block; color: #f3cf83; margin-right: 7px; font-size: inherit; }
