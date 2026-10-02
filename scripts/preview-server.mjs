@@ -315,6 +315,7 @@ const rewrites = new Map([
   ["/offers", "/offers.html"],
   ["/event", "/event.html"],
   ["/fighters", "/fighters.html"],
+  ["/match", "/match.html"],
   ["/contact", "/contact.html"],
   ["/BJJ", "/superfight.html"],
   ["/bjj", "/superfight.html"],

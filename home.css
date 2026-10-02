@@ -139,3 +139,11 @@ h3 { margin:22px 0 14px; font:800 39px/.95 var(--display); letter-spacing:-.4px;
   .event-art { width:100%; max-width:420px; justify-self:end; }
   h1 { font-size:clamp(76px,8vw,116px); }
 }
+
+.hero-actions.hero-actions-stacked { display:flex; flex-direction:column; align-items:stretch; max-width:340px; }
+
+/* Keep public navigation readable as new event pages are added. */
+.navigation { flex-wrap:wrap; column-gap:20px; row-gap:0; }
+.navigation a { white-space:nowrap; }
+@media (min-width:801px) and (max-width:1100px) { .header-inner { flex-wrap:wrap; padding-block:16px; } .navigation { order:3; width:100%; justify-content:center; } }
+@media (max-width:800px) { .navigation { justify-content:center; column-gap:20px; } }

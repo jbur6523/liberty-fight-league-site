@@ -26,7 +26,12 @@
       "permanent": false
     }
   ],
-  "crons": [{ "path": "/api/superfight-offer-notifications", "schedule": "*/5 * * * *" }],
+  "crons": [
+    {
+      "path": "/api/superfight-offer-notifications",
+      "schedule": "*/5 * * * *"
+    }
+  ],
   "rewrites": [
     {
       "source": "/odds",
@@ -71,6 +76,10 @@
     {
       "source": "/admin/superfights/:path*",
       "destination": "/admin-superfights.html"
+    },
+    {
+      "source": "/match",
+      "destination": "/match.html"
     }
   ]
 }
