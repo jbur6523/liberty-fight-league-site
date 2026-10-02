@@ -73,6 +73,14 @@
         </section>
 
         <section id="matched-panel" hidden>
+          <div class="admin-workbar admin-match-search">
+            <div class="admin-field">
+              <label for="matched-search">Search fighters by name</label>
+              <input class="admin-input" id="matched-search" type="search" placeholder="Enter a fighter’s name" autocomplete="off" aria-controls="matched-content" aria-describedby="matched-search-status">
+            </div>
+            <button class="admin-button secondary" id="matched-search-clear" type="button" disabled>Clear</button>
+          </div>
+          <p class="admin-muted" id="matched-search-status" role="status" hidden></p>
           <div class="admin-workbar"><span class="admin-muted">Card order · Record official weights, then publish results.</span></div>
           <div class="admin-workbar" id="fan-picks-controls"></div>
           <p id="fan-picks-admin-message" role="status" class="admin-muted"></p>

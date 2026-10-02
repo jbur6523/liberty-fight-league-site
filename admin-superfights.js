@@ -466,11 +466,31 @@ function matchLinks(fighter) {
   return `<div class="admin-controls"><button class="admin-button ghost" type="button" data-copy-path="${fighter.confirmationPath}">Copy confirmation</button>${fighter.instagramHandle ? `<a class="admin-button ghost" href="https://www.instagram.com/${encodeURIComponent(fighter.instagramHandle)}/" target="_blank" rel="noopener noreferrer" aria-label="Open @${escapeHtml(fighter.instagramHandle)} on Instagram (new tab)">@${escapeHtml(fighter.instagramHandle)} <span aria-hidden="true">↗</span></a>` : ""}</div>`;
 }
 
+function filterMatched() {
+  const query = document.querySelector("#matched-search").value.trim().toLocaleLowerCase();
+  const terms = query.split(/\s+/).filter(Boolean);
+  const rows = elements.matched.querySelectorAll("[data-fighter-names]");
+  let visible = 0;
+  rows.forEach(row => {
+    row.hidden = !terms.every(term => row.dataset.fighterNames.includes(term));
+    if (!row.hidden) visible++;
+  });
+  const status = document.querySelector("#matched-search-status");
+  status.hidden = !query;
+  status.textContent = visible
+    ? `Showing ${visible} of ${rows.length} matches.`
+    : "No matches found. Try another name or clear the search.";
+  document.querySelector("#matched-search-clear").disabled = !document.querySelector("#matched-search").value;
+  const table = elements.matched.querySelector(".admin-table-wrap");
+  if (table) table.hidden = visible === 0;
+}
+
 function renderMatched() {
   renderFanPicksControls();
   document.querySelector("#matched-count").textContent = `(${state.matches.length})`;
   if (state.matches.length === 0) {
     elements.matched.innerHTML = emptyState("No active matchups", "Create a matchup from the Unmatched workspace.");
+    filterMatched();
     return;
   }
 
@@ -478,7 +498,7 @@ function renderMatched() {
     <div class="admin-table-wrap"><table class="admin-table admin-matched-table">
       <thead><tr><th>Match</th><th>Fighter A</th><th>Other competitors</th><th>Bout type</th><th>Match weight</th><th>Confirmation</th><th>Result</th><th>Quick actions</th></tr></thead>
       <tbody>${boardMatches(state.eventId, state.matches).map((match) => `
-        <tr class="${match.flyerCompleted ? "is-flyer-completed" : ""}">
+        <tr class="${match.flyerCompleted ? "is-flyer-completed" : ""}" data-fighter-names="${escapeHtml([match.fighterA, match.fighterB, ...(match.extraFighters ?? [])].map(fighter => fighter.name).join(" ").toLocaleLowerCase())}">
           <td class="admin-match-number"><span>Match</span> ${scheduledMatchNumber(state.eventId, match) ?? "&mdash;"}</td>
           <td>${matchFighterCell(match.fighterA, match.id)}</td>
           <td>${[match.fighterB, ...(match.extraFighters ?? [])].map(fighter => `<div class="admin-match-participant">${matchFighterCell(fighter, match.id)}</div>`).join("")}</td>
@@ -489,6 +509,8 @@ function renderMatched() {
           <td><details class="admin-match-actions"><summary>Match actions</summary><div class="admin-controls"><button class="admin-button secondary" type="button" data-edit-bout="${match.id}">Edit bout</button><button class="admin-button secondary" type="button" data-flyer="${match.id}" aria-pressed="${match.flyerCompleted === true}">${match.flyerCompleted ? "Flyer ✓" : "Flyer"}</button><button class="admin-button danger" type="button" data-unmatch="${match.id}">Unmatch</button></div></details></td>
         </tr>`).join("")}</tbody>
     </table></div>`;
+
+  filterMatched();
 
   elements.matched.querySelectorAll("[data-weigh-in]").forEach(form => {
     const input = form.querySelector("input");
@@ -944,6 +966,13 @@ document.querySelector("#login-form").addEventListener("submit", async (event) =
 document.querySelector("#sign-out").addEventListener("click", async () => {
   await api("/api/superfight-admin-session", { method: "DELETE" });
   showLogin();
+});
+
+document.querySelector("#matched-search").addEventListener("input", filterMatched);
+document.querySelector("#matched-search-clear").addEventListener("click", () => {
+  document.querySelector("#matched-search").value = "";
+  filterMatched();
+  document.querySelector("#matched-search").focus();
 });
 
 elements.eventSelect.addEventListener("change", async () => {
