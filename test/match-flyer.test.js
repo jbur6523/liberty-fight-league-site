@@ -21,6 +21,7 @@ test("Flyer UI waits for save, ignores repeated clicks, toggles both ways, and r
   const matched = { innerHTML: "", querySelectorAll(selector) { return selector === "[data-flyer]" ? [button] : []; } };
   const messages = [];
   runInNewContext(`${renderSource}; renderMatched();`, {
+    boardMatches: (_event, matches) => matches, scheduledMatchNumber: () => null,
     state: { matches: [match] }, elements: { matched }, document: { querySelector() { return {}; } },
     matchFighterCell: () => "Fighter", matchLinks: () => "", label: String, escapeHtml: String,
     confirmationBadge: value => value, bindTableActions() {}, renderFanPicksControls() {}, showToast: value => messages.push(value),

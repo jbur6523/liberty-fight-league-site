@@ -19,7 +19,7 @@ import { boutType, optionalText, positiveWeight, uuid, uuidList } from "../src/s
 async function listMatches(service, eventId) {
   const { data: matches, error: matchError } = await service
     .from("superfight_matches")
-    .select("id, fighter_a_id, fighter_b_id, fighter_c_id, fighter_d_id, weight_option_id, match_weight_lbs, bout_type, notes, state, flyer_completed, created_at")
+    .select("id, fighter_a_id, fighter_b_id, fighter_c_id, fighter_d_id, weight_option_id, match_weight_lbs, bout_type, notes, state, flyer_completed, winner_fighter_id, created_at")
     .eq("event_id", eventId)
     .eq("state", "active")
     .order("created_at", { ascending: false });
@@ -96,6 +96,7 @@ async function listMatches(service, eventId) {
       notes: match.notes ?? "",
       state: match.state,
       flyerCompleted: match.flyer_completed,
+      winnerFighterId: match.winner_fighter_id,
       createdAt: match.created_at,
       confirmation: confirmationState(matchConfirmations, match.fighter_a_id, match.fighter_b_id, [match.fighter_c_id, match.fighter_d_id].filter(Boolean)),
       fighterA: fighterPayload(match.fighter_a_id),
@@ -118,6 +119,20 @@ export default async function handler(request, response) {
 
     assertSameOrigin(request);
     const body = await readJsonBody(request);
+
+    if (body.action === "result") {
+      const matchId = uuid(body.matchId, "Match");
+      const winnerFighterId = body.winnerFighterId === null ? null : uuid(body.winnerFighterId, "Winner");
+      const { data, error } = await service.from("superfight_matches")
+        .update({ winner_fighter_id: winnerFighterId })
+        .eq("id", matchId).eq("state", "active")
+        .select("id, winner_fighter_id").maybeSingle();
+      if (error?.code === "23514" || error?.code === "23503") throw new HttpError(400, "Choose a competitor in this matchup.", "invalid_winner");
+      if (error) throw databaseFailure(error, "admin match result failed");
+      if (!data) throw new HttpError(404, "The active match could not be found.", "match_not_found");
+      sendJson(response, 200, { match: { id: data.id, winnerFighterId: data.winner_fighter_id } });
+      return;
+    }
 
     if (body.action === "edit") {
       const matchId = uuid(body.matchId, "Match");

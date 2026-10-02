@@ -251,3 +251,8 @@ html { scroll-padding-bottom: var(--parlay-space, 0px); }
   #parlay-close { grid-column: 2; grid-row: 1; }
   .slip-actions { grid-column: 1 / -1; grid-row: 2; margin: 0 10px 10px; display: grid; grid-template-columns: 1fr 1fr; }
 }
+
+.match-result { display:flex; align-items:center; gap:12px; padding:14px 16px; background:#183325; border-block:1px solid #548a60; color:#ecffe9; font-size:15px; line-height:1.5; }
+.match-result strong { padding:4px 7px; background:#b5e59e; color:#153019; border-radius:3px; font-size:10px; letter-spacing:1px; }
+.fighter.is-winner { box-shadow:inset 0 0 0 2px #97ce7f; background:#18251b; }
+.fighter.is-winner .pick-button:disabled { opacity:1; border-color:#97ce7f; color:#d5efc8; }

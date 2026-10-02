@@ -13,6 +13,7 @@ import { withFanLines } from "../src/superfight/fan-lines.js";
 process.env.FAN_PICKS_SECRET ||= randomBytes(32).toString("hex");
 const previewFanVotes = new Map();
 const previewPhotos = new Map();
+const previewResults = new Map();
 let previewDefaultUnmatched = false;
 const previewDefaultBoutDetails = {};
 
@@ -98,6 +99,7 @@ async function mockApi(request, response, url) {
         if (!previewEvent.fanPicksOpen) return json(response, 409, { message: "Voting is closed. You can still view the fan picks." });
         const match = previewFanMatches().find(item => item.id === input.matchId);
         if (input.eventId !== previewEvent.id || !match || ![match.fighterA.id, match.fighterB.id].includes(input.fighterId)) return json(response, 409, { message: "This matchup is no longer available." });
+        if (previewResults.has(match.id)) return json(response, 409, { message: "This match has a final result. Voting is closed." });
         previewFanVotes.set(`${match.id}:${voter}`, input.fighterId);
       }
       return json(response, 200, withFanLines({
@@ -106,7 +108,7 @@ async function mockApi(request, response, url) {
           const votes = [...previewFanVotes].filter(([key]) => key.startsWith(`${match.id}:`)).map(([, fighter]) => fighter);
           const a = votes.filter(id => id === match.fighterA.id).length;
           const scores = percentages(a, votes.length - a);
-          return { id: match.id, boutType: match.boutType, weightLbs: match.weightLbs, totalPicks: votes.length, selectedFighterId: previewFanVotes.get(`${match.id}:${voter}`) || null,
+          return { id: match.id, winnerFighterId: previewResults.get(match.id) ?? null, boutType: match.boutType, weightLbs: match.weightLbs, totalPicks: votes.length, selectedFighterId: previewFanVotes.get(`${match.id}:${voter}`) || null,
             fighters: [match.fighterA, match.fighterB].map((fighter, index) => {
               const words = fighter.name.split(/\s+/);
               return { id: fighter.id, firstName: words[0], name: `${words[0]} ${words.at(-1)[0].toUpperCase()}.`, academy: fighter.gym, photoUrl: fighter.photoUrl || null, percentage: scores[index], picks: index === 0 ? a : votes.length - a };
@@ -235,6 +237,14 @@ async function mockApi(request, response, url) {
         }
         return json(response, 201, { match: { id: match.id } });
       }
+      if (input.action === "result") {
+        const match = previewFanMatches().find(item => item.id === input.matchId);
+        if (!match) return json(response, 404, { message: "The active match could not be found." });
+        if (input.winnerFighterId !== null && ![match.fighterA.id, match.fighterB.id].includes(input.winnerFighterId)) return json(response, 400, { message: "Choose a competitor in this matchup." });
+        if (input.winnerFighterId === null) previewResults.delete(match.id);
+        else previewResults.set(match.id, input.winnerFighterId);
+        return json(response, 200, { match: { id: match.id, winnerFighterId: input.winnerFighterId } });
+      }
       if (input.action === "edit") {
         const match = previewMatches.find(item => item.id === input.matchId)
           ?? (input.matchId === "00000000-0000-4000-8000-000000000301" && !previewDefaultUnmatched ? previewDefaultBoutDetails : null);
@@ -257,8 +267,9 @@ async function mockApi(request, response, url) {
       return json(response, 200, { unmatched: true });
     }
     return json(response, 200, {
-      matches: [...previewMatches, ...(previewDefaultUnmatched ? [] : [{
+      matches: [...previewMatches.map(match => ({ ...match, winnerFighterId: previewResults.get(match.id) ?? null })), ...(previewDefaultUnmatched ? [] : [{
         id: "00000000-0000-4000-8000-000000000301",
+        winnerFighterId: previewResults.get("00000000-0000-4000-8000-000000000301") ?? null,
         flyerCompleted: previewDefaultFlyerCompleted,
         weightLbs: 155,
         weightOption: previewEvent.weightOptions[1],

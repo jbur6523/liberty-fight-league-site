@@ -655,7 +655,9 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.58); }
   .admin-matched-table tbody { display: block; }
   .admin-matched-table tr { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); border-bottom: 2px solid var(--line); }
   .admin-matched-table td { min-width: 0; overflow-wrap: anywhere; border: 0; }
-  .admin-matched-table td:nth-child(5),
+  .admin-matched-table td:first-child,
+  .admin-matched-table td:nth-child(6),
+  .admin-matched-table td:nth-child(7),
   .admin-matched-table td:last-child { grid-column: 1 / -1; }
   .admin-matched-table td:last-child .admin-controls { justify-content: flex-end; }
   .admin-matched-table [data-edit-bout],
@@ -699,3 +701,8 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.58); }
 .photo-crop-dialog input[type="range"] { width: 100%; min-height: 44px; margin: 0; accent-color: var(--red); }
 .photo-crop-dialog .admin-dialog-actions { margin-top: 8px; gap: 8px; flex-wrap: wrap; }
 .photo-crop-dialog .admin-dialog-actions button { min-height: 44px; }
+
+.admin-result-form { display:grid; gap:8px; min-width:180px; max-width:260px; }
+.admin-result-form label { font-weight:700; }
+.admin-result-form select { width:100%; max-width:260px; }
+.admin-result-form [role="status"] { font-size:12px; line-height:1.5; color:#5d543e; }

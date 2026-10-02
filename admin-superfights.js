@@ -1,3 +1,4 @@
+import { boardMatches, scheduledMatchNumber } from "/src/superfight/board-order.js";
 import { US_STATES } from "/src/superfight/us-states.js";
 import { cropFighterPhoto } from "/src/superfight/photo-crop.js";
 
@@ -468,18 +469,37 @@ function renderMatched() {
 
   elements.matched.innerHTML = `
     <div class="admin-table-wrap"><table class="admin-table admin-matched-table">
-      <thead><tr><th>Fighter A</th><th>Other competitors</th><th>Bout type</th><th>Match weight</th><th>Confirmation</th><th>Quick actions</th></tr></thead>
-      <tbody>${state.matches.map((match) => `
+      <thead><tr><th>Match</th><th>Fighter A</th><th>Other competitors</th><th>Bout type</th><th>Match weight</th><th>Confirmation</th><th>Result</th><th>Quick actions</th></tr></thead>
+      <tbody>${boardMatches(state.eventId, state.matches).map((match) => `
         <tr class="${match.flyerCompleted ? "is-flyer-completed" : ""}">
+          <td>${scheduledMatchNumber(state.eventId, match) ?? "&mdash;"}</td>
           <td>${matchFighterCell(match.fighterA)}${matchLinks(match.fighterA)}</td>
           <td>${[match.fighterB, ...(match.extraFighters ?? [])].map(fighter => `<div class="admin-match-participant">${matchFighterCell(fighter)}${matchLinks(fighter)}</div>`).join("")}</td>
           <td>${label(match.boutType)}${match.notes ? `<div class="admin-muted admin-bout-notes">${escapeHtml(match.notes)}</div>` : ""}</td>
           <td>${escapeHtml(match.weightOption?.label ?? (match.weightLbs === null ? "—" : `${match.weightLbs} lb`))}</td>
           <td>${confirmationBadge(match.confirmation.summary)}</td>
+          <td><form class="admin-result-form" data-result="${match.id}"><label for="winner-${match.id}">Winner</label><select id="winner-${match.id}" class="admin-input" name="winner"><option value="">No result yet</option>${[match.fighterA, match.fighterB, ...(match.extraFighters ?? [])].map(f => `<option value="${f.id}" ${match.winnerFighterId === f.id ? "selected" : ""}>${escapeHtml(f.name)}</option>`).join("")}</select><button class="admin-button secondary" type="submit">Save result</button><span role="status">${match.winnerFighterId ? "Final result saved" : ""}</span></form></td>
           <td><div class="admin-controls"><button class="admin-button secondary" type="button" data-edit-bout="${match.id}">Edit bout</button><button class="admin-button secondary" type="button" data-flyer="${match.id}" aria-pressed="${match.flyerCompleted === true}">${match.flyerCompleted ? "Flyer ✓" : "Flyer"}</button><button class="admin-button danger" type="button" data-unmatch="${match.id}">Unmatch</button></div></td>
         </tr>`).join("")}</tbody>
     </table></div>`;
 
+  elements.matched.querySelectorAll("[data-result]").forEach(form => form.addEventListener("submit", async event => {
+    event.preventDefault();
+    const button = form.querySelector("button");
+    if (button.disabled) return;
+    const select = form.querySelector("select");
+    const status = form.querySelector('[role="status"]');
+    button.disabled = true;
+    select.disabled = true;
+    status.textContent = "Saving...";
+    try {
+      const payload = await api("/api/superfight-admin-matches", { method: "POST", body: JSON.stringify({ action: "result", matchId: form.dataset.result, winnerFighterId: select.value || null }) });
+      const match = state.matches.find(item => item.id === form.dataset.result);
+      if (match) match.winnerFighterId = payload.match.winnerFighterId;
+      status.textContent = payload.match.winnerFighterId ? "Saved. Live Odds updates within 30 seconds." : "Result cleared. Voting reopened if enabled.";
+    } catch (error) { status.textContent = error.message; }
+    finally { button.disabled = false; select.disabled = false; }
+  }));
   bindTableActions(elements.matched);
   elements.matched.querySelectorAll("[data-edit-bout]").forEach(button => {
     button.addEventListener("click", () => openEditBout(button.dataset.editBout));

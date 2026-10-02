@@ -20,6 +20,7 @@ export default async function handler(request, response) {
       });
       if (error) throw databaseFailure(error, "Fan Picks vote failed");
       const failures = {
+        completed: [409, "This match has a final result. Voting is closed."],
         closed: [409, "Voting is closed. You can still view the fan picks."],
         unavailable: [409, "This matchup is no longer available. Refresh to see the current card."],
         invalid: [400, "Choose a fighter in this matchup."],

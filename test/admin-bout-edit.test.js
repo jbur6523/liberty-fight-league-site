@@ -1,3 +1,5 @@
+import { fanPicksSnapshot } from "../src/server/fan-picks.js";
+import { matchResult } from "../src/superfight/match-result.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile, readdir } from "node:fs/promises";
@@ -141,7 +143,46 @@ test("bout edits persist through the admin API, validate event weights, and pres
     fail = true;
     assert.equal((await request()).statusCode, 500);
     fail = false;
+    // The authenticated result write flows through the real snapshot and voting functions.
+    const resultBody = { action: "result", matchId, winnerFighterId: fighters[0] };
+    assert.equal((await request(resultBody, { cookie: "" })).statusCode, 401);
+    authorized = false;
+    assert.equal((await request(resultBody)).statusCode, 403);
+    authorized = true;
+    assert.equal((await request(resultBody, { origin: "https://other.com" })).statusCode, 403);
+    assert.equal((await request({ ...resultBody, winnerFighterId: fighters[2] })).statusCode, 400);
+    assert.equal((await request({ ...resultBody, winnerFighterId: "invalid" })).statusCode, 400);
+    assert.equal((await request({ ...resultBody, winnerFighterId: undefined })).statusCode, 400);
+    assert.equal((await request(resultBody)).statusCode, 200);
+    assert.equal((await request(null, { method: "GET" })).payload.matches.find(m => m.id === matchId).winnerFighterId, fighters[0]);
+    const snapshotService = { storage: service.storage, rpc: async (_name, params) => ({ data: (await db.query("select superfight_fan_picks_snapshot_v2($1) result", [params.voter_hash])).rows[0].result }) };
+    const publicCard = async id => (await fanPicksSnapshot(snapshotService, "a".repeat(64))).matches.find(m => m.id === id);
+    let card = await publicCard(matchId);
+    assert.equal(card.winnerFighterId, fighters[0]);
+    assert.equal(matchResult(card).outcomeId, fighters[0]);
+    assert.equal(card.totalPicks, 1);
+    assert.equal(card.selectedFighterId, fighters[0]);
+    const cast = async () => (await db.query("select cast_superfight_fan_pick($1,$2,$3,$4,$5) result", [eventId, matchId, fighters[1], "a".repeat(64), "b".repeat(64)])).rows[0].result;
+    assert.equal(await cast(), "completed");
+    assert.deepEqual((await db.query("select * from superfight_fan_votes")).rows, votes);
+    assert.equal((await request({ ...resultBody, winnerFighterId: fighters[1] })).statusCode, 200);
+    assert.equal((await publicCard(matchId)).winnerFighterId, fighters[1]);
+    assert.equal((await request({ ...resultBody, winnerFighterId: null })).statusCode, 200);
+    assert.equal((await publicCard(matchId)).winnerFighterId, null);
+    assert.equal(await cast(), "saved");
+    // A C-side gauntlet winner resolves to the opponent outcome, never to a fake two-person pairing.
+    assert.equal((await request({ action: "result", matchId: groupId, winnerFighterId: fighters[4] })).statusCode, 200);
+    card = await publicCard(groupId);
+    assert.equal(matchResult(card).outcomeId, fighters[3]);
+    assert.equal(matchResult(card).winnerName, card.opponents[1].name);
+    assert.equal((await request({ action: "result", matchId: groupId, winnerFighterId: fighters[2] })).statusCode, 200);
+    assert.equal(matchResult(await publicCard(groupId)).outcomeId, fighters[2]);
+    assert.deepEqual((await db.query("select * from superfight_match_confirmations order by id")).rows, confirmations);
+    fail = true;
+    assert.equal((await request(resultBody)).statusCode, 500);
+    fail = false;
     await db.query("update superfight_matches set state='unmatched', unmatched_at=now() where id=$1", [matchId]);
+    assert.equal((await request(resultBody)).statusCode, 404);
     assert.equal((await request()).statusCode, 404);
   } finally {
     service.from = originals.from; service.rpc = originals.rpc; service.auth.getUser = originals.getUser;

@@ -40,7 +40,7 @@ export class FanParlay {
     if (this.picks.size < 2) this.expanded = false;
   }
   toggle(matchId, fighterId, snapshot) {
-    if (!this.active || !snapshot.matches.some(m => m.id === matchId && m.fighters.some(f => f.id === fighterId))) return;
+    if (!this.active || !snapshot.matches.some(m => m.id === matchId && !m.winnerFighterId && m.fighters.some(f => f.id === fighterId))) return;
     if (this.picks.get(matchId) === fighterId) this.picks.delete(matchId);
     else this.picks.set(matchId, fighterId);
     if (this.picks.size < 2) this.expanded = false;

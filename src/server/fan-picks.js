@@ -68,6 +68,7 @@ export async function fanPicksSnapshot(service, voterHash) {
       const opponents = match.opponents?.map(fighter => publicFighter(service, fighter));
       return {
         id: match.id, totalPicks: votesA + votesB, selectedFighterId: match.selected_fighter_id,
+        winnerFighterId: match.winner_fighter_id ?? null,
         boutType: match.bout_type, weightLbs: match.match_weight_lbs == null ? null : Number(match.match_weight_lbs),
         ...(opponents ? { groupPick: true, anchor, opponents } : {}),
         fighters: [

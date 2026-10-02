@@ -1,3 +1,4 @@
+import { matchResult } from "/src/superfight/match-result.js";
 import { FanParlay, combinedFanOdds, parlayShareText, shareParlay } from "/src/superfight/parlay.js";
 import { restoreParlay, rememberParlay } from "/src/superfight/parlay-storage.js";
 import { createParlayTicket } from "/src/superfight/parlay-ticket.js";
@@ -85,24 +86,26 @@ function render() {
   document.querySelector("#picks-download").disabled = picksDownloading || !savedPicks.length;
   document.querySelector("#picks-download-count").textContent = savedPicks.length ? `${savedPicks.length} saved ${savedPicks.length === 1 ? "pick" : "picks"} ready to download.` : "Make your picks above, then save your ticket.";
   container.innerHTML = boardMatches(event?.id, snapshot.matches).map((match, index) => {
+    const result = matchResult(match);
     const trend = match.fighters.find(f => f.id === match.trendFighterId);
     const currentLine = trend?.fanOdds || "PK";
     return `<article class="match-card${match.groupPick ? ' group-pick-card' : ''}" id="match-${match.id}" data-match="${match.id}" aria-label="${escapeHtml(match.groupPick ? `${match.anchor.name} versus ${match.opponents.map(f => f.name).join(', ')}` : match.fighters.map(f => f.name).join(" versus "))}">
       <div class="card-header"><h2>${isMainEvent(event?.id, match) ? '<b class="main-event-label">MAIN EVENT</b> ' : ''}${escapeHtml(match.groupPick ? "GROUP PICK" : { gi: "GI", no_gi: "NO-GI", john_wick: "JOHN WICK", gauntlet: "GAUNTLET" }[match.boutType] || match.boutType || "MATCHUP")} <span>${match.weightLbs == null ? "Weight TBA" : `${escapeHtml(match.weightLbs)} LBS`}</span></h2><span class="market-label">FAN ODDS</span></div>
+      ${result ? `<div class="match-result" role="status"><strong>FINAL</strong><span>${escapeHtml(result.winnerName)} wins</span></div>` : ""}
       ${match.groupPick ? groupRoster(match) : ''}
       <div class="line-ticker"><span>Open <b>${match.openingLine}</b></span><span>Now <b>${currentLine}</b></span><span class="trend" title="Support change since the 50/50 opening">${trend ? `▲ ${escapeHtml(trend.firstName)} <b>+${trend.movement} pts</b>` : "— Even support"}</span></div>
       <div class="fighters"><span class="vs" aria-hidden="true">VS</span>${match.fighters.map(fighter => {
         const fanSelected = match.selectedFighterId === fighter.id;
         const selected = parlay.active ? parlay.picks.get(match.id) === fighter.id : fanSelected;
-        return `<div class="fighter${selected ? " is-picked" : ""}">
+        return `<div class="fighter${selected ? " is-picked" : ""}${result?.outcomeId === fighter.id ? " is-winner" : ""}">
           ${match.groupPick ? '' : `<div class="photo-wrap"><img class="portrait${fighter.photoUrl ? "" : " is-placeholder"}" src="${escapeHtml(fighter.photoUrl || "/fighter-silhouette.svg")}" alt="${fighter.photoUrl ? escapeHtml(fighter.name) : "Photo not yet available"}" width="500" height="500" ${index > 2 ? 'loading="lazy"' : ""}></div>`}
           <div class="fighter-identity"><h3>${escapeHtml(match.groupPick ? (fighter.id === match.anchor.id ? `${match.anchor.firstName} wins` : 'Opponents win') : fighter.name)}</h3><p class="academy">${escapeHtml(fighter.description || fighter.academy)}</p></div>
-          <button class="pick-button" type="button" data-fighter="${fighter.id}" aria-pressed="${selected}" aria-label="${parlay.active ? `${selected ? "Remove" : "Add"} ${escapeHtml(fighter.name)} ${selected ? "from" : "to"} parlay` : `Pick ${escapeHtml(fighter.name)}`}, Fan Odds ${fighter.fanOdds}" ${busy || (!parlay.active && !event.votingOpen) ? "disabled" : ""}><span>${escapeHtml(fighter.name)}</span><strong>${fighter.fanOdds}</strong></button>
+          <button class="pick-button" type="button" data-fighter="${fighter.id}" aria-pressed="${selected}" aria-label="${parlay.active ? `${selected ? "Remove" : "Add"} ${escapeHtml(fighter.name)} ${selected ? "from" : "to"} parlay` : `Pick ${escapeHtml(fighter.name)}`}, Fan Odds ${fighter.fanOdds}" ${busy || Boolean(match.winnerFighterId) || (!parlay.active && !event.votingOpen) ? "disabled" : ""}><span>${escapeHtml(fighter.name)}</span><strong>${fighter.fanOdds}</strong></button>
           <div class="fighter-stats"><div class="stat-row"><strong>${fighter.percentage}%</strong><span>${number(fighter.picks)} ${fighter.picks === 1 ? "pick" : "picks"}</span></div><div class="bar" aria-hidden="true"><span style="width:${fighter.percentage}%"></span></div><div class="pick-state">${selected ? `<b class="your-pick">✓ ${parlay.active ? "PARLAY PICK" : "YOUR PICK"}</b>` : parlay.active && fanSelected ? '<span class="fighter-movement">✓ Your Fan Pick vote</span>' : `<span class="fighter-movement">${fighter.movement === 0 ? "Opened PK" : `${fighter.movement > 0 ? "▲" : "▼"} ${signed(fighter.movement)} pts since open`}</span>`}</div></div>
         </div>`;
       }).join("")}</div>
       <p class="card-error" role="alert" hidden></p>
-      <div class="card-total"><span><strong>${number(match.totalPicks)}</strong> Fan ${match.totalPicks === 1 ? "Pick" : "Picks"}</span><span>${event.votingOpen ? "Pick a side. Change your mind anytime." : "Voting closed · Results remain visible"}</span></div>
+      <div class="card-total"><span><strong>${number(match.totalPicks)}</strong> Fan ${match.totalPicks === 1 ? "Pick" : "Picks"}</span><span>${match.winnerFighterId ? "Final result · Voting closed" : event.votingOpen ? "Pick a side. Change your mind anytime." : "Voting closed · Results remain visible"}</span></div>
     </article>`;
   }).join("");
   container.querySelectorAll("img").forEach(img => img.addEventListener("error", () => { img.classList.add("is-placeholder"); img.alt = "Photo not yet available"; img.src = "/fighter-silhouette.svg"; }, { once: true }));
